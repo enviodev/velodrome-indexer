@@ -1,56 +1,7 @@
-type Token @entity {
-  # token address
-  id: ID!
-
-  # mirrored from the smart contract
-  symbol: String!
-  name: String!
-  decimals: BigInt!
-
-  # used for other stats like marketcap
-  totalSupply: BigInt!
-
-  # token specific volume
-  tradeVolume: BigInt!
-  tradeVolumeUSD: BigInt!
-  untrackedVolumeUSD: BigInt!
-
-  # transactions across all pairs
-  txCount: BigInt!
-
-  # liquidity across all pairs
-  totalLiquidity: BigInt!
-
-  # derived prices
-  derivedETH: BigInt
-}
-
+# Data accumulated and condensed into day stats for each exchange
 type Pair @entity {
-  # pair address
-  id: ID!
-
-  # mirrored from the smart contract
-  token0: Token!
-  token1: Token!
+  id: ID! # block number
+  timestamp: BigInt!
   reserve0: BigInt!
   reserve1: BigInt!
-  totalSupply: BigInt!
-  isStable: Boolean!
-
-  # derived liquidity
-  reserveETH: BigInt!
-  reserveUSD: BigInt!
-  # used for separating per pair reserves and global
-  trackedReserveETH: BigInt!
-
-  # Price in terms of the asset pair
-  token0Price: BigInt!
-  token1Price: BigInt!
-
-  # lifetime volume stats
-  volumeToken0: BigInt!
-  volumeToken1: BigInt!
-  volumeUSD: BigInt!
-  untrackedVolumeUSD: BigInt!
-  txCount: BigInt!
 }
