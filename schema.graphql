@@ -1,6 +1,29 @@
+type Token @entity {
+  # token address
+  id: ID!
+
+  # mirrored from the smart contract - all of these get from chainlink
+  symbol: String!
+  name: String!
+  decimals: BigInt!
+  price: BigInt!
+}
+
 # Data accumulated and condensed into day stats for each exchange
-type Pair @entity {
+type Pool @entity {
   id: ID! # block number
+  # mirrored from the smart contract
+  token0: String!
+  token1: String!
+  stable: Boolean!
+  reserve0: BigInt!
+  reserve1: BigInt!
+  # PoolDayData: PairDayData! @derivedFrom(field: "pair")
+}
+# Data accumulated and condensed into day stats for each exchange
+type PoolDayData @entity {
+  id: ID! # block number
+  pair: Pool!
   timestamp: BigInt!
   reserve0: BigInt!
   reserve1: BigInt!
