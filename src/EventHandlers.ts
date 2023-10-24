@@ -25,15 +25,15 @@ FactoryContract_PoolCreated_handler(({ event, context }) => {
 
   console.log("pool_instance", pool_instance);
 
-  context.pool.set(pool_instance);
+  context.Pool.set(pool_instance);
 });
 
 PoolContract_Sync_loader(({ event, context }) => {
-  let _ = context.pool.load(event.srcAddress.toString());
+  let _ = context.Pool.load(event.srcAddress.toString());
 });
 
 PoolContract_Sync_handler(({ event, context }) => {
-  let current_pool = context.pool.get(event.srcAddress.toString());
+  let current_pool = context.Pool.get(event.srcAddress.toString());
 
   if (current_pool) {
     const pool_instance: poolEntity = {
@@ -41,6 +41,6 @@ PoolContract_Sync_handler(({ event, context }) => {
       reserve0: BigInt(event.params.reserve0),
       reserve1: BigInt(event.params.reserve1),
     };
-    context.pool.set(pool_instance);
+    context.Pool.set(pool_instance);
   }
 });
