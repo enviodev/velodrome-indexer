@@ -28,65 +28,65 @@ importers:
   generated:
     dependencies:
       '@elastic/ecs-pino-format':
-        specifier: ^1.3.0
+        specifier: 1.4.0
         version: 1.4.0
       '@glennsl/rescript-fetch':
-        specifier: ^0.2.0
+        specifier: 0.2.0
         version: 0.2.0
       '@ryyppy/rescript-promise':
-        specifier: ^2.1.0
+        specifier: 2.1.0
         version: 2.1.0
       ethers:
-        specifier: ^6
+        specifier: 6.8.0
         version: 6.8.0
       express:
-        specifier: ^4.17.1
+        specifier: 4.18.2
         version: 4.18.2
       js-sdsl:
-        specifier: ^4.4
+        specifier: 4.4.2
         version: 4.4.2
       node-fetch:
         specifier: 2.7.0
         version: 2.7.0
       pino:
-        specifier: ^8.14.1
-        version: 8.16.0
+        specifier: 8.16.1
+        version: 8.16.1
       pino-pretty:
-        specifier: ^10.0.0
+        specifier: 10.2.3
         version: 10.2.3
       postgres:
-        specifier: ^3.3.4
-        version: 3.4.0
+        specifier: 3.4.1
+        version: 3.4.1
       prom-client:
-        specifier: ^14.0.1
-        version: 14.2.0
+        specifier: 15.0.0
+        version: 15.0.0
       rescript-envsafe:
-        specifier: ^1.3.0
-        version: 1.4.0(rescript-struct@4.1.1)(rescript@10.1.4)
+        specifier: 1.3.0
+        version: 1.3.0(rescript-struct@4.1.1)(rescript@10.1.4)
       rescript-express:
-        specifier: ^0.4.1
+        specifier: 0.4.1
         version: 0.4.1(express@4.18.2)
       rescript-struct:
-        specifier: ^4.1.1
+        specifier: 4.1.1
         version: 4.1.1(rescript@10.1.4)
       skar-client-node:
-        specifier: ^0.0.7
-        version: 0.0.7
+        specifier: 0.0.9
+        version: 0.0.9
       viem:
-        specifier: ^1.16.0
+        specifier: 1.16.6
         version: 1.16.6(typescript@5.2.2)
       yargs:
-        specifier: ^17.7.2
+        specifier: 17.7.2
         version: 17.7.2
     devDependencies:
       '@greenlabs/ppx-spice':
         specifier: 0.1.14
         version: 0.1.14
       gentype:
-        specifier: ^4.5.0
+        specifier: 4.5.0
         version: 4.5.0
       rescript:
-        specifier: ^10.1.2
+        specifier: 10.1.4
         version: 10.1.4
 
 packages:
@@ -154,6 +154,11 @@ packages:
   /@noble/hashes@1.3.2:
     resolution: {integrity: sha512-MVC8EAQp7MvEcm30KWENFjgR+Mkmf+D189XJTkFIlwohU5hcBbn1ZkKq7KVTi2Hme3PMGF390DaL52beVrIihQ==}
     engines: {node: '>= 16'}
+    dev: false
+
+  /@opentelemetry/api@1.7.0:
+    resolution: {integrity: sha512-AdY5wvN0P2vXBi3b29hxZgSFvdhdxPB9+f0B6s//P9Q8nibRWeA3cHm8UmLpio9ABigkVHJ5NMPk+Mz8VCCyrw==}
+    engines: {node: '>=8.0.0'}
     dev: false
 
   /@ryyppy/rescript-promise@2.1.0:
@@ -889,8 +894,8 @@ packages:
     resolution: {integrity: sha512-cHjPPsE+vhj/tnhCy/wiMh3M3z3h/j15zHQX+S9GkTBgqJuTuJzYJ4gUyACLhDaJ7kk9ba9iRDmbH2tJU03OiA==}
     dev: false
 
-  /pino@8.16.0:
-    resolution: {integrity: sha512-UUmvQ/7KTZt/vHjhRrnyS7h+J7qPBQnpG80V56xmIC+o9IqYmQOw/UIny9S9zYDfRBR0ClouCr464EkBMIT7Fw==}
+  /pino@8.16.1:
+    resolution: {integrity: sha512-3bKsVhBmgPjGV9pyn4fO/8RtoVDR8ssW1ev819FsRXlRNgW8gR/9Kx+gCK4UPWd4JjrRDLWpzd/pb1AyWm3MGA==}
     hasBin: true
     dependencies:
       atomic-sleep: 1.0.0
@@ -906,8 +911,9 @@ packages:
       thread-stream: 2.4.1
     dev: false
 
-  /postgres@3.4.0:
-    resolution: {integrity: sha512-d7UtSoCg4hUtzxM9aRi3J8BrM6t0h4bQmgAHG96cDCNpP9CnnWQRdRl7WWNvKs0oOaQU2InGoOi1jETmdZK02g==}
+  /postgres@3.4.1:
+    resolution: {integrity: sha512-Wasjv6WEzrZXbwKByR2RGD7MBfj7VBqco3hYWz8ifzSAp6tb2L6MlmcKFzkmgV1jT7/vKlcSa+lxXZeTdeVMzQ==}
+    engines: {node: '>=12'}
     dev: false
 
   /process-warning@2.2.0:
@@ -919,10 +925,11 @@ packages:
     engines: {node: '>= 0.6.0'}
     dev: false
 
-  /prom-client@14.2.0:
-    resolution: {integrity: sha512-sF308EhTenb/pDRPakm+WgiN+VdM/T1RaHj1x+MvAuT8UiQP8JmOEbxVqtkbfR4LrvOg5n7ic01kRBDGXjYikA==}
-    engines: {node: '>=10'}
+  /prom-client@15.0.0:
+    resolution: {integrity: sha512-UocpgIrKyA2TKLVZDSfm8rGkL13C19YrQBAiG3xo3aDFWcHedxRxI3z+cIcucoxpSO0h5lff5iv/SXoxyeopeA==}
+    engines: {node: ^16 || ^18 || >=20}
     dependencies:
+      '@opentelemetry/api': 1.7.0
       tdigest: 0.1.2
     dev: false
 
@@ -1002,11 +1009,11 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: false
 
-  /rescript-envsafe@1.4.0(rescript-struct@4.1.1)(rescript@10.1.4):
-    resolution: {integrity: sha512-WgaRoZPP1RE/qk9mPsTNSzxz0GlyjrwVOssOSu4lahpueXu/7ogK4TGwi5AiV/7ol+5RplTlKwxhNYOPOqrTIg==}
+  /rescript-envsafe@1.3.0(rescript-struct@4.1.1)(rescript@10.1.4):
+    resolution: {integrity: sha512-g0XnO8yQgOyZedZqkdj0hE+b24K+5IJNlOD/xowLF31X2VxHT06EwR91FLX0we9RN/NBoqGCt1D8CC7nmRVEVw==}
     peerDependencies:
       rescript: 10.1.x
-      rescript-struct: 4.1.x
+      rescript-struct: 4.0.x
     dependencies:
       rescript: 10.1.4
       rescript-struct: 4.1.1(rescript@10.1.4)
@@ -1109,8 +1116,8 @@ packages:
       object-inspect: 1.13.1
     dev: false
 
-  /skar-client-node-darwin-arm64@0.0.7:
-    resolution: {integrity: sha512-rCYoXGm60zywLoB3cXSvksx1Au/gLeevceSPSn6rMVgEhjq01jZ3cog/2wTZWXCtX40zZDaASogPenp2VbiWYw==}
+  /skar-client-node-darwin-arm64@0.0.9:
+    resolution: {integrity: sha512-qmwuufe8RNWjTZWSaKo1fnVWX35DmyAPW/CzavyuEnv88uzeCiWcDZNg0EhtjY9/nFsj/W8T/DaSSJ5eIXbYvg==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [darwin]
@@ -1118,8 +1125,8 @@ packages:
     dev: false
     optional: true
 
-  /skar-client-node-darwin-x64@0.0.7:
-    resolution: {integrity: sha512-XIJWHJmmzK4XrPPi0uwnLi3hRe3IDmdIqL0nnGs99H2+muPrp+XgeebcglNJEQBEtrD1qqEqOUn03PJhzqR+1w==}
+  /skar-client-node-darwin-x64@0.0.9:
+    resolution: {integrity: sha512-ZdUY7QYZRvuV8LwPO/OddypWZqPXVIE+ZVxE9lHq/QyWP/uyPuBGyVhJeV9cfobrqeeBAV6FuN/shf8uIZUPyQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [darwin]
@@ -1127,8 +1134,8 @@ packages:
     dev: false
     optional: true
 
-  /skar-client-node-linux-arm64-gnu@0.0.7:
-    resolution: {integrity: sha512-XFZljCermoc6iAXZHbEJunIPGIH+heIQYgUHur2Salf9ta2nGm/4Uz0c8IxoOmkv8bcwX85MSnta0G5IAKpfLQ==}
+  /skar-client-node-linux-arm64-gnu@0.0.9:
+    resolution: {integrity: sha512-rbkgX9slLiRMdofOHnvdCPnCWMmiFLkNSMgBq6OTebez9QkT1cyPomHCXMeiMLZgAVXdiwlhFq/Nqxm+YP/dMg==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
@@ -1136,8 +1143,8 @@ packages:
     dev: false
     optional: true
 
-  /skar-client-node-linux-x64-gnu@0.0.7:
-    resolution: {integrity: sha512-EzEq5OersTNXeU7Rhdf/adhZq3CSR+SYVPBUVYTnver9npxE07X+f2CJGTBYHY2H4tTfgZgmwWKxKZkAVO4b3g==}
+  /skar-client-node-linux-x64-gnu@0.0.9:
+    resolution: {integrity: sha512-ojQ/a4Mjk07oyAkWBKBy3M38+PJVY7phaEr9nFhc44rEzShsqqVJSHOUGrnyaN01/gFhYyJ96mOm0kD7TxMJSg==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
@@ -1145,8 +1152,8 @@ packages:
     dev: false
     optional: true
 
-  /skar-client-node-linux-x64-musl@0.0.7:
-    resolution: {integrity: sha512-0TNglyDQLtKVEju+Z8axuL/BsWHzLtbPF/G1MgxdvhE9T0vqvoY2VtS/yilpItJux7rBNn7QtOhbssuxpO6Y1Q==}
+  /skar-client-node-linux-x64-musl@0.0.9:
+    resolution: {integrity: sha512-Rh5woAEiP1UO8GbF7T91IkANepGwmaqa1fpkefL5K61d6Ze3FvDIZA3Qz8aG0NOQPANCz68WqID6ysa6IiSGTg==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
@@ -1154,8 +1161,8 @@ packages:
     dev: false
     optional: true
 
-  /skar-client-node-win32-x64-msvc@0.0.7:
-    resolution: {integrity: sha512-UXT/mBvLXTywDv5fuxPWfeiaVVsmYe0sVkI/96SO9hAPHDFzmkP/jDcLBwzLXhtcXQaQWbQ+gT0Tm8AQR0aS5Q==}
+  /skar-client-node-win32-x64-msvc@0.0.9:
+    resolution: {integrity: sha512-vfJY3gHe7Ba3AiqqMcJptw/xKPxg170Mg9HEPinMwAHnYDE2r8IWkp+SOXMci0m+q9jjUBDAy7+71G62dYIVvQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
@@ -1163,16 +1170,16 @@ packages:
     dev: false
     optional: true
 
-  /skar-client-node@0.0.7:
-    resolution: {integrity: sha512-7mE9qoCoomnV9+ohXTClLwR5ZK198u4JQa6t++rYw5o970LAVPOfJWN2UX5Rpc8VgzodHd+YGQydh5FwrJMpHg==}
+  /skar-client-node@0.0.9:
+    resolution: {integrity: sha512-XWJQk9+oHrDXJf9qPvJmfVnBmWT0s8UYnHeu+oPpE+TaLkbmPugZgGZDZ7wvu1ZziMvhauLIblNtz9gsQxd/0w==}
     engines: {node: '>= 10'}
     optionalDependencies:
-      skar-client-node-darwin-arm64: 0.0.7
-      skar-client-node-darwin-x64: 0.0.7
-      skar-client-node-linux-arm64-gnu: 0.0.7
-      skar-client-node-linux-x64-gnu: 0.0.7
-      skar-client-node-linux-x64-musl: 0.0.7
-      skar-client-node-win32-x64-msvc: 0.0.7
+      skar-client-node-darwin-arm64: 0.0.9
+      skar-client-node-darwin-x64: 0.0.9
+      skar-client-node-linux-arm64-gnu: 0.0.9
+      skar-client-node-linux-x64-gnu: 0.0.9
+      skar-client-node-linux-x64-musl: 0.0.9
+      skar-client-node-win32-x64-msvc: 0.0.9
     dev: false
 
   /sonic-boom@3.7.0:
