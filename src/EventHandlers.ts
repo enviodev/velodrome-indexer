@@ -20,6 +20,7 @@ PoolContract_Swap_handler(({ event, context }) => {
         current_pool.cumulativeVolume0 + BigInt(event.params.amount0In),
       cumulativeVolume1:
         current_pool.cumulativeVolume1 + BigInt(event.params.amount1In),
+      numberOfSwaps: current_pool.numberOfSwaps + BigInt(1),
     };
     context.Pool.set(pool_instance);
   } else {
@@ -29,6 +30,7 @@ PoolContract_Swap_handler(({ event, context }) => {
       reserve1: BigInt(0),
       cumulativeVolume0: BigInt(event.params.amount0In),
       cumulativeVolume1: BigInt(event.params.amount1In),
+      numberOfSwaps: BigInt(1),
     };
     context.Pool.set(pool_instance);
   }
@@ -55,6 +57,7 @@ PoolContract_Sync_handler(({ event, context }) => {
       reserve1: BigInt(event.params.reserve1),
       cumulativeVolume0: BigInt(0),
       cumulativeVolume1: BigInt(0),
+      numberOfSwaps: BigInt(0),
     };
     context.Pool.set(pool_instance);
   }
