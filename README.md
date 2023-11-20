@@ -1,3 +1,27 @@
-## Envio Blank Template
+## Velodrome V2 indexer
 
-*Please refer to the [documentation website](https://docs.envio.dev) for a thorough guide on all Envio indexer features*
+This repo contains the indexer for Velodrome V2 contracts that are deployed on Optimism.
+
+Deployment contract addresses can be found [here](https://velodrome.finance/security#contracts).
+
+### Running the indexer
+
+Clone this repo and then run
+
+```bash
+envio dev
+```
+
+To stop the indexer, run
+
+```bash
+envio stop
+```
+
+> Make sure you have Docker application running
+
+### Subgraph files
+
+Some files from the Velodrome V2 subgraph are housed under `/subgraph_files` sub-directory.
+
+The repository for the subgraph can be found [here](https://github.com/messari/subgraphs/tree/master/subgraphs/velodrome-finance).
