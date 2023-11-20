@@ -12,13 +12,13 @@ Clone this repo and then run
 envio dev
 ```
 
+> Make sure you have Docker application running
+
 To stop the indexer, run
 
 ```bash
 envio stop
 ```
-
-> Make sure you have Docker application running
 
 ### Subgraph files
 
