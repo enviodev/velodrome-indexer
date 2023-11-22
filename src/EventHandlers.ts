@@ -7,8 +7,8 @@ import {
   PoolContract_Swap_handler,
 } from "../generated/src/Handlers.gen";
 import { poolEntity } from "./src/Types.gen";
-
-const TEN_TO_THE_18_BI = BigInt(10 ^ 18);
+import { TEN_TO_THE_18_BI } from "./CONSTANTS";
+import { normalizeTokenAmountTo1e18 } from "./helpers";
 
 PoolContract_Fees_loader(({ event, context }) => {
   let _ = context.Pool.load(event.srcAddress.toString());

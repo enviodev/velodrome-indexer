@@ -1,9 +1,11 @@
+export const TEN_TO_THE_18_BI = BigInt(10 ^ 18);
+
 type Token = {
   symbol: string;
   decimals: number;
 };
 
-let WHITELIST_TOKENS: { [address: string]: Token } = {
+export const WHITELIST_TOKENS: { [address: string]: Token } = {
   "0x4200000000000000000000000000000000000006": {
     symbol: "WETH",
     decimals: 18,
