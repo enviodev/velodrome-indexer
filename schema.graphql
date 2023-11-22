@@ -1,9 +1,9 @@
 # Data accumulated and condensed into day stats for each exchange
-type Pool @entity {
+type LiquidityPool @entity {
   id: ID! # pool address
-  # token0: String!
-  # token1: String!
-  # stable: Boolean!
+  token0: String!
+  token1: String!
+  stable: Boolean!
   reserve0: BigInt!
   reserve1: BigInt!
   cumulativeVolume0: BigInt!

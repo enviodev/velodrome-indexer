@@ -18,16 +18,27 @@ export const WHITELIST_TOKENS: { [address: string]: Token } = {
     symbol: "OP",
     decimals: 18,
   },
-  "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58": {
-    symbol: "USDT",
-    decimals: 6,
-  },
-  "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1": {
-    symbol: "USDC.e",
-    decimals: 6,
-  },
-  "0x1F32b1c2345538c0c6f582fCB022739c4A194Ebb": {
-    symbol: "wstETH",
+  "0xc40f949f8a4e094d1b49a23ea9241d289b7b2819": {
+    symbol: "LUSD",
     decimals: 18,
+  },
+};
+
+type Pool = {
+  token0: Token;
+  token1: Token;
+  name: string;
+};
+
+export const STABLECOIN_POOLS: { [address: string]: Pool } = {
+  "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b": {
+    token0: WHITELIST_TOKENS["0x4200000000000000000000000000000000000006"],
+    token1: WHITELIST_TOKENS["0x7f5c764cbc14f9669b88837ca1490cca17c31607"],
+    name: "vAMM-WETH/USDC.e",
+  },
+  "0x6387765fFA609aB9A1dA1B16C455548Bfed7CbEA": {
+    token0: WHITELIST_TOKENS["0x4200000000000000000000000000000000000006"],
+    token1: WHITELIST_TOKENS["0xc40f949f8a4e094d1b49a23ea9241d289b7b2819"],
+    name: "vAMM-WETH/LUSD",
   },
 };
