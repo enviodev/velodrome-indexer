@@ -11,5 +11,7 @@ type Pool @entity {
   cumulativeFees0: BigInt!
   cumulativeFees1: BigInt!
   numberOfSwaps: BigInt!
+  token0Price: BigInt!
+  token1Price: BigInt!
   # PoolDayData: PairDayData! @derivedFrom(field: "pair")
 }

@@ -4,18 +4,20 @@ networks:
   - id: 10
     start_block: 0
     contracts:
-      # - name: PoolFactory
-      #   handler: src/EventHandlers.ts
-      #   address:
-      #     - 0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a
-      #   events:
-      #     - event: PoolCreated(address indexed token0, address indexed token1, bool indexed stable, address pool, uint256)
-      #       requiredEntities:
-      #         - name: Pool
+      - name: PoolFactory
+        handler: src/EventHandlers.ts
+        address:
+          - 0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a
+        events:
+          - event: PoolCreated(address indexed token0, address indexed token1, bool indexed stable, address pool, uint256 unnamed)
+            requiredEntities:
+              - name: Pool
       - name: Pool
         handler: src/EventHandlers.ts
         address:
           - 0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b
+          - 0x79c912fef520be002c2b6e57ec4324e260f38e50 # USDC_WETH_PAIR
+          - 0x534f3135757db41c4f705b0eac697659f68c4014 # DAI_WETH_PAIR
         events:
           # - event: Burn(address indexed sender, address indexed to, uint256 amount0, uint256 amount1)
           #   requiredEntities:
