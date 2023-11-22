@@ -1,4 +1,8 @@
-# Data accumulated and condensed into day stats for each exchange
+type Token @entity {
+  id: ID! # token address
+  pricePerETH: BigInt! # price of token per ETH
+}
+
 type LiquidityPool @entity {
   id: ID! # pool address
   token0: String!
@@ -11,7 +15,13 @@ type LiquidityPool @entity {
   cumulativeFees0: BigInt!
   cumulativeFees1: BigInt!
   numberOfSwaps: BigInt!
-  token0Price: BigInt!
-  token1Price: BigInt!
+  token0Price: BigInt! # price of token0 relative to token1
+  token1Price: BigInt! # price of token1 relative to token0
+  lastUpdatedTimestamp: BigInt!
   # PoolDayData: PairDayData! @derivedFrom(field: "pair")
+}
+
+type LatestETHPriceUSD @entity {
+  id: ID! # updated Timestamp
+  price: BigInt!
 }

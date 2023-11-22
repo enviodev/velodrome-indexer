@@ -7,9 +7,19 @@ import {
   PoolContract_Swap_handler,
   PoolFactoryContract_PoolCreated_handler,
 } from "../generated/src/Handlers.gen";
-import { LiquidityPoolEntity } from "./src/Types.gen";
-import { TEN_TO_THE_18_BI } from "./CONSTANTS";
-import { normalizeTokenAmountTo1e18 } from "./helpers";
+import {
+  LiquidityPoolEntity,
+  TokenEntity,
+  LatestETHPriceUSDEntity,
+} from "./src/Types.gen";
+import { TEN_TO_THE_18_BI, STABLECOIN_POOLS } from "./CONSTANTS";
+import {
+  normalizeTokenAmountTo1e18,
+  calculateETHPriceInUSD,
+  isStablecoinPool,
+} from "./helpers";
+
+let stablecoin_pool_addresses = Object.keys(STABLECOIN_POOLS);
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   const new_pool: LiquidityPoolEntity = {
@@ -26,8 +36,20 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
     numberOfSwaps: 1n,
     token0Price: 0n,
     token1Price: 0n,
+    lastUpdatedTimestamp: BigInt(event.blockTimestamp),
   };
   context.LiquidityPool.set(new_pool);
+
+  const token0: TokenEntity = {
+    id: event.params.token0.toString(),
+    pricePerETH: 0n,
+  };
+  const token1: TokenEntity = {
+    id: event.params.token1.toString(),
+    pricePerETH: 0n,
+  };
+  context.Token.set(token0);
+  context.Token.set(token1);
 });
 
 PoolContract_Fees_loader(({ event, context }) => {
@@ -46,6 +68,7 @@ PoolContract_Fees_handler(({ event, context }) => {
         current_liquidity_pool.cumulativeFees0 + BigInt(event.params.amount0),
       cumulativeFees1:
         current_liquidity_pool.cumulativeFees1 + BigInt(event.params.amount1),
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     context.LiquidityPool.set(liquidity_pool_instance);
   }
@@ -70,19 +93,38 @@ PoolContract_Swap_handler(({ event, context }) => {
         current_liquidity_pool.cumulativeVolume1 +
         BigInt(event.params.amount1In),
       numberOfSwaps: current_liquidity_pool.numberOfSwaps + 1n,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     context.LiquidityPool.set(liquidity_pool_instance);
   }
 });
 
 PoolContract_Sync_loader(({ event, context }) => {
-  let _ = context.LiquidityPool.load(event.srcAddress.toString());
+  let _ = context.LiquidityPool.singlePoolLoad(event.srcAddress.toString());
+  if (isStablecoinPool(event.srcAddress.toString().toLowerCase())) {
+    context.LiquidityPool.stablePoolsLoad(stablecoin_pool_addresses);
+  }
 });
 
 PoolContract_Sync_handler(({ event, context }) => {
-  let current_liquidity_pool = context.LiquidityPool.get(
-    event.srcAddress.toString()
-  );
+  if (isStablecoinPool(event.srcAddress.toString().toLowerCase())) {
+    let stablecoin_pools = context.LiquidityPool.stablePools;
+
+    let ethPriceInUSD = calculateETHPriceInUSD(
+      stablecoin_pools.filter(
+        (item): item is LiquidityPoolEntity => item !== undefined
+      )
+    );
+
+    let latest_eth_price_instance: LatestETHPriceUSDEntity = {
+      id: event.blockTimestamp.toString(),
+      price: ethPriceInUSD,
+    };
+
+    context.LatestETHPriceUSD.set(latest_eth_price_instance);
+  }
+
+  let current_liquidity_pool = context.LiquidityPool.singlePool;
 
   if (current_liquidity_pool) {
     let token0Price = current_liquidity_pool.token0Price;
@@ -107,10 +149,11 @@ PoolContract_Sync_handler(({ event, context }) => {
 
     const liquidity_pool_instance: LiquidityPoolEntity = {
       ...current_liquidity_pool,
-      reserve0: BigInt(event.params.reserve0),
-      reserve1: BigInt(event.params.reserve1),
+      reserve0: normalized_reserve0,
+      reserve1: normalized_reserve1,
       token0Price,
       token1Price,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     context.LiquidityPool.set(liquidity_pool_instance);
   }
