@@ -1,4 +1,4 @@
-export const TEN_TO_THE_18_BI = BigInt(10 ^ 18);
+export const TEN_TO_THE_18_BI = BigInt(10 ** 18);
 
 type Token = {
   symbol: string;
