@@ -7,7 +7,7 @@ type LiquidityPool @entity {
   id: ID! # pool address
   token0: String!
   token1: String!
-  stable: Boolean!
+  isStable: Boolean! # whether the pool is a stable AMM or a volatile AMM
   reserve0: BigInt!
   reserve1: BigInt!
   cumulativeVolume0: BigInt!
@@ -17,11 +17,10 @@ type LiquidityPool @entity {
   numberOfSwaps: BigInt!
   token0Price: BigInt! # price of token0 relative to token1
   token1Price: BigInt! # price of token1 relative to token0
-  lastUpdatedTimestamp: BigInt!
-  # PoolDayData: PairDayData! @derivedFrom(field: "pair")
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
 }
 
-type LatestETHPriceUSD @entity {
+type LatestETHPrice @entity {
   id: ID! # updated Timestamp
-  price: BigInt!
+  price: BigInt! # In base 1e18
 }

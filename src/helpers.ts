@@ -1,18 +1,17 @@
 import { LiquidityPoolEntity } from "./src/Types.gen";
 
 import {
-  WHITELIST_TOKENS,
+  WHITELISTED_TOKENS,
   TEN_TO_THE_18_BI,
-  STABLECOIN_POOLS,
+  STABLECOIN_POOL_ADDRESSES,
 } from "./CONSTANTS";
 
-let stablecoin_pool_addresses = Object.keys(STABLECOIN_POOLS);
-
+// Helper function to normalize token amounts to 1e18
 export const normalizeTokenAmountTo1e18 = (
   token_address: string,
   amount: bigint
 ): bigint => {
-  let token = WHITELIST_TOKENS[token_address];
+  let token = WHITELISTED_TOKENS[token_address];
   if (token) {
     return (amount * TEN_TO_THE_18_BI) / BigInt(10 ** token.decimals);
   } else {
@@ -20,6 +19,7 @@ export const normalizeTokenAmountTo1e18 = (
   }
 };
 
+// Function to calculate the price of ETH as the weighted average of ETH price from the stablecoin vs ETH pools
 export const calculateETHPriceInUSD = (
   stablecoin_pools: LiquidityPoolEntity[]
 ): bigint => {
@@ -46,8 +46,9 @@ export const calculateETHPriceInUSD = (
   return ethPriceInUSD;
 };
 
+// Helper function to check if a pool is a stablecoin pool
 export const isStablecoinPool = (pool_address: string): boolean => {
-  return stablecoin_pool_addresses.some(
+  return STABLECOIN_POOL_ADDRESSES.some(
     (address) => address.toLowerCase() === pool_address
   );
 };
