@@ -12,12 +12,12 @@ import {
   TokenEntity,
   LatestETHPriceEntity,
 } from "./src/Types.gen";
-import { TEN_TO_THE_18_BI, STABLECOIN_POOL_ADDRESSES } from "./CONSTANTS";
+import { TEN_TO_THE_18_BI, STABLECOIN_POOL_ADDRESSES } from "./Constants";
 import {
   normalizeTokenAmountTo1e18,
   calculateETHPriceInUSD,
   isStablecoinPool,
-} from "./helpers";
+} from "./Helpers";
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   // Create a new instance of LiquidityPoolEntity to be updated in the DB
@@ -49,7 +49,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
     id: event.params.token1.toString(),
     pricePerETH: 0n,
   };
-  // Create TokenEntites in the DB
+  // Create TokenEntities in the DB
   context.Token.set(token0);
   context.Token.set(token1);
 });
@@ -118,6 +118,8 @@ PoolContract_Sync_loader(({ event, context }) => {
   if (isStablecoinPool(event.srcAddress.toString().toLowerCase())) {
     context.LiquidityPool.stablePoolsLoad(STABLECOIN_POOL_ADDRESSES);
   }
+  // Load the pool's token0 and token1
+  // context.Token.
 });
 
 PoolContract_Sync_handler(({ event, context }) => {
