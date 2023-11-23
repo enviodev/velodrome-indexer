@@ -107,22 +107,6 @@ PoolContract_Sync_loader(({ event, context }) => {
 });
 
 PoolContract_Sync_handler(({ event, context }) => {
-  if (isStablecoinPool(event.srcAddress.toString().toLowerCase())) {
-    let stablecoin_pools = context.LiquidityPool.stablePools;
-
-    let ethPriceInUSD = calculateETHPriceInUSD(
-      stablecoin_pools.filter(
-        (item): item is LiquidityPoolEntity => item !== undefined
-      )
-    );
-
-    let latest_eth_price_instance: LatestETHPriceUSDEntity = {
-      id: event.blockTimestamp.toString(),
-      price: ethPriceInUSD,
-    };
-
-    context.LatestETHPriceUSD.set(latest_eth_price_instance);
-  }
 
   let current_liquidity_pool = context.LiquidityPool.singlePool;
 
@@ -156,5 +140,29 @@ PoolContract_Sync_handler(({ event, context }) => {
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     context.LiquidityPool.set(liquidity_pool_instance);
+    if (isStablecoinPool(event.srcAddress.toString().toLowerCase())) {
+      // Filter out undefined values
+      let stablecoin_pools_list = context.LiquidityPool.stablePools.filter(
+        (item): item is LiquidityPoolEntity => item !== undefined
+      );
+
+      // Overwrite stablecoin pool with latest data
+      let poolIndex = stablecoin_pools_list.findIndex(
+        (pool) => pool.id === liquidity_pool_instance.id
+      );
+      stablecoin_pools_list[poolIndex] = liquidity_pool_instance;
+
+      // Calculate weighted average ETH price using stablecoin pools
+      let ethPriceInUSD = calculateETHPriceInUSD(stablecoin_pools_list);
+
+      // Creating LatestETHPriceEntity with the latest price
+      let latest_eth_price_instance: LatestETHPriceEntity = {
+        id: event.blockTimestamp.toString(),
+        price: ethPriceInUSD,
+      };
+
+      // Creating a new instance of LatestETHPriceEntity to be updated in the DB
+      context.LatestETHPrice.set(latest_eth_price_instance);
+    }
   }
 });
