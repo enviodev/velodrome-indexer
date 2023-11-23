@@ -20,11 +20,24 @@ import {
 } from "./Helpers";
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
+  // Create new instances of TokenEntity to be updated in the DB
+  const token0_instance: TokenEntity = {
+    id: event.params.token0.toString(),
+    pricePerETH: 0n,
+  };
+  const token1_instance: TokenEntity = {
+    id: event.params.token1.toString(),
+    pricePerETH: 0n,
+  };
+  // Create TokenEntities in the DB
+  context.Token.set(token0_instance);
+  context.Token.set(token1_instance);
+
   // Create a new instance of LiquidityPoolEntity to be updated in the DB
   const new_pool: LiquidityPoolEntity = {
     id: event.params.pool.toString(),
-    token0: event.params.token0.toString(),
-    token1: event.params.token1.toString(),
+    token0: token0_instance.id,
+    token1: token1_instance.id,
     isStable: event.params.stable,
     reserve0: 0n,
     reserve1: 0n,
@@ -40,23 +53,16 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   // Create the LiquidityPoolEntity in the DB
   context.LiquidityPool.set(new_pool);
 
-  // Create new instances of TokenEntity to be updated in the DB
-  const token0: TokenEntity = {
-    id: event.params.token0.toString(),
-    pricePerETH: 0n,
-  };
-  const token1: TokenEntity = {
-    id: event.params.token1.toString(),
-    pricePerETH: 0n,
-  };
-  // Create TokenEntities in the DB
-  context.Token.set(token0);
-  context.Token.set(token1);
 });
 
 PoolContract_Fees_loader(({ event, context }) => {
   //Load the single liquidity pool from the loader to be updated
-  context.LiquidityPool.load(event.srcAddress.toString());
+  context.LiquidityPool.load(event.srcAddress.toString(), {
+    loaders: {
+      loadToken0: true,
+      loadToken1: true,
+    },
+  });
 });
 
 PoolContract_Fees_handler(({ event, context }) => {
@@ -83,7 +89,12 @@ PoolContract_Fees_handler(({ event, context }) => {
 
 PoolContract_Swap_loader(({ event, context }) => {
   //Load the single liquidity pool from the loader to be updated
-  context.LiquidityPool.load(event.srcAddress.toString());
+  context.LiquidityPool.load(event.srcAddress.toString(), {
+    loaders: {
+      loadToken0: true,
+      loadToken1: true,
+    },
+  });
 });
 
 PoolContract_Swap_handler(({ event, context }) => {
@@ -113,10 +124,15 @@ PoolContract_Swap_handler(({ event, context }) => {
 
 PoolContract_Sync_loader(({ event, context }) => {
   //Load the single liquidity pool from the loader to be updated
-  context.LiquidityPool.singlePoolLoad(event.srcAddress.toString());
+  context.LiquidityPool.singlePoolLoad(event.srcAddress.toString(), {
+    loaders: {
+      loadToken0: true,
+      loadToken1: true,
+    },
+  });
   // Load stablecoin pools for weighted average ETH price calculation, only if pool is stablecoin pool
   if (isStablecoinPool(event.srcAddress.toString().toLowerCase())) {
-    context.LiquidityPool.stablePoolsLoad(STABLECOIN_POOL_ADDRESSES);
+    context.LiquidityPool.stablePoolsLoad(STABLECOIN_POOL_ADDRESSES, {});
   }
   // Load the pool's token0 and token1
   // context.Token.

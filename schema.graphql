@@ -5,8 +5,8 @@ type Token @entity {
 
 type LiquidityPool @entity {
   id: ID! # pool address
-  token0: String!
-  token1: String!
+  token0: Token!
+  token1: Token!
   isStable: Boolean! # whether the pool is a stable AMM or a volatile AMM
   reserve0: BigInt!
   reserve1: BigInt!
