@@ -3,7 +3,7 @@ import { Token, Pool } from "./CustomTypes";
 export const TEN_TO_THE_18_BI = BigInt(10 ** 18);
 
 // Hardcoded WETH, USDC and OP token addresses with decimals
-const WETH: Token = {
+export const WETH: Token = {
   address: "0x4200000000000000000000000000000000000006",
   symbol: "WETH",
   decimals: 18,
