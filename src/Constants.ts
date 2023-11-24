@@ -30,6 +30,11 @@ const LUSD: Token = {
 // list of WHITELISTED tokens with their symbol and decimals to be used in pricing
 export const WHITELISTED_TOKENS: Token[] = [WETH, USDC, OP, LUSD];
 
+// List of all WHITELISTED tokens addresses
+export const WHITELISTED_TOKENS_ADDRESSES = WHITELISTED_TOKENS.map(
+  (token) => token.address
+);
+
 // List of stablecoin pools with their token0, token1 and name
 export const STABLECOIN_POOLS: Pool[] = [
   {

@@ -1,10 +1,14 @@
-import { LiquidityPoolEntity } from "./src/Types.gen";
+import { LiquidityPoolEntity, TokenEntity } from "./src/Types.gen";
 
 import {
   WHITELISTED_TOKENS,
   TEN_TO_THE_18_BI,
   STABLECOIN_POOL_ADDRESSES,
 } from "./Constants";
+
+import { MinimalPool } from "./CustomTypes";
+
+import { createdPools } from "./Store";
 
 // Helper function to normalize token amounts to 1e18
 export const normalizeTokenAmountTo1e18 = (
@@ -54,4 +58,39 @@ export const isStablecoinPool = (pool_address: string): boolean => {
   return STABLECOIN_POOL_ADDRESSES.some(
     (address) => address.toLowerCase() === pool_address
   );
+};
+
+// Function to return the relevant pool addresses for pricing
+export const findRelevantPoolAddresses = (
+  token_address: string
+): MinimalPool[] => {
+  let relevant_pools: MinimalPool[] = [];
+  // Search through createdPools and add the relevant pools to relevant_pools list
+  for (let pool of createdPools) {
+    if (
+      pool.token0_address.toLowerCase() === token_address.toLowerCase() ||
+      pool.token1_address.toLowerCase() === token_address.toLowerCase()
+    ) {
+      relevant_pools.push(pool);
+    }
+  }
+
+  return relevant_pools;
+};
+
+// Helper function to extract the Token entity from a list of Token entities
+export const extractTokenEntity = (
+  tokenEntities: TokenEntity[],
+  tokenAddress: string
+): TokenEntity => {
+  // Try to find the token entity by matching given address against the id of the token
+  let token_entity = tokenEntities.find((token) => token.id === tokenAddress);
+
+  // if token entity is found, return it
+  if (token_entity) {
+    return token_entity;
+  } else {
+    // if token entity is not found, throw an error
+    throw new Error("Token entity not found");
+  }
 };

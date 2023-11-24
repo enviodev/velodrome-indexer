@@ -1,6 +1,7 @@
 type Token @entity {
   id: ID! # token address
   pricePerETH: BigInt! # price of token per ETH
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
 }
 
 type LiquidityPool @entity {
