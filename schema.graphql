@@ -1,9 +1,13 @@
-# Data accumulated and condensed into day stats for each exchange
+type Token @entity {
+  id: ID! # token address
+  pricePerETH: BigInt! # price of token per ETH
+}
+
 type LiquidityPool @entity {
   id: ID! # pool address
   token0: String!
   token1: String!
-  stable: Boolean!
+  isStable: Boolean! # whether the pool is a stable AMM or a volatile AMM
   reserve0: BigInt!
   reserve1: BigInt!
   cumulativeVolume0: BigInt!
@@ -11,7 +15,12 @@ type LiquidityPool @entity {
   cumulativeFees0: BigInt!
   cumulativeFees1: BigInt!
   numberOfSwaps: BigInt!
-  token0Price: BigInt!
-  token1Price: BigInt!
-  # PoolDayData: PairDayData! @derivedFrom(field: "pair")
+  token0Price: BigInt! # price of token0 relative to token1
+  token1Price: BigInt! # price of token1 relative to token0
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
+}
+
+type LatestETHPrice @entity {
+  id: ID! # updated Timestamp
+  price: BigInt! # In base 1e18
 }
