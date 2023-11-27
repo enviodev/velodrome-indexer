@@ -4,14 +4,16 @@ import {
   WHITELISTED_TOKENS,
   TEN_TO_THE_18_BI,
   STABLECOIN_POOL_ADDRESSES,
-} from "./CONSTANTS";
+} from "./Constants";
 
 // Helper function to normalize token amounts to 1e18
 export const normalizeTokenAmountTo1e18 = (
   token_address: string,
   amount: bigint
 ): bigint => {
-  let token = WHITELISTED_TOKENS[token_address];
+  let token = WHITELISTED_TOKENS.find(
+    (token) => token.address.toLowerCase() === token_address.toLowerCase()
+  );
   if (token) {
     return (amount * TEN_TO_THE_18_BI) / BigInt(10 ** token.decimals);
   } else {
@@ -26,6 +28,7 @@ export const calculateETHPriceInUSD = (
   let totalWeight = 0n;
   let weightedPriceSum = 0n;
 
+  // TODO check that each stablecoin pool has sufficient liquidity for it to be used in the calculation
   for (let pool of stablecoin_pools) {
     // Use token0 price of pool as ETH price
     // assumption is that all stablecoin pools are token0 = ETH, token1 = stablecoin
