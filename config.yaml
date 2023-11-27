@@ -17,6 +17,9 @@ networks:
           # - 0x6387765fFA609aB9A1dA1B16C455548Bfed7CbEA # vAMM-WETH/LUSD
           - 0xd25711EdfBf747efCE181442Cc1D8F5F8fc8a0D3 # vAMMV2-WETH/OP
           - 0xe9581d0F1A628B038fC8B2a7F5A7d904f0e2f937 # vAMMV2-OP/VELO
+          - 0x0df083de449F75691fc5A36477a6f3284C269108 # vAMMV2-OP/USDC
+          - 0x8134A2fDC127549480865fB8E5A9E8A8a95a54c5 # vAMMV2-USDC/VELO
+          # - 0x7A7f1187c4710010DB17d0a9ad3fcE85e6ecD90a # vAMMV2-RED/VELO
         events:
           - event: Fees(address indexed sender, uint256 amount0, uint256 amount1)
             requiredEntities:
@@ -31,6 +34,7 @@ networks:
                   - singlePool
                 arrayLabels:
                   - stablecoinPools
+                  - pricingPools
               - name: Token
                 arrayLabels:
                   - whitelistedTokens

@@ -7,10 +7,12 @@ import {
   PoolContract_Swap_handler,
   PoolFactoryContract_PoolCreated_handler,
 } from "../generated/src/Handlers.gen";
+
 import {
   LiquidityPoolEntity,
   TokenEntity,
   LatestETHPriceEntity,
+  liquidityPoolEntity,
 } from "./src/Types.gen";
 
 import {
@@ -18,60 +20,67 @@ import {
   STABLECOIN_POOL_ADDRESSES,
   WETH,
   WHITELISTED_TOKENS_ADDRESSES,
+  TESTING_POOL_ADDRESSES,
 } from "./Constants";
 
 import {
   normalizeTokenAmountTo1e18,
   calculateETHPriceInUSD,
   isStablecoinPool,
-  findRelevantPoolAddresses,
-  extractTokenEntity,
+  findPricePerETH,
 } from "./Helpers";
 
-import { createdPools } from "./Store";
+import { poolsWithWhitelistedTokens } from "./Store";
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
-  // Create new instances of TokenEntity to be updated in the DB
-  const token0_instance: TokenEntity = {
-    id: event.params.token0.toString(),
-    pricePerETH: 0n,
-    lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-  };
-  const token1_instance: TokenEntity = {
-    id: event.params.token1.toString(),
-    pricePerETH: 0n,
-    lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-  };
-  // Create TokenEntities in the DB
-  context.Token.set(token0_instance);
-  context.Token.set(token1_instance);
+  if (TESTING_POOL_ADDRESSES.includes(event.params.pool.toString())) {
+    // Create new instances of TokenEntity to be updated in the DB
+    const token0_instance: TokenEntity = {
+      id: event.params.token0.toString(),
+      pricePerETH: 0n,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+    const token1_instance: TokenEntity = {
+      id: event.params.token1.toString(),
+      pricePerETH: 0n,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+    // Create TokenEntities in the DB
+    context.Token.set(token0_instance);
+    context.Token.set(token1_instance);
 
-  // Create a new instance of LiquidityPoolEntity to be updated in the DB
-  const new_pool: LiquidityPoolEntity = {
-    id: event.params.pool.toString(),
-    token0: token0_instance.id,
-    token1: token1_instance.id,
-    isStable: event.params.stable,
-    reserve0: 0n,
-    reserve1: 0n,
-    cumulativeVolume0: 0n,
-    cumulativeVolume1: 0n,
-    cumulativeFees0: 0n,
-    cumulativeFees1: 0n,
-    numberOfSwaps: 1n,
-    token0Price: 0n,
-    token1Price: 0n,
-    lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-  };
-  // Create the LiquidityPoolEntity in the DB
-  context.LiquidityPool.set(new_pool);
+    // Create a new instance of LiquidityPoolEntity to be updated in the DB
+    const new_pool: LiquidityPoolEntity = {
+      id: event.params.pool.toString(),
+      token0: token0_instance.id,
+      token1: token1_instance.id,
+      isStable: event.params.stable,
+      reserve0: 0n,
+      reserve1: 0n,
+      cumulativeVolume0: 0n,
+      cumulativeVolume1: 0n,
+      cumulativeFees0: 0n,
+      cumulativeFees1: 0n,
+      numberOfSwaps: 1n,
+      token0Price: 0n,
+      token1Price: 0n,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+    // Create the LiquidityPoolEntity in the DB
+    context.LiquidityPool.set(new_pool);
 
-  // Push the pool that was created to the createdPools list
-  createdPools.push({
-    address: event.params.pool.toString(),
-    token0_address: event.params.token0.toString(),
-    token1_address: event.params.token1.toString(),
-  });
+    // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
+    if (
+      WHITELISTED_TOKENS_ADDRESSES.includes(token0_instance.id) ||
+      WHITELISTED_TOKENS_ADDRESSES.includes(token1_instance.id)
+    ) {
+      poolsWithWhitelistedTokens.push({
+        address: event.params.pool.toString(),
+        token0_address: event.params.token0.toString(),
+        token1_address: event.params.token1.toString(),
+      });
+    }
+  }
 });
 
 PoolContract_Fees_loader(({ event, context }) => {
@@ -155,7 +164,14 @@ PoolContract_Sync_loader(({ event, context }) => {
     context.LiquidityPool.stablecoinPoolsLoad(STABLECOIN_POOL_ADDRESSES, {});
   }
 
-  // Load all the whistelisted tokens to be potentially used in pricing
+  // Load all the pools to be used in pricing
+  // Use the addresses from poolsWithWhitelistedTokens list
+  context.LiquidityPool.pricingPoolsLoad(
+    poolsWithWhitelistedTokens.map((pool) => pool.address),
+    {}
+  );
+
+  // Load all the whitelisted tokens to be potentially used in pricing
   context.Token.whitelistedTokensLoad(WHITELISTED_TOKENS_ADDRESSES);
 });
 
@@ -164,8 +180,13 @@ PoolContract_Sync_handler(({ event, context }) => {
   let current_liquidity_pool = context.LiquidityPool.singlePool;
 
   // Get a list of all the whitelisted token entities
-  let whistelisted_tokens_list = context.Token.whitelistedTokens.filter(
+  let whitelisted_tokens_list = context.Token.whitelistedTokens.filter(
     (item): item is TokenEntity => item !== undefined
+  );
+
+  // filter out the pools where the token is not present
+  let relevant_pools_list = context.LiquidityPool.pricingPools.filter(
+    (item): item is liquidityPoolEntity => item !== undefined
   );
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
@@ -234,81 +255,43 @@ PoolContract_Sync_handler(({ event, context }) => {
     let token0_instance = context.LiquidityPool.getToken0(
       current_liquidity_pool
     );
+
     let token1_instance = context.LiquidityPool.getToken1(
       current_liquidity_pool
     );
 
-    // case where token is against ETH
-    if (token0_instance.id == WETH.address) {
-      // Create a new instance of TokenEntity to be updated in the DB
-      const new_token0_instance: TokenEntity = {
-        id: token0_instance.id,
-        pricePerETH: TEN_TO_THE_18_BI,
-        lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-      };
-      // Update the TokenEntity in the DB
-      context.Token.set(new_token0_instance);
+    let token0PricePerETH = findPricePerETH(
+      token0_instance.id,
+      whitelisted_tokens_list,
+      relevant_pools_list
+    );
 
-      // Create a new instance of TokenEntity to be updated in the DB
-      const new_token1_instance: TokenEntity = {
-        id: token1_instance.id,
-        pricePerETH: token1Price,
-        lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-      };
-      // Update the TokenEntity in the DB
-      context.Token.set(new_token1_instance);
-    } else if (token1_instance.id == WETH.address) {
-      // Create a new instance of TokenEntity to be updated in the DB
-      const new_token0_instance: TokenEntity = {
-        id: token0_instance.id,
-        pricePerETH: token0Price,
-        lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-      };
-      // Update the TokenEntity in the DB
-      context.Token.set(new_token0_instance);
-      // Create a new instance of TokenEntity to be updated in the DB
-      const new_token1_instance: TokenEntity = {
-        id: token1_instance.id,
-        pricePerETH: TEN_TO_THE_18_BI,
-        lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-      };
-      // Update the TokenEntity in the DB
-      context.Token.set(new_token1_instance);
+    let token1PricePerETH = findPricePerETH(
+      token0_instance.id,
+      whitelisted_tokens_list,
+      relevant_pools_list
+    );
+
+    if (token0PricePerETH == TEN_TO_THE_18_BI) {
+      token1PricePerETH = token1Price;
     }
-    // case where tokens are not against ETH but a whitelisted token
-    else if (WHITELISTED_TOKENS_ADDRESSES.includes(token0_instance.id)) {
-      // Get the whitelisted token0 instance
-      let whitelisted_token0_instance = extractTokenEntity(
-        whistelisted_tokens_list,
-        token0_instance.id
-      );
-      // Create a new instance of TokenEntity to be updated in the DB
-      const new_token1_instance: TokenEntity = {
-        id: token1_instance.id,
-        pricePerETH:
-          // TODO create a helper function for this
-          (token1Price * whitelisted_token0_instance.pricePerETH) /
-          TEN_TO_THE_18_BI,
-        lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-      };
-      // Update the TokenEntity in the DB
-      context.Token.set(new_token1_instance);
-    } else if (WHITELISTED_TOKENS_ADDRESSES.includes(token1_instance.id)) {
-      // Get the whitelisted token0 instance
-      let whitelisted_token1_instance = extractTokenEntity(
-        whistelisted_tokens_list,
-        token1_instance.id
-      );
-      // Create a new instance of TokenEntity to be updated in the DB
-      const new_token0_instance: TokenEntity = {
-        id: token0_instance.id,
-        pricePerETH:
-          (token0Price * whitelisted_token1_instance.pricePerETH) /
-          TEN_TO_THE_18_BI,
-        lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-      };
-      // Update the TokenEntity in the DB
-      context.Token.set(new_token0_instance);
+    if (token1PricePerETH == TEN_TO_THE_18_BI) {
+      token0PricePerETH = token0Price;
     }
+
+    // Create a new instance of TokenEntity to be updated in the DB
+    const new_token0_instance: TokenEntity = {
+      id: token0_instance.id,
+      pricePerETH: token0PricePerETH,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+    const new_token1_instance: TokenEntity = {
+      id: token1_instance.id,
+      pricePerETH: token1PricePerETH,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+
+    context.Token.set(new_token0_instance);
+    context.Token.set(new_token1_instance);
   }
 });

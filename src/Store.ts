@@ -1,4 +1,4 @@
 import { MinimalPool } from "./CustomTypes";
 
-// List to store all the pools that have been created
-export let createdPools: MinimalPool[] = [];
+// This is only to be used in pricing - therefore only need to have the pools with whitelisted tokens in them
+export let poolsWithWhitelistedTokens: MinimalPool[] = [];
