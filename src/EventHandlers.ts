@@ -18,7 +18,6 @@ import {
 import {
   TEN_TO_THE_18_BI,
   STABLECOIN_POOL_ADDRESSES,
-  WETH,
   WHITELISTED_TOKENS_ADDRESSES,
   TESTING_POOL_ADDRESSES,
 } from "./Constants";
@@ -28,9 +27,15 @@ import {
   calculateETHPriceInUSD,
   isStablecoinPool,
   findPricePerETH,
+  multiplyBase1e18,
+  divideBase1e18,
 } from "./Helpers";
 
-import { poolsWithWhitelistedTokens } from "./Store";
+import {
+  poolsWithWhitelistedTokens,
+  updateLatestETHPriceKey,
+  getLatestETHPriceKey,
+} from "./Store";
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   if (TESTING_POOL_ADDRESSES.includes(event.params.pool.toString())) {
@@ -38,11 +43,13 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
     const token0_instance: TokenEntity = {
       id: event.params.token0.toString(),
       pricePerETH: 0n,
+      pricePerUSD: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     const token1_instance: TokenEntity = {
       id: event.params.token1.toString(),
       pricePerETH: 0n,
+      pricePerUSD: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     // Create TokenEntities in the DB
@@ -173,6 +180,9 @@ PoolContract_Sync_loader(({ event, context }) => {
 
   // Load all the whitelisted tokens to be potentially used in pricing
   context.Token.whitelistedTokensLoad(WHITELISTED_TOKENS_ADDRESSES);
+
+  // Load LatestETHPrice entity
+  context.LatestETHPrice.load(getLatestETHPriceKey());
 });
 
 PoolContract_Sync_handler(({ event, context }) => {
@@ -188,6 +198,9 @@ PoolContract_Sync_handler(({ event, context }) => {
   let relevant_pools_list = context.LiquidityPool.pricingPools.filter(
     (item): item is liquidityPoolEntity => item !== undefined
   );
+
+  // Get the LatestETHPrice object
+  let latest_eth_price = context.LatestETHPrice.get(getLatestETHPriceKey());
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   if (current_liquidity_pool) {
@@ -206,11 +219,9 @@ PoolContract_Sync_handler(({ event, context }) => {
 
     // Calculate relative token prices
     if (normalized_reserve0 != 0n && normalized_reserve1 != 0n) {
-      token0Price =
-        (TEN_TO_THE_18_BI * normalized_reserve1) / normalized_reserve0;
+      token0Price = divideBase1e18(normalized_reserve1, normalized_reserve0);
 
-      token1Price =
-        (TEN_TO_THE_18_BI * normalized_reserve0) / normalized_reserve1;
+      token1Price = divideBase1e18(normalized_reserve0, normalized_reserve1);
     }
 
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
@@ -249,6 +260,8 @@ PoolContract_Sync_handler(({ event, context }) => {
 
       // Creating a new instance of LatestETHPriceEntity to be updated in the DB
       context.LatestETHPrice.set(latest_eth_price_instance);
+      // update latestETHPriceKey value with event.blockTimestamp.toString()
+      updateLatestETHPriceKey(event.blockTimestamp.toString());
     }
 
     // Get the tokens from the loader and update their pricing
@@ -279,19 +292,29 @@ PoolContract_Sync_handler(({ event, context }) => {
       token0PricePerETH = token0Price;
     }
 
-    // Create a new instance of TokenEntity to be updated in the DB
-    const new_token0_instance: TokenEntity = {
-      id: token0_instance.id,
-      pricePerETH: token0PricePerETH,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
-    const new_token1_instance: TokenEntity = {
-      id: token1_instance.id,
-      pricePerETH: token1PricePerETH,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
+    if (latest_eth_price) {
+      // Create a new instance of TokenEntity to be updated in the DB
+      const new_token0_instance: TokenEntity = {
+        id: token0_instance.id,
+        pricePerETH: token0PricePerETH,
+        pricePerUSD: multiplyBase1e18(
+          token0PricePerETH,
+          latest_eth_price.price
+        ),
+        lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+      };
+      const new_token1_instance: TokenEntity = {
+        id: token1_instance.id,
+        pricePerETH: token1PricePerETH,
+        pricePerUSD: multiplyBase1e18(
+          token1PricePerETH,
+          latest_eth_price.price
+        ),
+        lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+      };
 
-    context.Token.set(new_token0_instance);
-    context.Token.set(new_token1_instance);
+      context.Token.set(new_token0_instance);
+      context.Token.set(new_token1_instance);
+    }
   }
 });

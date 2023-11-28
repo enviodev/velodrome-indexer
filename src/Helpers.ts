@@ -161,9 +161,9 @@ export const findPricePerETH = (
             "Token1 pricePerETH is ",
             whitelisted_token_instance.pricePerETH
           );
-          return (
-            (pool.token1Price * whitelisted_token_instance.pricePerETH) /
-            TEN_TO_THE_18_BI
+          return multiplyBase1e18(
+            pool.token1Price,
+            whitelisted_token_instance.pricePerETH
           );
         }
         // Create a new instance of TokenEntity to be updated in the DB
@@ -184,13 +184,21 @@ export const findPricePerETH = (
             "Token0 pricePerETH is ",
             whitelisted_token_instance.pricePerETH
           );
-          return (
-            (pool.token0Price * whitelisted_token_instance.pricePerETH) /
-            TEN_TO_THE_18_BI
+          return multiplyBase1e18(
+            pool.token0Price,
+            whitelisted_token_instance.pricePerETH
           );
         }
       }
     }
     return 0n;
   }
+};
+
+export const multiplyBase1e18 = (a: bigint, b: bigint): bigint => {
+  return (a * b) / TEN_TO_THE_18_BI;
+};
+
+export const divideBase1e18 = (a: bigint, b: bigint): bigint => {
+  return (a * TEN_TO_THE_18_BI) / b;
 };

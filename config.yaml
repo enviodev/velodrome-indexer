@@ -38,3 +38,4 @@ networks:
               - name: Token
                 arrayLabels:
                   - whitelistedTokens
+              - name: LatestETHPrice
