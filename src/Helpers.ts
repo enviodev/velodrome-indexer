@@ -7,10 +7,6 @@ import {
   WETH,
 } from "./Constants";
 
-import { MinimalPool } from "./CustomTypes";
-
-import { poolsWithWhitelistedTokens } from "./Store";
-
 // Helper function to normalize token amounts to 1e18
 export const normalizeTokenAmountTo1e18 = (
   token_address: string,
@@ -61,43 +57,8 @@ export const isStablecoinPool = (pool_address: string): boolean => {
   );
 };
 
-// Function to return the relevant pool addresses for pricing
-export const findRelevantPoolAddresses = (
-  token_address: string
-): MinimalPool[] => {
-  let relevant_pools: MinimalPool[] = [];
-  // Search through poolsWithWhitelistedTokens and add the relevant pools to relevant_pools list
-  for (let pool of poolsWithWhitelistedTokens) {
-    if (
-      pool.token0_address.toLowerCase() === token_address.toLowerCase() ||
-      pool.token1_address.toLowerCase() === token_address.toLowerCase()
-    ) {
-      relevant_pools.push(pool);
-    }
-  }
-
-  return relevant_pools;
-};
-
-// Helper function to extract the Token entity from a list of Token entities
-export const extractTokenEntity = (
-  tokenEntities: TokenEntity[],
-  tokenAddress: string
-): TokenEntity => {
-  // Try to find the token entity by matching given address against the id of the token
-  let token_entity = tokenEntities.find((token) => token.id === tokenAddress);
-
-  // if token entity is found, return it
-  if (token_entity) {
-    return token_entity;
-  } else {
-    // if token entity is not found, throw an error
-    throw new Error("Token entity not found");
-  }
-};
-
 // Helper function to extract a subset of LiquidityPool entities from a list of LiquidityPool entities with whitelisted tokens
-export const extractRelevantLiquidityPoolEntities = (
+const extractRelevantLiquidityPoolEntities = (
   token_address: string,
   liquidityPoolEntities: LiquidityPoolEntity[]
 ): LiquidityPoolEntity[] => {
@@ -129,63 +90,31 @@ export const findPricePerETH = (
   }
   // Case 2: token is not ETH
   else {
-    console.log("Token to be priced: ", token_address);
-
     let relevant_liquidity_pool_entities = extractRelevantLiquidityPoolEntities(
       token_address,
       liquidityPoolEntities
     );
-
-    console.log(
-      "Relevant liquidity pool entities: ",
-      relevant_liquidity_pool_entities
-    );
-
     // If the token is not WETH, then run through the pricing pools to price the token
     for (let pool of relevant_liquidity_pool_entities) {
-      console.log("Pool being used for pricing: ", pool.id);
       if (pool.token0 == token_address) {
-        console.log("Token to be priced is token0 of relevant pool");
-        console.log("token0 address: ", pool.token0);
         // load whitelist token
         let whitelisted_token_instance = whitelisted_tokens_list.find(
           (token) => token.id === pool.token1
         );
         if (whitelisted_token_instance) {
-          console.log(
-            "Token1 (whitelisted) is ",
-            whitelisted_token_instance.id
-          );
-          console.log("Token0Price is ", pool.token0Price);
-          console.log(
-            "Token1 pricePerETH is ",
-            whitelisted_token_instance.pricePerETH
-          );
           return multiplyBase1e18(
-            pool.token1Price,
+            pool.token0Price,
             whitelisted_token_instance.pricePerETH
           );
         }
-        // Create a new instance of TokenEntity to be updated in the DB
       } else if (pool.token1 == token_address) {
-        console.log("Token to be priced is token1 of relevant pool");
-        console.log("token1 address: ", pool.token1);
         // load whitelist token
         let whitelisted_token_instance = whitelisted_tokens_list.find(
           (token) => token.id === pool.token0
         );
         if (whitelisted_token_instance) {
-          console.log(
-            "Token0 (whitelisted) is ",
-            whitelisted_token_instance.id
-          );
-          console.log("Token1Price is ", pool.token1Price);
-          console.log(
-            "Token0 pricePerETH is ",
-            whitelisted_token_instance.pricePerETH
-          );
           return multiplyBase1e18(
-            pool.token0Price,
+            pool.token1Price,
             whitelisted_token_instance.pricePerETH
           );
         }
@@ -195,10 +124,12 @@ export const findPricePerETH = (
   }
 };
 
+// Helper function to perform multiplication for base 1e18 numbers
 export const multiplyBase1e18 = (a: bigint, b: bigint): bigint => {
   return (a * b) / TEN_TO_THE_18_BI;
 };
 
+// Helper function to perform division for base 1e18 numbers
 export const divideBase1e18 = (a: bigint, b: bigint): bigint => {
   return (a * TEN_TO_THE_18_BI) / b;
 };

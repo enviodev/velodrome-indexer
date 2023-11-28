@@ -94,8 +94,8 @@ PoolContract_Fees_loader(({ event, context }) => {
   //Load the single liquidity pool from the loader to be updated
   context.LiquidityPool.load(event.srcAddress.toString(), {
     loaders: {
-      loadToken0: true,
-      loadToken1: true,
+      loadToken0: false,
+      loadToken1: false,
     },
   });
 });
@@ -161,8 +161,8 @@ PoolContract_Sync_loader(({ event, context }) => {
   // Load the single liquidity pool from the loader to be updated
   context.LiquidityPool.singlePoolLoad(event.srcAddress.toString(), {
     loaders: {
-      loadToken0: true,
-      loadToken1: true,
+      loadToken0: false,
+      loadToken1: false,
     },
   });
 
@@ -280,7 +280,7 @@ PoolContract_Sync_handler(({ event, context }) => {
     );
 
     let token1PricePerETH = findPricePerETH(
-      token0_instance.id,
+      token1_instance.id,
       whitelisted_tokens_list,
       relevant_pools_list
     );
