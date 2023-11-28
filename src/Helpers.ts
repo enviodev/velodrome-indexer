@@ -7,6 +7,8 @@ import {
   WETH,
 } from "./Constants";
 
+import { multiplyBase1e18 } from "./Maths";
+
 // Helper function to normalize token amounts to 1e18
 export const normalizeTokenAmountTo1e18 = (
   token_address: string,
@@ -122,14 +124,4 @@ export const findPricePerETH = (
     }
     return 0n;
   }
-};
-
-// Helper function to perform multiplication for base 1e18 numbers
-export const multiplyBase1e18 = (a: bigint, b: bigint): bigint => {
-  return (a * b) / TEN_TO_THE_18_BI;
-};
-
-// Helper function to perform division for base 1e18 numbers
-export const divideBase1e18 = (a: bigint, b: bigint): bigint => {
-  return (a * TEN_TO_THE_18_BI) / b;
 };

@@ -27,8 +27,6 @@ import {
   calculateETHPriceInUSD,
   isStablecoinPool,
   findPricePerETH,
-  multiplyBase1e18,
-  divideBase1e18,
 } from "./Helpers";
 
 import {
@@ -36,6 +34,8 @@ import {
   updateLatestETHPriceKey,
   getLatestETHPriceKey,
 } from "./Store";
+
+import { divideBase1e18, multiplyBase1e18 } from "./Maths";
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   if (TESTING_POOL_ADDRESSES.includes(event.params.pool.toString())) {
