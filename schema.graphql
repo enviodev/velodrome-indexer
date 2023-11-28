@@ -12,6 +12,8 @@ type LiquidityPool @entity {
   isStable: Boolean! # whether the pool is a stable AMM or a volatile AMM
   reserve0: BigInt!
   reserve1: BigInt!
+  totalLiquidityETH: BigInt!
+  totalLiquidityUSD: BigInt!
   cumulativeVolume0: BigInt!
   cumulativeVolume1: BigInt!
   cumulativeFees0: BigInt!
