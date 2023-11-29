@@ -5,8 +5,8 @@ import {
   PoolContract_Sync_handler,
   PoolContract_Swap_loader,
   PoolContract_Swap_handler,
-  PoolFactoryContract_PoolCreated_handler,
   PoolFactoryContract_PoolCreated_loader,
+  PoolFactoryContract_PoolCreated_handler,
 } from "../generated/src/Handlers.gen";
 
 import {
@@ -93,7 +93,6 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       WHITELISTED_TOKENS_ADDRESSES.includes(token0_instance.id) ||
       WHITELISTED_TOKENS_ADDRESSES.includes(token1_instance.id)
     ) {
-      context.log.info("Global state created!");
 
       if (context.StateStore.stateStore) {
         context.StateStore.set({

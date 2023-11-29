@@ -40,7 +40,6 @@ networks:
                   - singlePool
                 arrayLabels:
                   - stablecoinPools
-                  # - pricingPools
               - name: Token
                 arrayLabels:
                   - whitelistedTokens
