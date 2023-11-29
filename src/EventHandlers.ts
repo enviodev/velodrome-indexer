@@ -27,8 +27,6 @@ import {
   calculateETHPriceInUSD,
   isStablecoinPool,
   findPricePerETH,
-  multiplyBase1e18,
-  divideBase1e18,
 } from "./Helpers";
 
 import {
@@ -36,6 +34,8 @@ import {
   updateLatestETHPriceKey,
   getLatestETHPriceKey,
 } from "./Store";
+
+import { divideBase1e18, multiplyBase1e18 } from "./Maths";
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   if (TESTING_POOL_ADDRESSES.includes(event.params.pool.toString())) {
@@ -64,6 +64,8 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       isStable: event.params.stable,
       reserve0: 0n,
       reserve1: 0n,
+      totalLiquidityETH: 0n,
+      totalLiquidityUSD: 0n,
       cumulativeVolume0: 0n,
       cumulativeVolume1: 0n,
       cumulativeFees0: 0n,
@@ -207,6 +209,10 @@ PoolContract_Sync_handler(({ event, context }) => {
     let token0Price = current_liquidity_pool.token0Price;
     let token1Price = current_liquidity_pool.token1Price;
 
+    let latest_eth_price_actual = latest_eth_price
+      ? latest_eth_price.price
+      : 0n;
+
     // Normalize reserve amounts to 1e18
     let normalized_reserve0 = normalizeTokenAmountTo1e18(
       current_liquidity_pool.token0,
@@ -222,46 +228,6 @@ PoolContract_Sync_handler(({ event, context }) => {
       token0Price = divideBase1e18(normalized_reserve1, normalized_reserve0);
 
       token1Price = divideBase1e18(normalized_reserve0, normalized_reserve1);
-    }
-
-    // Create a new instance of LiquidityPoolEntity to be updated in the DB
-    const liquidity_pool_instance: LiquidityPoolEntity = {
-      ...current_liquidity_pool,
-      reserve0: normalized_reserve0,
-      reserve1: normalized_reserve1,
-      token0Price,
-      token1Price,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
-
-    // Update the LiquidityPoolEntity in the DB
-    context.LiquidityPool.set(liquidity_pool_instance);
-
-    if (isStablecoinPool(event.srcAddress.toString().toLowerCase())) {
-      // Filter out undefined values
-      let stablecoin_pools_list = context.LiquidityPool.stablecoinPools.filter(
-        (item): item is LiquidityPoolEntity => item !== undefined
-      );
-
-      // Overwrite stablecoin pool with latest data
-      let poolIndex = stablecoin_pools_list.findIndex(
-        (pool) => pool.id === liquidity_pool_instance.id
-      );
-      stablecoin_pools_list[poolIndex] = liquidity_pool_instance;
-
-      // Calculate weighted average ETH price using stablecoin pools
-      let ethPriceInUSD = calculateETHPriceInUSD(stablecoin_pools_list);
-
-      // Creating LatestETHPriceEntity with the latest price
-      let latest_eth_price_instance: LatestETHPriceEntity = {
-        id: event.blockTimestamp.toString(),
-        price: ethPriceInUSD,
-      };
-
-      // Creating a new instance of LatestETHPriceEntity to be updated in the DB
-      context.LatestETHPrice.set(latest_eth_price_instance);
-      // update latestETHPriceKey value with event.blockTimestamp.toString()
-      updateLatestETHPriceKey(event.blockTimestamp.toString());
     }
 
     // Get the tokens from the loader and update their pricing
@@ -292,29 +258,68 @@ PoolContract_Sync_handler(({ event, context }) => {
       token0PricePerETH = token0Price;
     }
 
-    if (latest_eth_price) {
-      // Create a new instance of TokenEntity to be updated in the DB
-      const new_token0_instance: TokenEntity = {
-        id: token0_instance.id,
-        pricePerETH: token0PricePerETH,
-        pricePerUSD: multiplyBase1e18(
-          token0PricePerETH,
-          latest_eth_price.price
-        ),
-        lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-      };
-      const new_token1_instance: TokenEntity = {
-        id: token1_instance.id,
-        pricePerETH: token1PricePerETH,
-        pricePerUSD: multiplyBase1e18(
-          token1PricePerETH,
-          latest_eth_price.price
-        ),
-        lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    // Create a new instance of TokenEntity to be updated in the DB
+    const new_token0_instance: TokenEntity = {
+      id: token0_instance.id,
+      pricePerETH: token0PricePerETH,
+      pricePerUSD: multiplyBase1e18(token0PricePerETH, latest_eth_price_actual),
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+    const new_token1_instance: TokenEntity = {
+      id: token1_instance.id,
+      pricePerETH: token1PricePerETH,
+      pricePerUSD: multiplyBase1e18(token1PricePerETH, latest_eth_price_actual),
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+
+    context.Token.set(new_token0_instance);
+    context.Token.set(new_token1_instance);
+
+    // Create a new instance of LiquidityPoolEntity to be updated in the DB
+    const liquidity_pool_instance: LiquidityPoolEntity = {
+      ...current_liquidity_pool,
+      reserve0: normalized_reserve0,
+      reserve1: normalized_reserve1,
+      totalLiquidityETH:
+        multiplyBase1e18(normalized_reserve0, new_token0_instance.pricePerETH) +
+        multiplyBase1e18(normalized_reserve1, new_token1_instance.pricePerETH),
+      totalLiquidityUSD:
+        multiplyBase1e18(normalized_reserve0, new_token0_instance.pricePerUSD) +
+        multiplyBase1e18(normalized_reserve1, new_token1_instance.pricePerUSD),
+      token0Price,
+      token1Price,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+
+    // Update the LiquidityPoolEntity in the DB
+    context.LiquidityPool.set(liquidity_pool_instance);
+
+    // Updating of ETH price if the pool is a stablecoin pool
+    if (isStablecoinPool(event.srcAddress.toString().toLowerCase())) {
+      // Filter out undefined values
+      let stablecoin_pools_list = context.LiquidityPool.stablecoinPools.filter(
+        (item): item is LiquidityPoolEntity => item !== undefined
+      );
+
+      // Overwrite stablecoin pool with latest data
+      let poolIndex = stablecoin_pools_list.findIndex(
+        (pool) => pool.id === liquidity_pool_instance.id
+      );
+      stablecoin_pools_list[poolIndex] = liquidity_pool_instance;
+
+      // Calculate weighted average ETH price using stablecoin pools
+      let ethPriceInUSD = calculateETHPriceInUSD(stablecoin_pools_list);
+
+      // Creating LatestETHPriceEntity with the latest price
+      let latest_eth_price_instance: LatestETHPriceEntity = {
+        id: event.blockTimestamp.toString(),
+        price: ethPriceInUSD,
       };
 
-      context.Token.set(new_token0_instance);
-      context.Token.set(new_token1_instance);
+      // Creating a new instance of LatestETHPriceEntity to be updated in the DB
+      context.LatestETHPrice.set(latest_eth_price_instance);
+      // update latestETHPriceKey value with event.blockTimestamp.toString()
+      updateLatestETHPriceKey(event.blockTimestamp.toString());
     }
   }
 });
