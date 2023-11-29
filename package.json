@@ -2,11 +2,11 @@
   "name": "velodrome v2",
   "version": "0.1.0",
   "scripts": {
-      "clean": "tsc --clean",
-      "build": "tsc --build",
-      "watch": "tsc --watch",
-      "codegen": "envio codegen",
-      "start": "ts-node generated/src/Index.bs.js"
+    "clean": "tsc --clean",
+    "build": "tsc --build",
+    "watch": "tsc --watch",
+    "codegen": "envio codegen",
+    "start": "ts-node generated/src/Index.bs.js"
   },
   "devDependencies": {
     "@types/node": "^18.16.1",
@@ -15,6 +15,6 @@
   },
   "dependencies": {
     "ts-node": "^10.9.1",
-    "envio": "latest"
+    "envio": "0.0.24"
   }
 }

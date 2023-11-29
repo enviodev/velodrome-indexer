@@ -20,6 +20,7 @@ import {
   STABLECOIN_POOL_ADDRESSES,
   WHITELISTED_TOKENS_ADDRESSES,
   TESTING_POOL_ADDRESSES,
+  STATE_STORE_ID,
 } from "./Constants";
 
 import {
@@ -160,6 +161,9 @@ PoolContract_Swap_handler(({ event, context }) => {
 });
 
 PoolContract_Sync_loader(({ event, context }) => {
+  // load the global state store
+  context.StateStore.stateStoreLoad(STATE_STORE_ID, { loaders: { loadLatestEthPrice: true, loadPoolsWithWhitelistedTokens: {} } });
+
   // Load the single liquidity pool from the loader to be updated
   context.LiquidityPool.singlePoolLoad(event.srcAddress.toString(), {
     loaders: {
@@ -184,10 +188,10 @@ PoolContract_Sync_loader(({ event, context }) => {
   context.Token.whitelistedTokensLoad(WHITELISTED_TOKENS_ADDRESSES);
 
   // Load LatestETHPrice entity
-  context.LatestETHPrice.load(getLatestETHPriceKey());
 });
 
 PoolContract_Sync_handler(({ event, context }) => {
+  const { stateStore } = context.StateStore;
   // Fetch the current liquidity pool from the loader
   let current_liquidity_pool = context.LiquidityPool.singlePool;
 
