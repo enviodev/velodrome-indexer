@@ -14,10 +14,3 @@ export type Pool = {
   token1: Token;
   name: string;
 };
-
-// Minimal pool type that will just be used for lookups
-export type MinimalPool = {
-  address: string;
-  token0_address: string;
-  token1_address: string;
-};

@@ -10,6 +10,9 @@ networks:
           - 0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a
         events:
           - event: PoolCreated(address indexed token0, address indexed token1, bool indexed stable, address pool, uint256 unnamed)
+            requiredEntities:
+              - name: StateStore
+                labels: ["stateStore"]
       - name: Pool
         handler: src/EventHandlers.ts
         address:
@@ -30,13 +33,13 @@ networks:
               - name: LiquidityPool
           - event: Sync(uint256 reserve0, uint256 reserve1)
             requiredEntities:
+              - name: StateStore
+                labels: ["stateStore"]
               - name: LiquidityPool
                 labels:
                   - singlePool
                 arrayLabels:
                   - stablecoinPools
-                  - pricingPools
               - name: Token
                 arrayLabels:
                   - whitelistedTokens
-              - name: LatestETHPrice

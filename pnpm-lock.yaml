@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       envio:
-        specifier: latest
-        version: 0.0.20
+        specifier: 0.0.24
+        version: 0.0.24
       ts-node:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@18.18.6)(typescript@5.2.2)
@@ -339,7 +339,7 @@ packages:
     resolution: {integrity: sha512-C3nQxfFZxFRVoJoGKKI8y3MOEo129NQ+FgQ08iye+Mk4zNZZGdjfs06bVTr+DBSlA66Q2VEcMki/cUCP4SercQ==}
     dependencies:
       function-bind: 1.1.2
-      get-intrinsic: 1.2.1
+      get-intrinsic: 1.2.2
       set-function-length: 1.1.1
     dev: false
 
@@ -416,9 +416,9 @@ packages:
     resolution: {integrity: sha512-E7uGkTzkk1d0ByLeSc6ZsFS79Axg+m1P/VsgYsxHgiuc3tFSj+MjMIwe90FC4lOAZzNBdY7kkO2P2wKdsQ1vgQ==}
     engines: {node: '>= 0.4'}
     dependencies:
-      get-intrinsic: 1.2.1
+      get-intrinsic: 1.2.2
       gopd: 1.0.1
-      has-property-descriptors: 1.0.0
+      has-property-descriptors: 1.0.1
     dev: false
 
   /depd@2.0.0:
@@ -455,37 +455,37 @@ packages:
       once: 1.4.0
     dev: false
 
-  /envio-darwin-arm64@0.0.20:
-    resolution: {integrity: sha512-bUA5D/9ZQZNs4XRrodmU+VRFpoSSBx0GBH/L4Zz6QigNFZFIqRnDLAyoTlD0HwkW5sDe/kGtXMquc/KuxCtgxA==}
+  /envio-darwin-arm64@0.0.24:
+    resolution: {integrity: sha512-WeGJdkO2hF/y92y/oMtjhg4wplNM0cKTbhWNjvH90ARl6Z3/t6aqgYaePqKDmVXMm4MooN2dB4LSAoma/5yFFw==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-darwin-x64@0.0.20:
-    resolution: {integrity: sha512-3mCKqQ09aZqz6zsWCfqPWUUa3NnEH8Zoj/j3EcLSZ6sgQPzdaPGY2n+A2tzNT2j9pxKxbJoZ/1Shz9XVw2UXXg==}
+  /envio-darwin-x64@0.0.24:
+    resolution: {integrity: sha512-U+FrZDVmlLqzSvM1f8niysCy5Da7I4J29wE9VKm9Rvbv/7eOG95XqtMMiteqWtddQJ1QbS3gLFsEpNH+teN72g==}
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-linux-x64@0.0.20:
-    resolution: {integrity: sha512-CI8mwtEPViMis9DZc6Rp9PDZV+LIRpKK+cMeuekiulKNUHe4EPvoCT+dZbG/HtRgkkcdqWarHtzmNp95O7TYfw==}
+  /envio-linux-x64@0.0.24:
+    resolution: {integrity: sha512-zUSbM6fExLPBvbzvbY76GMV0Ngec9udmW+eY/NUZAEb/oeuqYfQKxrZTCWEGllk6lNQmTvWSy6qu1bUmwawKlg==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio@0.0.20:
-    resolution: {integrity: sha512-oW9ShyO+k13xokODqflzPe/CoOS6Yg+a4d0t45NC1IHb1iEdYVpz9tqdocNlLDZZzCN2sQSh5jAsIxGmHmlVnQ==}
+  /envio@0.0.24:
+    resolution: {integrity: sha512-7rzx6ANEGbyt960iewZEGf7+3s4cYq6wPezvYJB73vWqaLM0YaSdlQqOVKCzuS1a+0c6yG6PmKcCyCdkYU4O9w==}
     hasBin: true
     optionalDependencies:
-      envio-darwin-arm64: 0.0.20
-      envio-darwin-x64: 0.0.20
-      envio-linux-x64: 0.0.20
+      envio-darwin-arm64: 0.0.24
+      envio-darwin-x64: 0.0.24
+      envio-linux-x64: 0.0.24
     dev: false
 
   /escalade@3.1.1:
@@ -642,13 +642,13 @@ packages:
     engines: {node: 6.* || 8.* || >= 10.*}
     dev: false
 
-  /get-intrinsic@1.2.1:
-    resolution: {integrity: sha512-2DcsyfABl+gVHEfCOaTrWgyt+tb6MSEGmKq+kI5HwLbIYgjgmMcV8KQ41uaKz1xxUcn9tJtgFbQUEVcEbd0FYw==}
+  /get-intrinsic@1.2.2:
+    resolution: {integrity: sha512-0gSo4ml/0j98Y3lngkFEot/zhiCeWsbYIlZ+uZOVgzLyLaUw7wxUL+nCTP0XJvJg1AXulJRI3UJi8GsbDuxdGA==}
     dependencies:
       function-bind: 1.1.2
-      has: 1.0.4
       has-proto: 1.0.1
       has-symbols: 1.0.3
+      hasown: 2.0.0
     dev: false
 
   /glob@8.1.0:
@@ -665,13 +665,13 @@ packages:
   /gopd@1.0.1:
     resolution: {integrity: sha512-d65bNlIadxvpb/A2abVdlqKqV563juRnZ1Wtk6s1sIR8uNsXR70xqIzVqxVf1eTqDunwT2MkczEeaezCKTZhwA==}
     dependencies:
-      get-intrinsic: 1.2.1
+      get-intrinsic: 1.2.2
     dev: false
 
-  /has-property-descriptors@1.0.0:
-    resolution: {integrity: sha512-62DVLZGoiEBDHQyqG4w9xCuZ7eJEwNmJRWw2VY84Oedb7WFcA27fiEVe8oUQx9hAUJ4ekurquucTGwsyO1XGdQ==}
+  /has-property-descriptors@1.0.1:
+    resolution: {integrity: sha512-VsX8eaIewvas0xnvinAe9bw4WfIeODpGYikiWYLH+dma0Jw6KHYqWiWfhQlgOVK8D6PvjubK5Uc4P0iIhIcNVg==}
     dependencies:
-      get-intrinsic: 1.2.1
+      get-intrinsic: 1.2.2
     dev: false
 
   /has-proto@1.0.1:
@@ -684,9 +684,11 @@ packages:
     engines: {node: '>= 0.4'}
     dev: false
 
-  /has@1.0.4:
-    resolution: {integrity: sha512-qdSAmqLF6209RFj4VVItywPMbm3vWylknmB3nvNiUIs72xAimcM8nVYxYr7ncvZq5qzk9MKIZR8ijqD/1QuYjQ==}
-    engines: {node: '>= 0.4.0'}
+  /hasown@2.0.0:
+    resolution: {integrity: sha512-vUptKVTpIJhcczKBbgnS+RtcuYMB8+oNzPK2/Hp3hanz8JmpATdmmgLgSaadVREkDm+e2giHwY3ZRkyjSIDDFA==}
+    engines: {node: '>= 0.4'}
+    dependencies:
+      function-bind: 1.1.2
     dev: false
 
   /help-me@4.2.0:
@@ -903,7 +905,7 @@ packages:
       on-exit-leak-free: 2.1.2
       pino-abstract-transport: 1.1.0
       pino-std-serializers: 6.2.2
-      process-warning: 2.2.0
+      process-warning: 2.3.1
       quick-format-unescaped: 4.0.4
       real-require: 0.2.0
       safe-stable-stringify: 2.4.3
@@ -916,8 +918,8 @@ packages:
     engines: {node: '>=12'}
     dev: false
 
-  /process-warning@2.2.0:
-    resolution: {integrity: sha512-/1WZ8+VQjR6avWOgHeEPd7SDQmFQ1B5mC1eRXsCm5TarlNmx/wCsa5GEaxGm05BORRtyG/Ex/3xq3TuRvq57qg==}
+  /process-warning@2.3.1:
+    resolution: {integrity: sha512-JjBvFEn7MwFbzUDa2SRtKJSsyO0LlER4V/FmwLMhBlXNbGgGxdyFCxIdMDLerWUycsVUyaoM9QFLvppFy4IWaQ==}
     dev: false
 
   /process@0.11.10:
@@ -948,8 +950,8 @@ packages:
       once: 1.4.0
     dev: false
 
-  /punycode@2.3.0:
-    resolution: {integrity: sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==}
+  /punycode@2.3.1:
+    resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
     dev: false
 
@@ -1099,9 +1101,9 @@ packages:
     engines: {node: '>= 0.4'}
     dependencies:
       define-data-property: 1.1.1
-      get-intrinsic: 1.2.1
+      get-intrinsic: 1.2.2
       gopd: 1.0.1
-      has-property-descriptors: 1.0.0
+      has-property-descriptors: 1.0.1
     dev: false
 
   /setprototypeof@1.2.0:
@@ -1112,7 +1114,7 @@ packages:
     resolution: {integrity: sha512-q5XPytqFEIKHkGdiMIrY10mvLRvnQh42/+GoBlFW3b2LXLE2xxJpZFdm94we0BaoV3RwJyGqg5wS7epxTv0Zvw==}
     dependencies:
       call-bind: 1.0.5
-      get-intrinsic: 1.2.1
+      get-intrinsic: 1.2.2
       object-inspect: 1.13.1
     dev: false
 
@@ -1307,7 +1309,7 @@ packages:
   /uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
     dependencies:
-      punycode: 2.3.0
+      punycode: 2.3.1
     dev: false
 
   /util-deprecate@1.0.2:

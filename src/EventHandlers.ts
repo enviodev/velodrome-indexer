@@ -5,6 +5,7 @@ import {
   PoolContract_Sync_handler,
   PoolContract_Swap_loader,
   PoolContract_Swap_handler,
+  PoolFactoryContract_PoolCreated_loader,
   PoolFactoryContract_PoolCreated_handler,
 } from "../generated/src/Handlers.gen";
 
@@ -13,6 +14,7 @@ import {
   TokenEntity,
   LatestETHPriceEntity,
   liquidityPoolEntity,
+  StateStoreEntity,
 } from "./src/Types.gen";
 
 import {
@@ -20,6 +22,9 @@ import {
   STABLECOIN_POOL_ADDRESSES,
   WHITELISTED_TOKENS_ADDRESSES,
   TESTING_POOL_ADDRESSES,
+  STATE_STORE_ID,
+  INITIAL_ETH_PRICE,
+  DEFAULT_STATE_STORE
 } from "./Constants";
 
 import {
@@ -29,13 +34,11 @@ import {
   findPricePerETH,
 } from "./Helpers";
 
-import {
-  poolsWithWhitelistedTokens,
-  updateLatestETHPriceKey,
-  getLatestETHPriceKey,
-} from "./Store";
-
 import { divideBase1e18, multiplyBase1e18 } from "./Maths";
+
+PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
+  context.StateStore.stateStoreLoad(STATE_STORE_ID, { loaders: { loadPoolsWithWhitelistedTokens: {} } });
+});
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   if (TESTING_POOL_ADDRESSES.includes(event.params.pool.toString())) {
@@ -83,23 +86,28 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       WHITELISTED_TOKENS_ADDRESSES.includes(token0_instance.id) ||
       WHITELISTED_TOKENS_ADDRESSES.includes(token1_instance.id)
     ) {
-      poolsWithWhitelistedTokens.push({
-        address: event.params.pool.toString(),
-        token0_address: event.params.token0.toString(),
-        token1_address: event.params.token1.toString(),
-      });
+
+      if (context.StateStore.stateStore) {
+        context.StateStore.set({
+          ...context.StateStore.stateStore,
+          poolsWithWhitelistedTokens: [...(context.StateStore.stateStore?.poolsWithWhitelistedTokens || []), new_pool.id]
+        });
+      } else {
+        context.LatestETHPrice.set(INITIAL_ETH_PRICE)
+        context.StateStore.set({
+          ...DEFAULT_STATE_STORE,
+          poolsWithWhitelistedTokens: [new_pool.id]
+        });
+      }
+    } else {
+      context.log.info(`Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`);
     }
   }
 });
 
 PoolContract_Fees_loader(({ event, context }) => {
   //Load the single liquidity pool from the loader to be updated
-  context.LiquidityPool.load(event.srcAddress.toString(), {
-    loaders: {
-      loadToken0: false,
-      loadToken1: false,
-    },
-  });
+  context.LiquidityPool.load(event.srcAddress.toString(), {});
 });
 
 PoolContract_Fees_handler(({ event, context }) => {
@@ -160,6 +168,9 @@ PoolContract_Swap_handler(({ event, context }) => {
 });
 
 PoolContract_Sync_loader(({ event, context }) => {
+  // load the global state store
+  context.StateStore.stateStoreLoad(STATE_STORE_ID, { loaders: { loadLatestEthPrice: true, loadPoolsWithWhitelistedTokens: {} } });
+
   // Load the single liquidity pool from the loader to be updated
   context.LiquidityPool.singlePoolLoad(event.srcAddress.toString(), {
     loaders: {
@@ -169,49 +180,37 @@ PoolContract_Sync_loader(({ event, context }) => {
   });
 
   // Load stablecoin pools for weighted average ETH price calculation, only if pool is stablecoin pool
-  if (isStablecoinPool(event.srcAddress.toString().toLowerCase())) {
-    context.LiquidityPool.stablecoinPoolsLoad(STABLECOIN_POOL_ADDRESSES, {});
-  }
-
-  // Load all the pools to be used in pricing
-  // Use the addresses from poolsWithWhitelistedTokens list
-  context.LiquidityPool.pricingPoolsLoad(
-    poolsWithWhitelistedTokens.map((pool) => pool.address),
-    {}
-  );
+  const stableCoinAddresses = isStablecoinPool(event.srcAddress.toString().toLowerCase()) ? STABLECOIN_POOL_ADDRESSES : [];
+  context.LiquidityPool.stablecoinPoolsLoad(stableCoinAddresses, {});
 
   // Load all the whitelisted tokens to be potentially used in pricing
   context.Token.whitelistedTokensLoad(WHITELISTED_TOKENS_ADDRESSES);
-
-  // Load LatestETHPrice entity
-  context.LatestETHPrice.load(getLatestETHPriceKey());
 });
 
 PoolContract_Sync_handler(({ event, context }) => {
+  const { stateStore } = context.StateStore;
+  if (!stateStore) {
+    throw new Error("Critical bug: stateStore is undefined. Make sure it is defined on pool creation.");
+  }
+
   // Fetch the current liquidity pool from the loader
   let current_liquidity_pool = context.LiquidityPool.singlePool;
 
   // Get a list of all the whitelisted token entities
   let whitelisted_tokens_list = context.Token.whitelistedTokens.filter(
-    (item): item is TokenEntity => item !== undefined
-  );
+    item => !!item
+  ) as TokenEntity[];
 
   // filter out the pools where the token is not present
-  let relevant_pools_list = context.LiquidityPool.pricingPools.filter(
-    (item): item is liquidityPoolEntity => item !== undefined
-  );
+  let relevant_pools_list = context.StateStore.getPoolsWithWhitelistedTokens(stateStore)
 
   // Get the LatestETHPrice object
-  let latest_eth_price = context.LatestETHPrice.get(getLatestETHPriceKey());
+  let latest_eth_price = context.StateStore.getLatestEthPrice(stateStore);
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   if (current_liquidity_pool) {
     let token0Price = current_liquidity_pool.token0Price;
     let token1Price = current_liquidity_pool.token1Price;
-
-    let latest_eth_price_actual = latest_eth_price
-      ? latest_eth_price.price
-      : 0n;
 
     // Normalize reserve amounts to 1e18
     let normalized_reserve0 = normalizeTokenAmountTo1e18(
@@ -262,13 +261,13 @@ PoolContract_Sync_handler(({ event, context }) => {
     const new_token0_instance: TokenEntity = {
       id: token0_instance.id,
       pricePerETH: token0PricePerETH,
-      pricePerUSD: multiplyBase1e18(token0PricePerETH, latest_eth_price_actual),
+      pricePerUSD: multiplyBase1e18(token0PricePerETH, latest_eth_price.price),
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     const new_token1_instance: TokenEntity = {
       id: token1_instance.id,
       pricePerETH: token1PricePerETH,
-      pricePerUSD: multiplyBase1e18(token1PricePerETH, latest_eth_price_actual),
+      pricePerUSD: multiplyBase1e18(token1PricePerETH, latest_eth_price.price),
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
@@ -318,8 +317,12 @@ PoolContract_Sync_handler(({ event, context }) => {
 
       // Creating a new instance of LatestETHPriceEntity to be updated in the DB
       context.LatestETHPrice.set(latest_eth_price_instance);
+
       // update latestETHPriceKey value with event.blockTimestamp.toString()
-      updateLatestETHPriceKey(event.blockTimestamp.toString());
+      context.StateStore.set({
+        ...stateStore,
+        latestEthPrice: latest_eth_price_instance.id,
+      });
     }
   }
 });

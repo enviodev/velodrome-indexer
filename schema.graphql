@@ -1,11 +1,11 @@
-type Token @entity {
+type Token {
   id: ID! # token address
   pricePerETH: BigInt! # price of token per ETH
   pricePerUSD: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
 }
 
-type LiquidityPool @entity {
+type LiquidityPool {
   id: ID! # pool address
   token0: Token!
   token1: Token!
@@ -24,7 +24,13 @@ type LiquidityPool @entity {
   lastUpdatedTimestamp: BigInt! # timestamp of last update
 }
 
-type LatestETHPrice @entity {
+type LatestETHPrice {
   id: ID! # updated Timestamp
   price: BigInt! # In base 1e18
+}
+
+type StateStore {
+  id: ID! # ID will always be "STORE"
+  latestEthPrice: LatestETHPrice!
+  poolsWithWhitelistedTokens: [LiquidityPool!]!
 }
