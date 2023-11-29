@@ -3,7 +3,7 @@ import { Token, Pool } from "./CustomTypes";
 export const TEN_TO_THE_18_BI = BigInt(10 ** 18);
 
 // Hardcoded WETH, USDC and OP token addresses with decimals
-const WETH: Token = {
+export const WETH: Token = {
   address: "0x4200000000000000000000000000000000000006",
   symbol: "WETH",
   decimals: 18,
@@ -30,6 +30,11 @@ const LUSD: Token = {
 // list of WHITELISTED tokens with their symbol and decimals to be used in pricing
 export const WHITELISTED_TOKENS: Token[] = [WETH, USDC, OP, LUSD];
 
+// List of all WHITELISTED tokens addresses
+export const WHITELISTED_TOKENS_ADDRESSES = WHITELISTED_TOKENS.map(
+  (token) => token.address
+);
+
 // List of stablecoin pools with their token0, token1 and name
 export const STABLECOIN_POOLS: Pool[] = [
   {
@@ -50,3 +55,13 @@ export const STABLECOIN_POOLS: Pool[] = [
 export const STABLECOIN_POOL_ADDRESSES = STABLECOIN_POOLS.map(
   (pool) => pool.address
 );
+
+// List of pool addresses for testing
+export const TESTING_POOL_ADDRESSES: string[] = [
+  "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b",
+  "0xd25711EdfBf747efCE181442Cc1D8F5F8fc8a0D3",
+  "0xe9581d0F1A628B038fC8B2a7F5A7d904f0e2f937",
+  "0x0df083de449F75691fc5A36477a6f3284C269108",
+  "0x8134A2fDC127549480865fB8E5A9E8A8a95a54c5",
+  "0x58e6433A6903886E440Ddf519eCC573c4046a6b2",
+];
