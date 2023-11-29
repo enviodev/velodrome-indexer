@@ -1,4 +1,5 @@
 import { Token, Pool } from "./CustomTypes";
+import { LatestETHPriceEntity, StateStoreEntity } from "./src/Types.gen";
 
 export const TEN_TO_THE_18_BI = BigInt(10 ** 18);
 
@@ -67,3 +68,13 @@ export const TESTING_POOL_ADDRESSES: string[] = [
 ];
 
 export const STATE_STORE_ID = "STATE";
+
+export const INITIAL_ETH_PRICE: LatestETHPriceEntity = {
+  id: "INITIAL PRICE",
+  price: 0n, // should maybe hardcode this to ~1,889.79 USD since that was the price around the time of the first pool creation
+}
+export const DEFAULT_STATE_STORE: StateStoreEntity = {
+  id: STATE_STORE_ID,
+  latestEthPrice: INITIAL_ETH_PRICE.id,
+  poolsWithWhitelistedTokens: [],
+};

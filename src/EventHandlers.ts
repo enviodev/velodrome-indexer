@@ -23,6 +23,8 @@ import {
   WHITELISTED_TOKENS_ADDRESSES,
   TESTING_POOL_ADDRESSES,
   STATE_STORE_ID,
+  INITIAL_ETH_PRICE,
+  DEFAULT_STATE_STORE
 } from "./Constants";
 
 import {
@@ -37,15 +39,6 @@ import { divideBase1e18, multiplyBase1e18 } from "./Maths";
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   context.StateStore.stateStoreLoad(STATE_STORE_ID, { loaders: { loadPoolsWithWhitelistedTokens: {} } });
 });
-const initialEthPrice: LatestETHPriceEntity = {
-  id: "INITIAL PRICE",
-  price: 0n, // should maybe hardcode this to ~1,889.79 USD since that was the price around the time of the first pool creation
-}
-const defaultStateStore: StateStoreEntity = {
-  id: STATE_STORE_ID,
-  latestEthPrice: initialEthPrice.id,
-  poolsWithWhitelistedTokens: [],
-};
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   if (TESTING_POOL_ADDRESSES.includes(event.params.pool.toString())) {
@@ -100,26 +93,21 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
           poolsWithWhitelistedTokens: [...(context.StateStore.stateStore?.poolsWithWhitelistedTokens || []), new_pool.id]
         });
       } else {
-        context.LatestETHPrice.set(initialEthPrice)
+        context.LatestETHPrice.set(INITIAL_ETH_PRICE)
         context.StateStore.set({
-          ...defaultStateStore,
+          ...DEFAULT_STATE_STORE,
           poolsWithWhitelistedTokens: [new_pool.id]
         });
       }
     } else {
-      context.log.info("Pool does not contain any whitelisted tokens");
+      context.log.info(`Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`);
     }
   }
 });
 
 PoolContract_Fees_loader(({ event, context }) => {
   //Load the single liquidity pool from the loader to be updated
-  context.LiquidityPool.load(event.srcAddress.toString(), {
-    loaders: {
-      loadToken0: true,
-      loadToken1: true,
-    },
-  });
+  context.LiquidityPool.load(event.srcAddress.toString(), {});
 });
 
 PoolContract_Fees_handler(({ event, context }) => {
