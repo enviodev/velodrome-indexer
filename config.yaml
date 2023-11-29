@@ -40,8 +40,7 @@ networks:
                   - singlePool
                 arrayLabels:
                   - stablecoinPools
-                  - pricingPools
+                  # - pricingPools
               - name: Token
                 arrayLabels:
                   - whitelistedTokens
-              - name: LatestETHPrice
