@@ -30,6 +30,8 @@ networks:
               - name: LiquidityPool
           - event: Swap(address indexed sender, address indexed to, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out)
             requiredEntities:
+              - name: StateStore
+                labels: ["stateStore"]
               - name: LiquidityPool
           - event: Sync(uint256 reserve0, uint256 reserve1)
             requiredEntities:
