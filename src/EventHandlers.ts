@@ -139,11 +139,6 @@ PoolContract_Fees_handler(({ event, context }) => {
 });
 
 PoolContract_Swap_loader(({ event, context }) => {
-  // load the global state store
-  context.StateStore.stateStoreLoad(STATE_STORE_ID, {
-    loaders: { loadLatestEthPrice: true, loadPoolsWithWhitelistedTokens: {} },
-  });
-
   //Load the single liquidity pool from the loader to be updated
   context.LiquidityPool.load(event.srcAddress.toString(), {
     loaders: {
