@@ -149,7 +149,14 @@ PoolContract_Swap_loader(({ event, context }) => {
     },
   });
   //Load the user entity making the swap
-  context.User.userLoad(event.params.sender.toString());
+  context.User.userLoad(event.params.sender.toString(), {
+    loaders: {
+      loadLiquidityPools: {
+        loadToken0: false,
+        loadToken1: false,
+      },
+    },
+  });
 });
 
 PoolContract_Swap_handler(({ event, context }) => {
@@ -209,6 +216,7 @@ PoolContract_Swap_handler(({ event, context }) => {
         normalized_amount_1_total_usd,
       numberOfSwaps: existing_user_number_of_swaps + 1n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+      liquidityPools: [current_liquidity_pool.id],
     };
 
     // Update the UserEntity in the DB
