@@ -13,6 +13,7 @@ import {
   LiquidityPoolEntity,
   TokenEntity,
   LatestETHPriceEntity,
+  UserEntity,
 } from "./src/Types.gen";
 
 import {
@@ -189,29 +190,35 @@ PoolContract_Swap_handler(({ event, context }) => {
       token1_instance.pricePerUSD
     );
 
-    let exsting_user_id = current_user
+    let existing_user_id = current_user
       ? current_user.id
       : event.params.sender.toString();
-    let exsting_user_volume = current_user
+    let existing_user_volume = current_user
       ? current_user.totalSwapVolumeUSD
       : 0n;
-    let exsting_user_number_of_swaps = current_user
-      ? current_user.totalSwapVolumeUSD
+    let existing_user_number_of_swaps = current_user
+      ? current_user.numberOfSwaps
       : 0n;
 
     // Create a new instance of UserEntity to be updated in the DB
     const user_instance = {
-      id: exsting_user_id,
+      id: existing_user_id,
       totalSwapVolumeUSD:
-        exsting_user_volume +
+        existing_user_volume +
         normalized_amount_0_total_usd +
         normalized_amount_1_total_usd,
-      numberOfSwaps: exsting_user_number_of_swaps + 1n,
+      numberOfSwaps: existing_user_number_of_swaps + 1n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
     // Update the UserEntity in the DB
     context.User.set(user_instance);
+
+    let current_pool_users = current_liquidity_pool.users;
+
+    if (!current_pool_users.includes(existing_user_id)) {
+      current_pool_users.push(existing_user_id);
+    }
 
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
     const liquidity_pool_instance: LiquidityPoolEntity = {
@@ -226,7 +233,7 @@ PoolContract_Swap_handler(({ event, context }) => {
         normalized_amount_1_total_usd,
       numberOfSwaps: current_liquidity_pool.numberOfSwaps + 1n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-      users: [...(current_liquidity_pool.users + user_instance.id)],
+      users: current_pool_users,
     };
     // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(liquidity_pool_instance);
