@@ -78,6 +78,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       token0Price: 0n,
       token1Price: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+      users: [],
     };
     // Create the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(new_pool);
@@ -146,6 +147,8 @@ PoolContract_Swap_loader(({ event, context }) => {
       loadToken1: true,
     },
   });
+  //Load the user entity making the swap
+  context.User.userLoad(event.params.sender.toString());
 });
 
 PoolContract_Swap_handler(({ event, context }) => {
@@ -153,6 +156,8 @@ PoolContract_Swap_handler(({ event, context }) => {
   let current_liquidity_pool = context.LiquidityPool.get(
     event.srcAddress.toString()
   );
+
+  let current_user = context.User.user;
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   if (current_liquidity_pool) {
@@ -183,6 +188,31 @@ PoolContract_Swap_handler(({ event, context }) => {
       normalized_amount_1_total,
       token1_instance.pricePerUSD
     );
+
+    let exsting_user_id = current_user
+      ? current_user.id
+      : event.params.sender.toString();
+    let exsting_user_volume = current_user
+      ? current_user.totalSwapVolumeUSD
+      : 0n;
+    let exsting_user_number_of_swaps = current_user
+      ? current_user.totalSwapVolumeUSD
+      : 0n;
+
+    // Create a new instance of UserEntity to be updated in the DB
+    const user_instance = {
+      id: exsting_user_id,
+      totalSwapVolumeUSD:
+        exsting_user_volume +
+        normalized_amount_0_total_usd +
+        normalized_amount_1_total_usd,
+      numberOfSwaps: exsting_user_number_of_swaps + 1n,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+
+    // Update the UserEntity in the DB
+    context.User.set(user_instance);
+
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
     const liquidity_pool_instance: LiquidityPoolEntity = {
       ...current_liquidity_pool,
@@ -196,6 +226,7 @@ PoolContract_Swap_handler(({ event, context }) => {
         normalized_amount_1_total_usd,
       numberOfSwaps: current_liquidity_pool.numberOfSwaps + 1n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+      users: [...(current_liquidity_pool.users + user_instance.id)],
     };
     // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(liquidity_pool_instance);
