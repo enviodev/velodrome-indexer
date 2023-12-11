@@ -30,6 +30,7 @@ type Gauge {
   pool: LiquidityPool!
   totalEmissions: BigInt!
   totalEmissionsUSD: BigInt!
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
 }
 
 type StateStore {

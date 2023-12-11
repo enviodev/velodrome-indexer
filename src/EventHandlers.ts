@@ -7,6 +7,8 @@ import {
   PoolContract_Swap_handler,
   PoolFactoryContract_PoolCreated_loader,
   PoolFactoryContract_PoolCreated_handler,
+  VoterContract_DistributeReward_loader,
+  VoterContract_DistributeReward_handler,
   VoterContract_GaugeCreated_loader,
   VoterContract_GaugeCreated_handler,
 } from "../generated/src/Handlers.gen";
@@ -26,6 +28,7 @@ import {
   TEN_TO_THE_18_BI,
   TESTING_POOL_ADDRESSES,
   WHITELISTED_TOKENS_ADDRESSES,
+  VELO,
 } from "./Constants";
 
 import {
@@ -438,9 +441,48 @@ VoterContract_GaugeCreated_handler(({ event, context }) => {
       pool: event.params.pool.toString(),
       totalEmissions: 0n,
       totalEmissionsUSD: 0n,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
     // Create Gauge entity in the DB
     context.Gauge.set(gauge);
+  }
+});
+
+VoterContract_DistributeReward_loader(({ event, context }) => {
+  // Load the Gauge entity to be updated
+  context.Gauge.load(event.params.gauge.toString(), {});
+  // Load VELO token for conversion of emissions amount into USD
+  context.Token.veloTokenLoad(VELO.address);
+});
+
+VoterContract_DistributeReward_handler(({ event, context }) => {
+  // Fetch VELO Token entity
+  let veloToken = context.Token.veloToken;
+  // Fetch the Gauge entity that was loaded
+  let gauge = context.Gauge.get(event.params.gauge.toString());
+
+  // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
+  // Dev note: Assumption here is that the VELO token entity has already been created at this point
+  if (gauge && veloToken) {
+    let normalized_emissions_amount = normalizeTokenAmountTo1e18(
+      VELO.address,
+      event.params.amount
+    );
+
+    let normalized_emissions_amount_usd = multiplyBase1e18(
+      normalized_emissions_amount,
+      veloToken.pricePerUSD
+    );
+    // Create a new instance of GaugeEntity to be updated in the DB
+    let new_gauge_instance: GaugeEntity = {
+      ...gauge,
+      totalEmissions: gauge.totalEmissions + normalized_emissions_amount,
+      totalEmissionsUSD: gauge.totalEmissions + normalized_emissions_amount_usd,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+
+    // Create Gauge entity in the DB
+    context.Gauge.set(new_gauge_instance);
   }
 });
