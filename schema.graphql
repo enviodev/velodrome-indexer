@@ -22,6 +22,14 @@ type LiquidityPool {
   token0Price: BigInt! # price of token0 relative to token1
   token1Price: BigInt! # price of token1 relative to token0
   lastUpdatedTimestamp: BigInt! # timestamp of last update
+  gauge: Gauge! @derivedFrom(field: "pool")
+}
+
+type Gauge {
+  id: ID! # gauge address
+  pool: LiquidityPool!
+  totalEmissions: BigInt!
+  totalEmissionsUSD: BigInt!
 }
 
 type StateStore {

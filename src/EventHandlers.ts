@@ -7,9 +7,12 @@ import {
   PoolContract_Swap_handler,
   PoolFactoryContract_PoolCreated_loader,
   PoolFactoryContract_PoolCreated_handler,
+  VoterContract_GaugeCreated_loader,
+  VoterContract_GaugeCreated_handler,
 } from "../generated/src/Handlers.gen";
 
 import {
+  GaugeEntity,
   LatestETHPriceEntity,
   LiquidityPoolEntity,
   TokenEntity,
@@ -409,5 +412,35 @@ PoolContract_Sync_handler(({ event, context }) => {
         latestEthPrice: latest_eth_price_instance.id,
       });
     }
+  }
+});
+
+VoterContract_GaugeCreated_loader(({ event, context }) => {
+  // Load the single liquidity pool from the loader to be updated
+  context.LiquidityPool.load(event.params.pool.toString(), {
+    loaders: {
+      loadToken0: false,
+      loadToken1: false,
+    },
+  });
+});
+
+VoterContract_GaugeCreated_handler(({ event, context }) => {
+  // Fetch the current liquidity pool from the loader
+  let current_liquidity_pool = context.LiquidityPool.get(
+    event.params.pool.toString()
+  );
+
+  if (current_liquidity_pool) {
+    // Create a new instance of GaugeEntity to be updated in the DB
+    let gauge: GaugeEntity = {
+      id: event.params.gauge.toString(),
+      pool: event.params.pool.toString(),
+      totalEmissions: 0n,
+      totalEmissionsUSD: 0n,
+    };
+
+    // Create Gauge entity in the DB
+    context.Gauge.set(gauge);
   }
 });
