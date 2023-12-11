@@ -14,8 +14,9 @@ type LiquidityPool {
   reserve1: BigInt!
   totalLiquidityETH: BigInt!
   totalLiquidityUSD: BigInt!
-  cumulativeVolume0: BigInt!
-  cumulativeVolume1: BigInt!
+  totalVolume0: BigInt!
+  totalVolume1: BigInt!
+  totalVolumeUSD: BigInt!
   cumulativeFees0: BigInt!
   cumulativeFees1: BigInt!
   numberOfSwaps: BigInt!
