@@ -10,26 +10,26 @@ import {
 } from "../generated/src/Handlers.gen";
 
 import {
+  LatestETHPriceEntity,
   LiquidityPoolEntity,
   TokenEntity,
-  LatestETHPriceEntity,
 } from "./src/Types.gen";
 
 import {
-  TEN_TO_THE_18_BI,
-  STABLECOIN_POOL_ADDRESSES,
-  WHITELISTED_TOKENS_ADDRESSES,
-  TESTING_POOL_ADDRESSES,
-  STATE_STORE_ID,
-  INITIAL_ETH_PRICE,
   DEFAULT_STATE_STORE,
+  INITIAL_ETH_PRICE,
+  STABLECOIN_POOL_ADDRESSES,
+  STATE_STORE_ID,
+  TEN_TO_THE_18_BI,
+  TESTING_POOL_ADDRESSES,
+  WHITELISTED_TOKENS_ADDRESSES,
 } from "./Constants";
 
 import {
-  normalizeTokenAmountTo1e18,
   calculateETHPriceInUSD,
   isStablecoinPool,
   findPricePerETH,
+  normalizeTokenAmountTo1e18,
 } from "./Helpers";
 
 import { divideBase1e18, multiplyBase1e18 } from "./Maths";
@@ -41,6 +41,7 @@ PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
 });
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
+  // TODO remove this when we are indexing all the pools
   if (TESTING_POOL_ADDRESSES.includes(event.params.pool.toString())) {
     // Create new instances of TokenEntity to be updated in the DB
     const token0_instance: TokenEntity = {
@@ -49,15 +50,13 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       pricePerUSD: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
+
     const token1_instance: TokenEntity = {
       id: event.params.token1.toString(),
       pricePerETH: 0n,
       pricePerUSD: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
-    // Create TokenEntities in the DB
-    context.Token.set(token0_instance);
-    context.Token.set(token1_instance);
 
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
     const new_pool: LiquidityPoolEntity = {
@@ -80,6 +79,9 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       token1Price: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
+    // Create TokenEntities in the DB
+    context.Token.set(token0_instance);
+    context.Token.set(token1_instance);
     // Create the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(new_pool);
 
@@ -354,9 +356,6 @@ PoolContract_Sync_handler(({ event, context }) => {
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
-    context.Token.set(new_token0_instance);
-    context.Token.set(new_token1_instance);
-
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
     const liquidity_pool_instance: LiquidityPoolEntity = {
       ...current_liquidity_pool,
@@ -373,6 +372,9 @@ PoolContract_Sync_handler(({ event, context }) => {
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
+    // Update TokenEntities in the DB
+    context.Token.set(new_token0_instance);
+    context.Token.set(new_token1_instance);
     // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(liquidity_pool_instance);
 
