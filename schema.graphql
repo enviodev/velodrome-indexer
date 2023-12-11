@@ -23,8 +23,7 @@ type LiquidityPool {
   token0Price: BigInt! # price of token0 relative to token1
   token1Price: BigInt! # price of token1 relative to token0
   lastUpdatedTimestamp: BigInt! # timestamp of last update
-  # users: [User!]! # users that have swapped in the pool
-  usersExperimental: [LiquidityPoolUserMapping!]!
+  userMappings: [LiquidityPoolUserMapping!]!
     @derivedFrom(field: "liquidityPool")
 }
 
@@ -45,11 +44,10 @@ type User {
   totalSwapVolumeUSD: BigInt!
   lastUpdatedTimestamp: BigInt! # timestamp of last update
   # liquidityPools: [LiquidityPool!]!
-  liquidityPoolsExperimental: [LiquidityPoolUserMapping!]!
+  liquidityPoolMappings: [LiquidityPoolUserMapping!]!
     @derivedFrom(field: "user")
 }
 
-# mapping example
 type LiquidityPoolUserMapping {
   id: ID! # concatenation of liquidityPool and user id
   liquidityPool: LiquidityPool!
