@@ -75,8 +75,9 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       totalVolume0: 0n,
       totalVolume1: 0n,
       totalVolumeUSD: 0n,
-      cumulativeFees0: 0n,
-      cumulativeFees1: 0n,
+      totalFees0: 0n,
+      totalFees1: 0n,
+      totalFeesUSD: 0n,
       numberOfSwaps: 1n,
       token0Price: 0n,
       token1Price: 0n,
@@ -116,7 +117,12 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
 
 PoolContract_Fees_loader(({ event, context }) => {
   //Load the single liquidity pool from the loader to be updated
-  context.LiquidityPool.load(event.srcAddress.toString(), {});
+  context.LiquidityPool.load(event.srcAddress.toString(), {
+    loaders: {
+      loadToken0: true,
+      loadToken1: true,
+    },
+  });
 });
 
 PoolContract_Fees_handler(({ event, context }) => {
@@ -127,13 +133,45 @@ PoolContract_Fees_handler(({ event, context }) => {
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   if (current_liquidity_pool) {
+    // Get the tokens from the loader and update their pricing
+    let token0_instance = context.LiquidityPool.getToken0(
+      current_liquidity_pool
+    );
+
+    let token1_instance = context.LiquidityPool.getToken1(
+      current_liquidity_pool
+    );
+
+    // Normalize swap amounts to 1e18
+    let normalized_fee_amount_0_total = normalizeTokenAmountTo1e18(
+      current_liquidity_pool.token0,
+      event.params.amount0
+    );
+    let normalized_fee_amount_1_total = normalizeTokenAmountTo1e18(
+      current_liquidity_pool.token1,
+      event.params.amount1
+    );
+
+    // Calculate amounts in USD
+    let normalized_fee_amount_0_total_usd = multiplyBase1e18(
+      normalized_fee_amount_0_total,
+      token0_instance.pricePerUSD
+    );
+    let normalized_fee_amount_1_total_usd = multiplyBase1e18(
+      normalized_fee_amount_1_total,
+      token1_instance.pricePerUSD
+    );
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
     const liquidity_pool_instance: LiquidityPoolEntity = {
       ...current_liquidity_pool,
-      cumulativeFees0:
-        current_liquidity_pool.cumulativeFees0 + BigInt(event.params.amount0),
-      cumulativeFees1:
-        current_liquidity_pool.cumulativeFees1 + BigInt(event.params.amount1),
+      totalFees0:
+        current_liquidity_pool.totalFees0 + normalized_fee_amount_0_total,
+      totalFees1:
+        current_liquidity_pool.totalFees1 + normalized_fee_amount_1_total,
+      totalFeesUSD:
+        current_liquidity_pool.totalFeesUSD +
+        normalized_fee_amount_0_total_usd +
+        normalized_fee_amount_1_total_usd,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     // Update the LiquidityPoolEntity in the DB
@@ -214,6 +252,7 @@ PoolContract_Swap_handler(({ event, context }) => {
       event.params.amount1In + event.params.amount1Out
     );
 
+    // Calculate amounts in USD
     let normalized_amount_0_total_usd = multiplyBase1e18(
       normalized_amount_0_total,
       token0_instance.pricePerUSD

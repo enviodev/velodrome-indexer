@@ -17,8 +17,9 @@ type LiquidityPool {
   totalVolume0: BigInt!
   totalVolume1: BigInt!
   totalVolumeUSD: BigInt!
-  cumulativeFees0: BigInt!
-  cumulativeFees1: BigInt!
+  totalFees0: BigInt!
+  totalFees1: BigInt!
+  totalFeesUSD: BigInt!
   numberOfSwaps: BigInt!
   token0Price: BigInt! # price of token0 relative to token1
   token1Price: BigInt! # price of token1 relative to token0
