@@ -125,3 +125,11 @@ export const findPricePerETH = (
     return 0n;
   }
 };
+
+// Function to return the liquidityPool and User mapping id
+export const getLiquidityPoolAndUserMappingId = (
+  liquidityPoolId: string,
+  userId: string
+): string => {
+  return liquidityPoolId + "-" + userId;
+};

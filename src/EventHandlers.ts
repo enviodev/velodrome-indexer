@@ -13,6 +13,8 @@ import {
   LiquidityPoolEntity,
   TokenEntity,
   LatestETHPriceEntity,
+  UserEntity,
+  LiquidityPoolUserMappingEntity,
 } from "./src/Types.gen";
 
 import {
@@ -30,6 +32,7 @@ import {
   calculateETHPriceInUSD,
   isStablecoinPool,
   findPricePerETH,
+  getLiquidityPoolAndUserMappingId,
 } from "./Helpers";
 
 import { divideBase1e18, multiplyBase1e18 } from "./Maths";
@@ -146,6 +149,18 @@ PoolContract_Swap_loader(({ event, context }) => {
       loadToken1: true,
     },
   });
+
+  //Load the mapping for liquidity pool and the user
+  context.LiquidityPoolUserMapping.load(
+    getLiquidityPoolAndUserMappingId(
+      event.srcAddress.toString(),
+      event.params.sender.toString()
+    ),
+    {}
+  );
+
+  //Load the user entity
+  context.User.userLoad(event.params.sender.toString());
 });
 
 PoolContract_Swap_handler(({ event, context }) => {
@@ -154,6 +169,30 @@ PoolContract_Swap_handler(({ event, context }) => {
     event.srcAddress.toString()
   );
 
+  // Fetching the relevant liquidity pool user mapping
+  const liquidityPoolUserMapping = context.LiquidityPoolUserMapping.get(
+    getLiquidityPoolAndUserMappingId(
+      event.srcAddress.toString(),
+      event.params.sender.toString()
+    )
+  );
+
+  // If the mapping doesn't exist yet, create the mapping and save in DB
+  if (!liquidityPoolUserMapping) {
+    let newLiquidityPoolUserMapping: LiquidityPoolUserMappingEntity = {
+      id: getLiquidityPoolAndUserMappingId(
+        event.srcAddress.toString(),
+        event.params.sender.toString()
+      ),
+      liquidityPool: event.srcAddress.toString(),
+      user: event.params.sender.toString(),
+    };
+
+    context.LiquidityPoolUserMapping.set(newLiquidityPoolUserMapping);
+  }
+
+  let current_user = context.User.user;
+  ``;
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   if (current_liquidity_pool) {
     // Get the tokens from the loader and update their pricing
@@ -183,6 +222,28 @@ PoolContract_Swap_handler(({ event, context }) => {
       normalized_amount_1_total,
       token1_instance.pricePerUSD
     );
+
+    let existing_user_id = current_user
+      ? current_user.id
+      : event.params.sender.toString();
+    let existing_user_volume = current_user
+      ? current_user.totalSwapVolumeUSD
+      : 0n;
+    let existing_user_number_of_swaps = current_user
+      ? current_user.numberOfSwaps
+      : 0n;
+
+    // Create a new instance of UserEntity to be updated in the DB
+    const user_instance: UserEntity = {
+      id: existing_user_id,
+      totalSwapVolumeUSD:
+        existing_user_volume +
+        normalized_amount_0_total_usd +
+        normalized_amount_1_total_usd,
+      numberOfSwaps: existing_user_number_of_swaps + 1n,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
     const liquidity_pool_instance: LiquidityPoolEntity = {
       ...current_liquidity_pool,
@@ -197,8 +258,11 @@ PoolContract_Swap_handler(({ event, context }) => {
       numberOfSwaps: current_liquidity_pool.numberOfSwaps + 1n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
+
     // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(liquidity_pool_instance);
+    // Update the UserEntity in the DB
+    context.User.set(user_instance);
   }
 });
 

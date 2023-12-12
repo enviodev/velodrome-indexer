@@ -23,6 +23,8 @@ type LiquidityPool {
   token0Price: BigInt! # price of token0 relative to token1
   token1Price: BigInt! # price of token1 relative to token0
   lastUpdatedTimestamp: BigInt! # timestamp of last update
+  userMappings: [LiquidityPoolUserMapping!]!
+    @derivedFrom(field: "liquidityPool")
 }
 
 type LatestETHPrice {
@@ -34,4 +36,20 @@ type StateStore {
   id: ID! # ID will always be "STORE"
   latestEthPrice: LatestETHPrice!
   poolsWithWhitelistedTokens: [LiquidityPool!]!
+}
+
+type User {
+  id: ID! # user address
+  numberOfSwaps: BigInt!
+  totalSwapVolumeUSD: BigInt!
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
+  # liquidityPools: [LiquidityPool!]!
+  liquidityPoolMappings: [LiquidityPoolUserMapping!]!
+    @derivedFrom(field: "user")
+}
+
+type LiquidityPoolUserMapping {
+  id: ID! # concatenation of liquidityPool and user id
+  liquidityPool: LiquidityPool!
+  user: User!
 }
