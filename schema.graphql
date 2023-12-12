@@ -23,6 +23,8 @@ type LiquidityPool {
   token1Price: BigInt! # price of token1 relative to token0
   lastUpdatedTimestamp: BigInt! # timestamp of last update
   gauge: Gauge! @derivedFrom(field: "pool")
+  userMappings: [LiquidityPoolUserMapping!]!
+    @derivedFrom(field: "liquidityPool")
 }
 
 type Gauge {
@@ -44,4 +46,19 @@ type Token {
   pricePerETH: BigInt! # price of token per ETH
   pricePerUSD: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
+  
+type User {
+  id: ID! # user address
+  numberOfSwaps: BigInt!
+  totalSwapVolumeUSD: BigInt!
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
+  # liquidityPools: [LiquidityPool!]!
+  liquidityPoolMappings: [LiquidityPoolUserMapping!]!
+    @derivedFrom(field: "user")
+}
+
+type LiquidityPoolUserMapping {
+  id: ID! # concatenation of liquidityPool and user id
+  liquidityPool: LiquidityPool!
+  user: User!
 }
