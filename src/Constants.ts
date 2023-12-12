@@ -28,6 +28,12 @@ const LUSD: Token = {
   decimals: 18,
 };
 
+export const VELO: Token = {
+  address: "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db",
+  symbol: "VELO",
+  decimals: 18,
+};
+
 // list of WHITELISTED tokens with their symbol and decimals to be used in pricing
 export const WHITELISTED_TOKENS: Token[] = [WETH, USDC, OP, LUSD];
 
@@ -72,7 +78,7 @@ export const STATE_STORE_ID = "STATE";
 export const INITIAL_ETH_PRICE: LatestETHPriceEntity = {
   id: "INITIAL PRICE",
   price: 0n, // should maybe hardcode this to ~1,889.79 USD since that was the price around the time of the first pool creation
-}
+};
 export const DEFAULT_STATE_STORE: StateStoreEntity = {
   id: STATE_STORE_ID,
   latestEthPrice: INITIAL_ETH_PRICE.id,

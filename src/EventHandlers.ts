@@ -7,9 +7,15 @@ import {
   PoolContract_Swap_handler,
   PoolFactoryContract_PoolCreated_loader,
   PoolFactoryContract_PoolCreated_handler,
+  VoterContract_DistributeReward_loader,
+  VoterContract_DistributeReward_handler,
+  VoterContract_GaugeCreated_loader,
+  VoterContract_GaugeCreated_handler,
 } from "../generated/src/Handlers.gen";
 
 import {
+  GaugeEntity,
+  LatestETHPriceEntity,
   LiquidityPoolEntity,
   TokenEntity,
   LatestETHPriceEntity,
@@ -18,20 +24,21 @@ import {
 } from "./src/Types.gen";
 
 import {
-  TEN_TO_THE_18_BI,
-  STABLECOIN_POOL_ADDRESSES,
-  WHITELISTED_TOKENS_ADDRESSES,
-  TESTING_POOL_ADDRESSES,
-  STATE_STORE_ID,
-  INITIAL_ETH_PRICE,
   DEFAULT_STATE_STORE,
+  INITIAL_ETH_PRICE,
+  STABLECOIN_POOL_ADDRESSES,
+  STATE_STORE_ID,
+  TEN_TO_THE_18_BI,
+  TESTING_POOL_ADDRESSES,
+  WHITELISTED_TOKENS_ADDRESSES,
+  VELO,
 } from "./Constants";
 
 import {
-  normalizeTokenAmountTo1e18,
   calculateETHPriceInUSD,
   isStablecoinPool,
   findPricePerETH,
+  normalizeTokenAmountTo1e18,
   getLiquidityPoolAndUserMappingId,
 } from "./Helpers";
 
@@ -44,6 +51,7 @@ PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
 });
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
+  // TODO remove this when we are indexing all the pools
   if (TESTING_POOL_ADDRESSES.includes(event.params.pool.toString())) {
     // Create new instances of TokenEntity to be updated in the DB
     const token0_instance: TokenEntity = {
@@ -52,15 +60,13 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       pricePerUSD: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
+
     const token1_instance: TokenEntity = {
       id: event.params.token1.toString(),
       pricePerETH: 0n,
       pricePerUSD: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
-    // Create TokenEntities in the DB
-    context.Token.set(token0_instance);
-    context.Token.set(token1_instance);
 
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
     const new_pool: LiquidityPoolEntity = {
@@ -83,6 +89,9 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       token1Price: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
+    // Create TokenEntities in the DB
+    context.Token.set(token0_instance);
+    context.Token.set(token1_instance);
     // Create the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(new_pool);
 
@@ -418,9 +427,6 @@ PoolContract_Sync_handler(({ event, context }) => {
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
-    context.Token.set(new_token0_instance);
-    context.Token.set(new_token1_instance);
-
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
     const liquidity_pool_instance: LiquidityPoolEntity = {
       ...current_liquidity_pool,
@@ -437,6 +443,9 @@ PoolContract_Sync_handler(({ event, context }) => {
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
+    // Update TokenEntities in the DB
+    context.Token.set(new_token0_instance);
+    context.Token.set(new_token1_instance);
     // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(liquidity_pool_instance);
 
@@ -471,5 +480,74 @@ PoolContract_Sync_handler(({ event, context }) => {
         latestEthPrice: latest_eth_price_instance.id,
       });
     }
+  }
+});
+
+VoterContract_GaugeCreated_loader(({ event, context }) => {
+  // Load the single liquidity pool from the loader to be updated
+  context.LiquidityPool.load(event.params.pool.toString(), {
+    loaders: {
+      loadToken0: false,
+      loadToken1: false,
+    },
+  });
+});
+
+VoterContract_GaugeCreated_handler(({ event, context }) => {
+  // Fetch the current liquidity pool from the loader
+  let current_liquidity_pool = context.LiquidityPool.get(
+    event.params.pool.toString()
+  );
+
+  if (current_liquidity_pool) {
+    // Create a new instance of GaugeEntity to be updated in the DB
+    let gauge: GaugeEntity = {
+      id: event.params.gauge.toString(),
+      pool: event.params.pool.toString(),
+      totalEmissions: 0n,
+      totalEmissionsUSD: 0n,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+
+    // Create Gauge entity in the DB
+    context.Gauge.set(gauge);
+  }
+});
+
+VoterContract_DistributeReward_loader(({ event, context }) => {
+  // Load the Gauge entity to be updated
+  context.Gauge.load(event.params.gauge.toString(), {});
+  // Load VELO token for conversion of emissions amount into USD
+  context.Token.veloTokenLoad(VELO.address);
+});
+
+VoterContract_DistributeReward_handler(({ event, context }) => {
+  // Fetch VELO Token entity
+  let veloToken = context.Token.veloToken;
+  // Fetch the Gauge entity that was loaded
+  let gauge = context.Gauge.get(event.params.gauge.toString());
+
+  // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
+  // Dev note: Assumption here is that the VELO token entity has already been created at this point
+  if (gauge && veloToken) {
+    let normalized_emissions_amount = normalizeTokenAmountTo1e18(
+      VELO.address,
+      event.params.amount
+    );
+
+    let normalized_emissions_amount_usd = multiplyBase1e18(
+      normalized_emissions_amount,
+      veloToken.pricePerUSD
+    );
+    // Create a new instance of GaugeEntity to be updated in the DB
+    let new_gauge_instance: GaugeEntity = {
+      ...gauge,
+      totalEmissions: gauge.totalEmissions + normalized_emissions_amount,
+      totalEmissionsUSD: gauge.totalEmissions + normalized_emissions_amount_usd,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+
+    // Create Gauge entity in the DB
+    context.Gauge.set(new_gauge_instance);
   }
 });
