@@ -54,80 +54,82 @@ PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
     loaders: { loadPoolsWithWhitelistedTokens: {} },
   });
+
+  // dynamic contract registration of Pool addresses
+  context.contractRegistration.addPool(event.params.pool);
 });
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   // TODO remove this when we are indexing all the pools
-  if (TESTING_POOL_ADDRESSES.includes(event.params.pool.toString())) {
-    // Create new instances of TokenEntity to be updated in the DB
-    const token0_instance: TokenEntity = {
-      id: event.params.token0.toString(),
-      pricePerETH: 0n,
-      pricePerUSD: 0n,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
+  // if (TESTING_POOL_ADDRESSES.includes(event.params.pool.toString())) {
+  // Create new instances of TokenEntity to be updated in the DB
+  const token0_instance: TokenEntity = {
+    id: event.params.token0.toString(),
+    pricePerETH: 0n,
+    pricePerUSD: 0n,
+    lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+  };
 
-    const token1_instance: TokenEntity = {
-      id: event.params.token1.toString(),
-      pricePerETH: 0n,
-      pricePerUSD: 0n,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
+  const token1_instance: TokenEntity = {
+    id: event.params.token1.toString(),
+    pricePerETH: 0n,
+    pricePerUSD: 0n,
+    lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+  };
 
-    // Create a new instance of LiquidityPoolEntity to be updated in the DB
-    const new_pool: LiquidityPoolEntity = {
-      id: event.params.pool.toString(),
-      token0: token0_instance.id,
-      token1: token1_instance.id,
-      isStable: event.params.stable,
-      reserve0: 0n,
-      reserve1: 0n,
-      totalLiquidityETH: 0n,
-      totalLiquidityUSD: 0n,
-      totalVolume0: 0n,
-      totalVolume1: 0n,
-      totalVolumeUSD: 0n,
-      totalFees0: 0n,
-      totalFees1: 0n,
-      totalFeesUSD: 0n,
-      numberOfSwaps: 1n,
-      token0Price: 0n,
-      token1Price: 0n,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
-    // Create TokenEntities in the DB
-    context.Token.set(token0_instance);
-    context.Token.set(token1_instance);
-    // Create the LiquidityPoolEntity in the DB
-    context.LiquidityPool.set(new_pool);
+  // Create a new instance of LiquidityPoolEntity to be updated in the DB
+  const new_pool: LiquidityPoolEntity = {
+    id: event.params.pool.toString(),
+    token0: token0_instance.id,
+    token1: token1_instance.id,
+    isStable: event.params.stable,
+    reserve0: 0n,
+    reserve1: 0n,
+    totalLiquidityETH: 0n,
+    totalLiquidityUSD: 0n,
+    totalVolume0: 0n,
+    totalVolume1: 0n,
+    totalVolumeUSD: 0n,
+    totalFees0: 0n,
+    totalFees1: 0n,
+    totalFeesUSD: 0n,
+    numberOfSwaps: 1n,
+    token0Price: 0n,
+    token1Price: 0n,
+    lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+  };
+  // Create TokenEntities in the DB
+  context.Token.set(token0_instance);
+  context.Token.set(token1_instance);
+  // Create the LiquidityPoolEntity in the DB
+  context.LiquidityPool.set(new_pool);
 
-    // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
-    if (
-      WHITELISTED_TOKENS_ADDRESSES.includes(token0_instance.id) ||
-      WHITELISTED_TOKENS_ADDRESSES.includes(token1_instance.id)
-    ) {
-      if (context.StateStore.stateStore) {
-        context.StateStore.set({
-          ...context.StateStore.stateStore,
-          poolsWithWhitelistedTokens: [
-            ...(context.StateStore.stateStore?.poolsWithWhitelistedTokens ||
-              []),
-            new_pool.id,
-          ],
-        });
-      } else {
-        context.LatestETHPrice.set(INITIAL_ETH_PRICE);
-        context.StateStore.set({
-          ...DEFAULT_STATE_STORE,
-          poolsWithWhitelistedTokens: [new_pool.id],
-        });
-      }
+  // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
+  if (
+    WHITELISTED_TOKENS_ADDRESSES.includes(token0_instance.id) ||
+    WHITELISTED_TOKENS_ADDRESSES.includes(token1_instance.id)
+  ) {
+    if (context.StateStore.stateStore) {
+      context.StateStore.set({
+        ...context.StateStore.stateStore,
+        poolsWithWhitelistedTokens: [
+          ...(context.StateStore.stateStore?.poolsWithWhitelistedTokens || []),
+          new_pool.id,
+        ],
+      });
     } else {
-      context.log.info(
-        `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
-      );
+      context.LatestETHPrice.set(INITIAL_ETH_PRICE);
+      context.StateStore.set({
+        ...DEFAULT_STATE_STORE,
+        poolsWithWhitelistedTokens: [new_pool.id],
+      });
     }
+  } else {
+    context.log.info(
+      `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
+    );
   }
+  // }
 });
 
 PoolContract_Fees_loader(({ event, context }) => {
