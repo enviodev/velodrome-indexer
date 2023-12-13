@@ -1,8 +1,12 @@
 import {
-  LiquidityPoolDailySnapshotEntity,
   LiquidityPoolEntity,
   LiquidityPoolHourlySnapshotEntity,
+  LiquidityPoolDailySnapshotEntity,
   LiquidityPoolWeeklySnapshotEntity,
+  TokenEntity,
+  TokenHourlySnapshotEntity,
+  TokenDailySnapshotEntity,
+  TokenWeeklySnapshotEntity,
 } from "./src/Types.gen";
 
 import {
@@ -21,7 +25,7 @@ export function getLiquidityPoolSnapshotByInterval(
   | LiquidityPoolDailySnapshotEntity
   | LiquidityPoolWeeklySnapshotEntity {
   const numberOfSecondsInInterval = getNumberOfSecondsInInterval(interval);
-  let intervalId = getIdforEntityByInterval(
+  let intervalId = getIdForEntityByInterval(
     liquidityPoolEntity.id,
     liquidityPoolEntity.lastUpdatedTimestamp,
     numberOfSecondsInInterval
@@ -48,6 +52,30 @@ export function getLiquidityPoolSnapshotByInterval(
   return liquidityPoolSnapshotByIntervalEntity;
 }
 
+export function getTokenSnapshotByInterval(
+  tokenEntity: TokenEntity,
+  interval: SnapshotInterval
+):
+  | TokenHourlySnapshotEntity
+  | TokenDailySnapshotEntity
+  | TokenWeeklySnapshotEntity {
+  const numberOfSecondsInInterval = getNumberOfSecondsInInterval(interval);
+  let intervalId = getIdForEntityByInterval(
+    tokenEntity.id,
+    tokenEntity.lastUpdatedTimestamp,
+    numberOfSecondsInInterval
+  );
+
+  const tokenSnapshotByIntervalEntity = {
+    id: intervalId,
+    token: tokenEntity.id,
+    pricePerETH: tokenEntity.pricePerETH,
+    pricePerUSD: tokenEntity.pricePerUSD,
+    lastUpdatedTimestamp: tokenEntity.lastUpdatedTimestamp,
+  };
+  return tokenSnapshotByIntervalEntity;
+}
+
 function getNumberOfSecondsInInterval(interval: SnapshotInterval): bigint {
   switch (interval) {
     case SnapshotInterval.Hourly:
@@ -56,10 +84,12 @@ function getNumberOfSecondsInInterval(interval: SnapshotInterval): bigint {
       return SECONDS_IN_A_DAY;
     case SnapshotInterval.Weekly:
       return SECONDS_IN_A_WEEK;
+    default:
+      throw new Error("Invalid interval");
   }
 }
 
-function getIdforEntityByInterval(
+function getIdForEntityByInterval(
   id: string,
   lastUpdatedTimestamp: bigint,
   numberOfSeconds: bigint

@@ -118,6 +118,33 @@ type Token {
   pricePerETH: BigInt! # price of token per ETH
   pricePerUSD: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
+  tokenHourlySnapshots: [TokenHourlySnapshot!]! @derivedFrom(field: "token")
+  tokenDailySnapshots: [TokenDailySnapshot!]! @derivedFrom(field: "token")
+  tokenWeeklySnapshots: [TokenWeeklySnapshot!]! @derivedFrom(field: "token")
+}
+
+type TokenHourlySnapshot {
+  id: ID! # address of the token - number of weeks since unix epoch time
+  token: String! # token address
+  pricePerETH: BigInt! # price of token per ETH
+  pricePerUSD: BigInt! # price of token per USD
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
+}
+
+type TokenDailySnapshot {
+  id: ID! # address of the token - number of weeks since unix epoch time
+  token: String! # token address
+  pricePerETH: BigInt! # price of token per ETH
+  pricePerUSD: BigInt! # price of token per USD
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
+}
+
+type TokenWeeklySnapshot {
+  id: ID! # address of the token - number of weeks since unix epoch time
+  token: String! # token address
+  pricePerETH: BigInt! # price of token per ETH
+  pricePerUSD: BigInt! # price of token per USD
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
 }
 
 type User {

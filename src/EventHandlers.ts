@@ -43,7 +43,10 @@ import {
 
 import { divideBase1e18, multiplyBase1e18 } from "./Maths";
 
-import { getLiquidityPoolSnapshotByInterval } from "./IntervalSnapshots";
+import {
+  getLiquidityPoolSnapshotByInterval,
+  getTokenSnapshotByInterval,
+} from "./IntervalSnapshots";
 
 import { SnapshotInterval } from "./CustomTypes";
 
@@ -467,9 +470,6 @@ PoolContract_Sync_handler(({ event, context }) => {
         SnapshotInterval.Weekly
       );
 
-    // Update TokenEntities in the DB
-    context.Token.set(new_token0_instance);
-    context.Token.set(new_token1_instance);
     // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(liquidity_pool_instance);
     // Update the LiquidityPoolDailySnapshotEntity in the DB
@@ -484,6 +484,36 @@ PoolContract_Sync_handler(({ event, context }) => {
     context.LiquidityPoolWeeklySnapshot.set(
       liquidity_pool_weekly_snapshot_instance
     );
+
+    // Updating the Token related entities in DB for token0 and token1
+    for (let token_instance of [new_token0_instance, new_token1_instance]) {
+      // Create a new instance of LiquidityPoolHourlySnapshotEntity to be updated in the DB
+      const token_hourly_snapshot_instance = getTokenSnapshotByInterval(
+        token_instance,
+        SnapshotInterval.Hourly
+      );
+
+      // Create a new instance of LiquidityPoolDailySnapshotEntity to be updated in the DB
+      const token_daily_snapshot_instance = getTokenSnapshotByInterval(
+        token_instance,
+        SnapshotInterval.Daily
+      );
+
+      // Create a new instance of LiquidityPoolWeeklySnapshotEntity to be updated in the DB
+      const token_weekly_snapshot_instance = getTokenSnapshotByInterval(
+        token_instance,
+        SnapshotInterval.Weekly
+      );
+
+      // Update TokenEntity in the DB
+      context.Token.set(token_instance);
+      // Update the TokenDailySnapshotEntity in the DB
+      context.TokenHourlySnapshot.set(token_hourly_snapshot_instance);
+      // Update the TokenDailySnapshotEntity in the DB
+      context.TokenDailySnapshot.set(token_daily_snapshot_instance);
+      // Update the TokenWeeklySnapshotEntity in the DB
+      context.TokenWeeklySnapshot.set(token_weekly_snapshot_instance);
+    }
 
     // Updating of ETH price if the pool is a stablecoin pool
     if (isStablecoinPool(event.srcAddress.toString().toLowerCase())) {
