@@ -15,6 +15,8 @@ networks:
                 labels: ["stateStore"]
       - name: Pool
         handler: src/EventHandlers.ts
+        address:
+          - 0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b
         events:
           - event: Fees(address indexed sender, uint256 amount0, uint256 amount1)
             requiredEntities:
