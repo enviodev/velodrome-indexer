@@ -43,7 +43,9 @@ import {
 
 import { divideBase1e18, multiplyBase1e18 } from "./Maths";
 
-import { updateLiquidityPoolDayData } from "./IntervalSnapshots";
+import { getLiquidityPoolSnapshotByInterval } from "./IntervalSnapshots";
+
+import { SnapshotInterval } from "./CustomTypes";
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
@@ -444,18 +446,43 @@ PoolContract_Sync_handler(({ event, context }) => {
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
+    // Create a new instance of LiquidityPoolHourlySnapshotEntity to be updated in the DB
+    const liquidity_pool_hourly_snapshot_instance =
+      getLiquidityPoolSnapshotByInterval(
+        liquidity_pool_instance,
+        SnapshotInterval.Hourly
+      );
+
     // Create a new instance of LiquidityPoolDailySnapshotEntity to be updated in the DB
-    const liquidity_pool_daily_snapshot_instance = updateLiquidityPoolDayData(
-      liquidity_pool_instance
-    );
+    const liquidity_pool_daily_snapshot_instance =
+      getLiquidityPoolSnapshotByInterval(
+        liquidity_pool_instance,
+        SnapshotInterval.Daily
+      );
+
+    // Create a new instance of LiquidityPoolWeeklySnapshotEntity to be updated in the DB
+    const liquidity_pool_weekly_snapshot_instance =
+      getLiquidityPoolSnapshotByInterval(
+        liquidity_pool_instance,
+        SnapshotInterval.Weekly
+      );
 
     // Update TokenEntities in the DB
     context.Token.set(new_token0_instance);
     context.Token.set(new_token1_instance);
     // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(liquidity_pool_instance);
+    // Update the LiquidityPoolDailySnapshotEntity in the DB
+    context.LiquidityPoolHourlySnapshot.set(
+      liquidity_pool_hourly_snapshot_instance
+    );
+    // Update the LiquidityPoolDailySnapshotEntity in the DB
     context.LiquidityPoolDailySnapshot.set(
       liquidity_pool_daily_snapshot_instance
+    );
+    // Update the LiquidityPoolWeeklySnapshotEntity in the DB
+    context.LiquidityPoolWeeklySnapshot.set(
+      liquidity_pool_weekly_snapshot_instance
     );
 
     // Updating of ETH price if the pool is a stablecoin pool

@@ -14,3 +14,9 @@ export type Pool = {
   token1: Token;
   name: string;
 };
+
+export enum SnapshotInterval {
+  Hourly = 3600,
+  Daily = 86400,
+  Weekly = 604800,
+}

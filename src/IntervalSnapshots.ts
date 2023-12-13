@@ -1,21 +1,34 @@
 import {
+  LiquidityPoolDailySnapshotEntity,
   LiquidityPoolEntity,
-  liquidityPoolDailySnapshotEntity,
+  LiquidityPoolHourlySnapshotEntity,
+  LiquidityPoolWeeklySnapshotEntity,
 } from "./src/Types.gen";
 
-export function updateLiquidityPoolDayData(
-  liquidityPoolEntity: LiquidityPoolEntity
-): liquidityPoolDailySnapshotEntity {
-  // TODO can refactor this by deducting mod of lastUpdatedTimestamp by 86400 from lastUpdatedTimestamp
-  // TODO make helper functions for mathematical operations
-  let day = liquidityPoolEntity.lastUpdatedTimestamp / BigInt(86400);
-  let dayStartTimestamp = day * BigInt(86400);
-  let dayPairID = liquidityPoolEntity.id
-    .concat("-")
-    .concat(dayStartTimestamp.toString());
+import {
+  SECONDS_IN_AN_HOUR,
+  SECONDS_IN_A_DAY,
+  SECONDS_IN_A_WEEK,
+} from "./Constants";
 
-  const liquidityPoolDailySnapshotEntity: liquidityPoolDailySnapshotEntity = {
-    id: dayPairID,
+import { SnapshotInterval } from "./CustomTypes";
+
+export function getLiquidityPoolSnapshotByInterval(
+  liquidityPoolEntity: LiquidityPoolEntity,
+  interval: SnapshotInterval
+):
+  | LiquidityPoolHourlySnapshotEntity
+  | LiquidityPoolDailySnapshotEntity
+  | LiquidityPoolWeeklySnapshotEntity {
+  const numberOfSecondsInInterval = getNumberOfSecondsInInterval(interval);
+  let intervalId = getIdforEntityByInterval(
+    liquidityPoolEntity.id,
+    liquidityPoolEntity.lastUpdatedTimestamp,
+    numberOfSecondsInInterval
+  );
+
+  const liquidityPoolSnapshotByIntervalEntity = {
+    id: intervalId,
     pool: liquidityPoolEntity.id,
     reserve0: liquidityPoolEntity.reserve0,
     reserve1: liquidityPoolEntity.reserve1,
@@ -32,5 +45,28 @@ export function updateLiquidityPoolDayData(
     token1Price: liquidityPoolEntity.token1Price,
     lastUpdatedTimestamp: liquidityPoolEntity.lastUpdatedTimestamp,
   };
-  return liquidityPoolDailySnapshotEntity;
+  return liquidityPoolSnapshotByIntervalEntity;
+}
+
+function getNumberOfSecondsInInterval(interval: SnapshotInterval): bigint {
+  switch (interval) {
+    case SnapshotInterval.Hourly:
+      return SECONDS_IN_AN_HOUR;
+    case SnapshotInterval.Daily:
+      return SECONDS_IN_A_DAY;
+    case SnapshotInterval.Weekly:
+      return SECONDS_IN_A_WEEK;
+  }
+}
+
+function getIdforEntityByInterval(
+  id: string,
+  lastUpdatedTimestamp: bigint,
+  numberOfSeconds: bigint
+): string {
+  let interval = lastUpdatedTimestamp / numberOfSeconds;
+  let intervalStartTimestamp = interval * numberOfSeconds;
+  let intervalPairID = id.concat("-").concat(intervalStartTimestamp.toString());
+
+  return intervalPairID;
 }
