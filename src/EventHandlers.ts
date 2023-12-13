@@ -18,7 +18,6 @@ import {
   LatestETHPriceEntity,
   LiquidityPoolEntity,
   TokenEntity,
-  LatestETHPriceEntity,
   UserEntity,
   LiquidityPoolUserMappingEntity,
 } from "./src/Types.gen";
@@ -43,6 +42,8 @@ import {
 } from "./Helpers";
 
 import { divideBase1e18, multiplyBase1e18 } from "./Maths";
+
+import { updateLiquidityPoolDayData } from "./IntervalSnapshots";
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
@@ -443,11 +444,19 @@ PoolContract_Sync_handler(({ event, context }) => {
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
+    // Create a new instance of LiquidityPoolDailySnapshotEntity to be updated in the DB
+    const liquidity_pool_daily_snapshot_instance = updateLiquidityPoolDayData(
+      liquidity_pool_instance
+    );
+
     // Update TokenEntities in the DB
     context.Token.set(new_token0_instance);
     context.Token.set(new_token1_instance);
     // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(liquidity_pool_instance);
+    context.LiquidityPoolDailySnapshot.set(
+      liquidity_pool_daily_snapshot_instance
+    );
 
     // Updating of ETH price if the pool is a stablecoin pool
     if (isStablecoinPool(event.srcAddress.toString().toLowerCase())) {
