@@ -18,6 +18,8 @@ export const DEFAULT_STATE_STORE: StateStoreEntity = {
   latestEthPrice: INITIAL_ETH_PRICE.id,
 };
 
+export const TEMPORARY_CHAIN_ID = 8354;
+
 // Hardcoded WETH, USDC and OP token addresses with decimals
 const WETH: Token = {
   address: "0x4200000000000000000000000000000000000006",
@@ -28,12 +30,6 @@ const WETH: Token = {
 const USDC: Token = {
   address: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
   symbol: "USDC.e",
-  decimals: 6,
-};
-
-const USDbC: Token = {
-  address: "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca",
-  symbol: "USCbC",
   decimals: 6,
 };
 
@@ -49,16 +45,40 @@ const LUSD: Token = {
   decimals: 18,
 };
 
-export const VELO: Token = {
+const VELO: Token = {
   address: "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db",
   symbol: "VELO",
   decimals: 18,
 };
 
+const USDbC: Token = {
+  address: "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca",
+  symbol: "USCbC",
+  decimals: 6,
+};
+
+const DAI: Token = {
+  address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
+  symbol: "DAI",
+  decimals: 18,
+};
+
+const AERO: Token = {
+  address: "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
+  symbol: "AERO",
+  decimals: 18,
+};
+
+const DOLA: Token = {
+  address: "0x4621b7A9c75199271F773Ebd9A499dbd165c3191",
+  symbol: "DOLA",
+  decimals: 18,
+};
 // list of WHITELISTED tokens with their symbol and decimals to be used in pricing
 const OPTIMISM_WHITELISTED_TOKENS: Token[] = [WETH, USDC, OP, LUSD];
 
-const BASE_WHITELISTED_TOKENS: Token[] = [WETH, USDbC];
+// TODO update this list
+const BASE_WHITELISTED_TOKENS: Token[] = [WETH, USDbC, DAI, DOLA];
 
 // List of stablecoin pools with their token0, token1 and name
 const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
@@ -83,6 +103,12 @@ const BASE_STABLECOIN_POOLS: Pool[] = [
     token1: USDbC,
     name: "vAMM-WETH/USDbC",
   },
+  {
+    address: "0x9287C921f5d920cEeE0d07d7c58d476E46aCC640",
+    token0: WETH,
+    token1: DAI,
+    name: "vAMM-WETH/DAI",
+  },
 ];
 
 // List of pool addresses for testing
@@ -97,13 +123,9 @@ const OPTIMISM_TESTING_POOL_ADDRESSES: string[] = [
 ];
 
 const BASE_TESTING_POOL_ADDRESSES: string[] = [
-  "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b",
-  "0xd25711EdfBf747efCE181442Cc1D8F5F8fc8a0D3",
-  "0xe9581d0F1A628B038fC8B2a7F5A7d904f0e2f937",
-  "0x0df083de449F75691fc5A36477a6f3284C269108",
-  "0x8134A2fDC127549480865fB8E5A9E8A8a95a54c5",
-  "0x58e6433A6903886E440Ddf519eCC573c4046a6b2",
-  "0xB4885Bc63399BF5518b994c1d0C153334Ee579D0",
+  "0xB4885Bc63399BF5518b994c1d0C153334Ee579D0", // vAMM-WETH/USDbC
+  "0x9287C921f5d920cEeE0d07d7c58d476E46aCC640", // vAMM-WETH/DAI
+  "0x0B25c51637c43decd6CC1C1e3da4518D54ddb528", // sAMM-DOLA/USDbC
 ];
 
 type chainConstants = {
@@ -132,13 +154,14 @@ const OPTIMISM_CONSTANTS: chainConstants = {
 
 const BASE_CONSTANTS: chainConstants = {
   eth: WETH,
-  //TODO update this to AERO
-  rewardToken: VELO,
+  rewardToken: AERO,
   stablecoinPools: BASE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: BASE_STABLECOIN_POOLS.map((pool) => pool.address),
   testingPoolAddresses: BASE_TESTING_POOL_ADDRESSES,
   whitelistedTokens: BASE_WHITELISTED_TOKENS,
-  whitelistedTokenAddresses: [WETH, USDbC].map((token) => token.address),
+  whitelistedTokenAddresses: BASE_WHITELISTED_TOKENS.map(
+    (token) => token.address
+  ),
 };
 
 // Key is chain ID

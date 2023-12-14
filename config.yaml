@@ -41,7 +41,7 @@ contracts:
           - name: Gauge
           - name: Token
             labels:
-              - veloToken
+              - rewardToken
       - event: GaugeCreated(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory, address pool, address bribeVotingReward, address feeVotingReward, address gauge, address creator)
         requiredEntities:
           - name: LiquidityPool
@@ -77,6 +77,8 @@ networks:
       - name: Pool
         address:
           - 0xB4885Bc63399BF5518b994c1d0C153334Ee579D0 # vAMM-WETH/USDbC
+          - 0x9287C921f5d920cEeE0d07d7c58d476E46aCC640 # vAMM-WETH/DAI
+          - 0x0B25c51637c43decd6CC1C1e3da4518D54ddb528 # sAMM-DOLA/USDbC
       - name: Voter
         address:
           - 0x16613524e02ad97eDfeF371bC883F2F5d6C480A5

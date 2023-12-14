@@ -28,6 +28,7 @@ import {
   STATE_STORE_ID,
   TEN_TO_THE_18_BI,
   CHAIN_CONSTANTS,
+  TEMPORARY_CHAIN_ID,
 } from "./Constants";
 
 import {
@@ -61,7 +62,7 @@ PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   // TODO remove this when we are indexing all the pools
   if (
-    CHAIN_CONSTANTS[chain_id].testingPoolAddresses.includes(
+    CHAIN_CONSTANTS[TEMPORARY_CHAIN_ID].testingPoolAddresses.includes(
       event.params.pool.toString()
     )
   ) {
@@ -109,10 +110,10 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
 
     // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
     if (
-      CHAIN_CONSTANTS[chain_id].whitelistedTokenAddresses.includes(
+      CHAIN_CONSTANTS[TEMPORARY_CHAIN_ID].whitelistedTokenAddresses.includes(
         token0_instance.id
       ) ||
-      CHAIN_CONSTANTS[chain_id].whitelistedTokenAddresses.includes(
+      CHAIN_CONSTANTS[TEMPORARY_CHAIN_ID].whitelistedTokenAddresses.includes(
         token1_instance.id
       )
     ) {
@@ -338,7 +339,7 @@ PoolContract_Sync_loader(({ event, context }) => {
   const stableCoinPoolAddresses = isStablecoinPool(
     event.srcAddress.toString().toLowerCase()
   )
-    ? CHAIN_CONSTANTS[chain_id].stablecoinPoolAddresses
+    ? CHAIN_CONSTANTS[TEMPORARY_CHAIN_ID].stablecoinPoolAddresses
     : [];
   context.LiquidityPool.stablecoinPoolsLoad(stableCoinPoolAddresses, {});
 
@@ -347,7 +348,7 @@ PoolContract_Sync_loader(({ event, context }) => {
 
   // Load all the whitelisted tokens to be potentially used in pricing
   context.Token.whitelistedTokensLoad(
-    CHAIN_CONSTANTS[chain_id].whitelistedTokenAddresses
+    CHAIN_CONSTANTS[TEMPORARY_CHAIN_ID].whitelistedTokenAddresses
   );
 });
 
@@ -590,26 +591,28 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
   // Load the Gauge entity to be updated
   context.Gauge.load(event.params.gauge.toString(), {});
   // Load VELO token for conversion of emissions amount into USD
-  context.Token.veloTokenLoad(CHAIN_CONSTANTS[chain_id].rewardToken.address);
+  context.Token.rewardTokenLoad(
+    CHAIN_CONSTANTS[TEMPORARY_CHAIN_ID].rewardToken.address
+  );
 });
 
 VoterContract_DistributeReward_handler(({ event, context }) => {
   // Fetch VELO Token entity
-  let veloToken = context.Token.veloToken;
+  let rewardToken = context.Token.rewardToken;
   // Fetch the Gauge entity that was loaded
   let gauge = context.Gauge.get(event.params.gauge.toString());
 
   // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
   // Dev note: Assumption here is that the VELO token entity has already been created at this point
-  if (gauge && veloToken) {
+  if (gauge && rewardToken) {
     let normalized_emissions_amount = normalizeTokenAmountTo1e18(
-      CHAIN_CONSTANTS[chain_id].rewardToken.address,
+      CHAIN_CONSTANTS[TEMPORARY_CHAIN_ID].rewardToken.address,
       event.params.amount
     );
 
     let normalized_emissions_amount_usd = multiplyBase1e18(
       normalized_emissions_amount,
-      veloToken.pricePerUSD
+      rewardToken.pricePerUSD
     );
     // Create a new instance of GaugeEntity to be updated in the DB
     let new_gauge_instance: GaugeEntity = {
