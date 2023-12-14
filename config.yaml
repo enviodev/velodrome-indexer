@@ -48,7 +48,7 @@ contracts:
       # TODO: Figure out how to handle this event
       # - event: GaugeKilled(address indexed gauge)
 networks:
-  - id: 10
+  - id: 10 # Optimism
     start_block: 0
     contracts:
       - name: PoolFactory
@@ -67,3 +67,16 @@ networks:
       - name: Voter
         address:
           - 0x41C914ee0c7E1A5edCD0295623e6dC557B5aBf3C
+  # This has been tested and is working - just commenting it out for now
+  - id: 8453 # Base
+    start_block: 0
+    contracts:
+      - name: PoolFactory
+        address:
+          - 0x420DD381b31aEf6683db6B902084cB0FFECe40Da
+      - name: Pool
+        address:
+          - 0xB4885Bc63399BF5518b994c1d0C153334Ee579D0 # vAMM-WETH/USDbC
+      - name: Voter
+        address:
+          - 0x16613524e02ad97eDfeF371bC883F2F5d6C480A5
