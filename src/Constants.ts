@@ -18,8 +18,6 @@ export const DEFAULT_STATE_STORE: StateStoreEntity = {
   latestEthPrice: INITIAL_ETH_PRICE.id,
 };
 
-export const TEMPORARY_CHAIN_ID = 8354;
-
 // Hardcoded WETH, USDC and OP token addresses with decimals
 const WETH: Token = {
   address: "0x4200000000000000000000000000000000000006",
@@ -109,6 +107,12 @@ const BASE_STABLECOIN_POOLS: Pool[] = [
     token1: DAI,
     name: "vAMM-WETH/DAI",
   },
+  {
+    address: "0x0B25c51637c43decd6CC1C1e3da4518D54ddb528",
+    token0: DOLA,
+    token1: USDbC,
+    name: "vAMM-DOLA/USDbC",
+  },
 ];
 
 // List of pool addresses for testing
@@ -165,7 +169,7 @@ const BASE_CONSTANTS: chainConstants = {
 };
 
 // Key is chain ID
-export const CHAIN_CONSTANTS = {
+export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   10: OPTIMISM_CONSTANTS,
-  8354: BASE_CONSTANTS,
+  8453: BASE_CONSTANTS,
 };

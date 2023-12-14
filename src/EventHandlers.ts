@@ -28,7 +28,6 @@ import {
   STATE_STORE_ID,
   TEN_TO_THE_18_BI,
   CHAIN_CONSTANTS,
-  TEMPORARY_CHAIN_ID,
 } from "./Constants";
 
 import {
@@ -50,9 +49,6 @@ import { SnapshotInterval } from "./CustomTypes";
 
 import { whitelistedPoolIds } from "./Store";
 
-// TODO replace this with the correct chain id that is read from config.yaml
-const chain_id = 10;
-
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
     loaders: {},
@@ -62,7 +58,7 @@ PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   // TODO remove this when we are indexing all the pools
   if (
-    CHAIN_CONSTANTS[TEMPORARY_CHAIN_ID].testingPoolAddresses.includes(
+    CHAIN_CONSTANTS[event.chainId].testingPoolAddresses.includes(
       event.params.pool.toString()
     )
   ) {
@@ -110,10 +106,10 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
 
     // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
     if (
-      CHAIN_CONSTANTS[TEMPORARY_CHAIN_ID].whitelistedTokenAddresses.includes(
+      CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
         token0_instance.id
       ) ||
-      CHAIN_CONSTANTS[TEMPORARY_CHAIN_ID].whitelistedTokenAddresses.includes(
+      CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
         token1_instance.id
       )
     ) {
@@ -161,11 +157,13 @@ PoolContract_Fees_handler(({ event, context }) => {
     // Normalize swap amounts to 1e18
     let normalized_fee_amount_0_total = normalizeTokenAmountTo1e18(
       current_liquidity_pool.token0,
-      event.params.amount0
+      event.params.amount0,
+      event.chainId
     );
     let normalized_fee_amount_1_total = normalizeTokenAmountTo1e18(
       current_liquidity_pool.token1,
-      event.params.amount1
+      event.params.amount1,
+      event.chainId
     );
 
     // Calculate amounts in USD
@@ -261,11 +259,13 @@ PoolContract_Swap_handler(({ event, context }) => {
     // Normalize swap amounts to 1e18
     let normalized_amount_0_total = normalizeTokenAmountTo1e18(
       current_liquidity_pool.token0,
-      event.params.amount0In + event.params.amount0Out
+      event.params.amount0In + event.params.amount0Out,
+      event.chainId
     );
     let normalized_amount_1_total = normalizeTokenAmountTo1e18(
       current_liquidity_pool.token1,
-      event.params.amount1In + event.params.amount1Out
+      event.params.amount1In + event.params.amount1Out,
+      event.chainId
     );
 
     // Calculate amounts in USD
@@ -337,9 +337,10 @@ PoolContract_Sync_loader(({ event, context }) => {
 
   // Load stablecoin pools for weighted average ETH price calculation, only if pool is stablecoin pool
   const stableCoinPoolAddresses = isStablecoinPool(
-    event.srcAddress.toString().toLowerCase()
+    event.srcAddress.toString().toLowerCase(),
+    event.chainId
   )
-    ? CHAIN_CONSTANTS[TEMPORARY_CHAIN_ID].stablecoinPoolAddresses
+    ? CHAIN_CONSTANTS[event.chainId].stablecoinPoolAddresses
     : [];
   context.LiquidityPool.stablecoinPoolsLoad(stableCoinPoolAddresses, {});
 
@@ -348,7 +349,7 @@ PoolContract_Sync_loader(({ event, context }) => {
 
   // Load all the whitelisted tokens to be potentially used in pricing
   context.Token.whitelistedTokensLoad(
-    CHAIN_CONSTANTS[TEMPORARY_CHAIN_ID].whitelistedTokenAddresses
+    CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses
   );
 });
 
@@ -384,11 +385,13 @@ PoolContract_Sync_handler(({ event, context }) => {
     // Normalize reserve amounts to 1e18
     let normalized_reserve0 = normalizeTokenAmountTo1e18(
       current_liquidity_pool.token0,
-      event.params.reserve0
+      event.params.reserve0,
+      event.chainId
     );
     let normalized_reserve1 = normalizeTokenAmountTo1e18(
       current_liquidity_pool.token1,
-      event.params.reserve1
+      event.params.reserve1,
+      event.chainId
     );
 
     // Calculate relative token prices
@@ -410,13 +413,15 @@ PoolContract_Sync_handler(({ event, context }) => {
     let token0PricePerETH = findPricePerETH(
       token0_instance.id,
       whitelisted_tokens_list,
-      relevant_pools_list
+      relevant_pools_list,
+      event.chainId
     );
 
     let token1PricePerETH = findPricePerETH(
       token1_instance.id,
       whitelisted_tokens_list,
-      relevant_pools_list
+      relevant_pools_list,
+      event.chainId
     );
 
     if (token0PricePerETH == TEN_TO_THE_18_BI) {
@@ -523,7 +528,9 @@ PoolContract_Sync_handler(({ event, context }) => {
     }
 
     // Updating of ETH price if the pool is a stablecoin pool
-    if (isStablecoinPool(event.srcAddress.toString().toLowerCase())) {
+    if (
+      isStablecoinPool(event.srcAddress.toString().toLowerCase(), event.chainId)
+    ) {
       // Filter out undefined values
       let stablecoin_pools_list = context.LiquidityPool.stablecoinPools.filter(
         (item): item is LiquidityPoolEntity => item !== undefined
@@ -592,7 +599,7 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
   context.Gauge.load(event.params.gauge.toString(), {});
   // Load VELO token for conversion of emissions amount into USD
   context.Token.rewardTokenLoad(
-    CHAIN_CONSTANTS[TEMPORARY_CHAIN_ID].rewardToken.address
+    CHAIN_CONSTANTS[event.chainId].rewardToken.address
   );
 });
 
@@ -606,8 +613,9 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
   // Dev note: Assumption here is that the VELO token entity has already been created at this point
   if (gauge && rewardToken) {
     let normalized_emissions_amount = normalizeTokenAmountTo1e18(
-      CHAIN_CONSTANTS[TEMPORARY_CHAIN_ID].rewardToken.address,
-      event.params.amount
+      CHAIN_CONSTANTS[event.chainId].rewardToken.address,
+      event.params.amount,
+      event.chainId
     );
 
     let normalized_emissions_amount_usd = multiplyBase1e18(
