@@ -25,6 +25,78 @@ type LiquidityPool {
   gauge: Gauge! @derivedFrom(field: "pool")
   userMappings: [LiquidityPoolUserMapping!]!
     @derivedFrom(field: "liquidityPool")
+  liquidityPoolHourlySnapshots: [LiquidityPoolHourlySnapshot!]!
+    @derivedFrom(field: "pool")
+  liquidityPoolDailySnapshots: [LiquidityPoolDailySnapshot!]!
+    @derivedFrom(field: "pool")
+  liquidityPoolWeeklySnapshots: [LiquidityPoolWeeklySnapshot!]!
+    @derivedFrom(field: "pool")
+}
+
+type LiquidityPoolHourlySnapshot {
+  id: ID! # address of the pool - number of days since unix epoch time
+  pool: String! # address of the pool
+  reserve0: BigInt!
+  reserve1: BigInt!
+  totalLiquidityETH: BigInt!
+  totalLiquidityUSD: BigInt!
+  totalVolume0: BigInt!
+  totalVolume1: BigInt!
+  totalVolumeUSD: BigInt!
+  totalFees0: BigInt!
+  totalFees1: BigInt!
+  totalFeesUSD: BigInt!
+  numberOfSwaps: BigInt!
+  token0Price: BigInt! # price of token0 relative to token1
+  token1Price: BigInt! # price of token1 relative to token0
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
+  gauge: Gauge! @derivedFrom(field: "pool")
+  userMappings: [LiquidityPoolUserMapping!]!
+    @derivedFrom(field: "liquidityPool")
+}
+
+type LiquidityPoolDailySnapshot {
+  id: ID! # address of the pool - number of days since unix epoch time
+  pool: String! # address of the pool
+  reserve0: BigInt!
+  reserve1: BigInt!
+  totalLiquidityETH: BigInt!
+  totalLiquidityUSD: BigInt!
+  totalVolume0: BigInt!
+  totalVolume1: BigInt!
+  totalVolumeUSD: BigInt!
+  totalFees0: BigInt!
+  totalFees1: BigInt!
+  totalFeesUSD: BigInt!
+  numberOfSwaps: BigInt!
+  token0Price: BigInt! # price of token0 relative to token1
+  token1Price: BigInt! # price of token1 relative to token0
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
+  gauge: Gauge! @derivedFrom(field: "pool")
+  userMappings: [LiquidityPoolUserMapping!]!
+    @derivedFrom(field: "liquidityPool")
+}
+
+type LiquidityPoolWeeklySnapshot {
+  id: ID! # address of the pool - number of weeks since unix epoch time
+  pool: String! # address of the pool
+  reserve0: BigInt!
+  reserve1: BigInt!
+  totalLiquidityETH: BigInt!
+  totalLiquidityUSD: BigInt!
+  totalVolume0: BigInt!
+  totalVolume1: BigInt!
+  totalVolumeUSD: BigInt!
+  totalFees0: BigInt!
+  totalFees1: BigInt!
+  totalFeesUSD: BigInt!
+  numberOfSwaps: BigInt!
+  token0Price: BigInt! # price of token0 relative to token1
+  token1Price: BigInt! # price of token1 relative to token0
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
+  gauge: Gauge! @derivedFrom(field: "pool")
+  userMappings: [LiquidityPoolUserMapping!]!
+    @derivedFrom(field: "liquidityPool")
 }
 
 type Gauge {
@@ -46,7 +118,35 @@ type Token {
   pricePerETH: BigInt! # price of token per ETH
   pricePerUSD: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
-  
+  tokenHourlySnapshots: [TokenHourlySnapshot!]! @derivedFrom(field: "token")
+  tokenDailySnapshots: [TokenDailySnapshot!]! @derivedFrom(field: "token")
+  tokenWeeklySnapshots: [TokenWeeklySnapshot!]! @derivedFrom(field: "token")
+}
+
+type TokenHourlySnapshot {
+  id: ID! # address of the token - number of weeks since unix epoch time
+  token: String! # token address
+  pricePerETH: BigInt! # price of token per ETH
+  pricePerUSD: BigInt! # price of token per USD
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
+}
+
+type TokenDailySnapshot {
+  id: ID! # address of the token - number of weeks since unix epoch time
+  token: String! # token address
+  pricePerETH: BigInt! # price of token per ETH
+  pricePerUSD: BigInt! # price of token per USD
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
+}
+
+type TokenWeeklySnapshot {
+  id: ID! # address of the token - number of weeks since unix epoch time
+  token: String! # token address
+  pricePerETH: BigInt! # price of token per ETH
+  pricePerUSD: BigInt! # price of token per USD
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
+}
+
 type User {
   id: ID! # user address
   numberOfSwaps: BigInt!

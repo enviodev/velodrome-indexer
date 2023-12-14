@@ -3,6 +3,10 @@ import { LatestETHPriceEntity, StateStoreEntity } from "./src/Types.gen";
 
 export const TEN_TO_THE_18_BI = BigInt(10 ** 18);
 
+export const SECONDS_IN_AN_HOUR = BigInt(3600);
+export const SECONDS_IN_A_DAY = BigInt(86400);
+export const SECONDS_IN_A_WEEK = BigInt(604800);
+
 // Hardcoded WETH, USDC and OP token addresses with decimals
 export const WETH: Token = {
   address: "0x4200000000000000000000000000000000000006",
