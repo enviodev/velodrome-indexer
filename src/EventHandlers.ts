@@ -25,12 +25,9 @@ import {
 import {
   DEFAULT_STATE_STORE,
   INITIAL_ETH_PRICE,
-  STABLECOIN_POOL_ADDRESSES,
   STATE_STORE_ID,
   TEN_TO_THE_18_BI,
-  TESTING_POOL_ADDRESSES,
-  WHITELISTED_TOKENS_ADDRESSES,
-  VELO,
+  CHAIN_CONSTANTS,
 } from "./Constants";
 
 import {
@@ -52,6 +49,9 @@ import { SnapshotInterval } from "./CustomTypes";
 
 import { whitelistedPoolIds } from "./Store";
 
+// TODO replace this with the correct chain id that is read from config.yaml
+const chain_id = 10;
+
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
     loaders: {},
@@ -60,7 +60,11 @@ PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   // TODO remove this when we are indexing all the pools
-  if (TESTING_POOL_ADDRESSES.includes(event.params.pool.toString())) {
+  if (
+    CHAIN_CONSTANTS[chain_id].testingPoolAddresses.includes(
+      event.params.pool.toString()
+    )
+  ) {
     // Create new instances of TokenEntity to be updated in the DB
     const token0_instance: TokenEntity = {
       id: event.params.token0.toString(),
@@ -105,8 +109,12 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
 
     // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
     if (
-      WHITELISTED_TOKENS_ADDRESSES.includes(token0_instance.id) ||
-      WHITELISTED_TOKENS_ADDRESSES.includes(token1_instance.id)
+      CHAIN_CONSTANTS[chain_id].whitelistedTokenAddresses.includes(
+        token0_instance.id
+      ) ||
+      CHAIN_CONSTANTS[chain_id].whitelistedTokenAddresses.includes(
+        token1_instance.id
+      )
     ) {
       if (!context.StateStore.stateStore) {
         context.LatestETHPrice.set(INITIAL_ETH_PRICE);
@@ -330,7 +338,7 @@ PoolContract_Sync_loader(({ event, context }) => {
   const stableCoinPoolAddresses = isStablecoinPool(
     event.srcAddress.toString().toLowerCase()
   )
-    ? STABLECOIN_POOL_ADDRESSES
+    ? CHAIN_CONSTANTS[chain_id].stablecoinPoolAddresses
     : [];
   context.LiquidityPool.stablecoinPoolsLoad(stableCoinPoolAddresses, {});
 
@@ -338,7 +346,9 @@ PoolContract_Sync_loader(({ event, context }) => {
   context.LiquidityPool.whitelistedPoolsLoad(whitelistedPoolIds, {});
 
   // Load all the whitelisted tokens to be potentially used in pricing
-  context.Token.whitelistedTokensLoad(WHITELISTED_TOKENS_ADDRESSES);
+  context.Token.whitelistedTokensLoad(
+    CHAIN_CONSTANTS[chain_id].whitelistedTokenAddresses
+  );
 });
 
 PoolContract_Sync_handler(({ event, context }) => {
@@ -580,7 +590,7 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
   // Load the Gauge entity to be updated
   context.Gauge.load(event.params.gauge.toString(), {});
   // Load VELO token for conversion of emissions amount into USD
-  context.Token.veloTokenLoad(VELO.address);
+  context.Token.veloTokenLoad(CHAIN_CONSTANTS[chain_id].rewardToken.address);
 });
 
 VoterContract_DistributeReward_handler(({ event, context }) => {
@@ -593,7 +603,7 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
   // Dev note: Assumption here is that the VELO token entity has already been created at this point
   if (gauge && veloToken) {
     let normalized_emissions_amount = normalizeTokenAmountTo1e18(
-      VELO.address,
+      CHAIN_CONSTANTS[chain_id].rewardToken.address,
       event.params.amount
     );
 
