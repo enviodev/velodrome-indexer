@@ -43,6 +43,7 @@ networks:
                   - singlePool
                 arrayLabels:
                   - stablecoinPools
+                  - whitelistedPools
               - name: Token
                 arrayLabels:
                   - whitelistedTokens

@@ -50,9 +50,11 @@ import {
 
 import { SnapshotInterval } from "./CustomTypes";
 
+import { whitelistedPoolIds } from "./Store";
+
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
-    loaders: { loadPoolsWithWhitelistedTokens: {} },
+    loaders: {},
   });
 });
 
@@ -106,22 +108,12 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       WHITELISTED_TOKENS_ADDRESSES.includes(token0_instance.id) ||
       WHITELISTED_TOKENS_ADDRESSES.includes(token1_instance.id)
     ) {
-      if (context.StateStore.stateStore) {
-        context.StateStore.set({
-          ...context.StateStore.stateStore,
-          poolsWithWhitelistedTokens: [
-            ...(context.StateStore.stateStore?.poolsWithWhitelistedTokens ||
-              []),
-            new_pool.id,
-          ],
-        });
-      } else {
+      if (!context.StateStore.stateStore) {
         context.LatestETHPrice.set(INITIAL_ETH_PRICE);
-        context.StateStore.set({
-          ...DEFAULT_STATE_STORE,
-          poolsWithWhitelistedTokens: [new_pool.id],
-        });
+        context.StateStore.set(DEFAULT_STATE_STORE);
       }
+      // push pool address to whitelistedPoolIds
+      whitelistedPoolIds.push(new_pool.id);
     } else {
       context.log.info(
         `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
@@ -323,7 +315,7 @@ PoolContract_Swap_handler(({ event, context }) => {
 PoolContract_Sync_loader(({ event, context }) => {
   // load the global state store
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
-    loaders: { loadLatestEthPrice: true, loadPoolsWithWhitelistedTokens: {} },
+    loaders: { loadLatestEthPrice: true },
   });
 
   // Load the single liquidity pool from the loader to be updated
@@ -335,12 +327,15 @@ PoolContract_Sync_loader(({ event, context }) => {
   });
 
   // Load stablecoin pools for weighted average ETH price calculation, only if pool is stablecoin pool
-  const stableCoinAddresses = isStablecoinPool(
+  const stableCoinPoolAddresses = isStablecoinPool(
     event.srcAddress.toString().toLowerCase()
   )
     ? STABLECOIN_POOL_ADDRESSES
     : [];
-  context.LiquidityPool.stablecoinPoolsLoad(stableCoinAddresses, {});
+  context.LiquidityPool.stablecoinPoolsLoad(stableCoinPoolAddresses, {});
+
+  // Load all the whitelisted pools i.e. pools with at least one white listed tokens
+  context.LiquidityPool.whitelistedPoolsLoad(whitelistedPoolIds, {});
 
   // Load all the whitelisted tokens to be potentially used in pricing
   context.Token.whitelistedTokensLoad(WHITELISTED_TOKENS_ADDRESSES);
@@ -363,8 +358,9 @@ PoolContract_Sync_handler(({ event, context }) => {
   ) as TokenEntity[];
 
   // filter out the pools where the token is not present
-  let relevant_pools_list =
-    context.StateStore.getPoolsWithWhitelistedTokens(stateStore);
+  let relevant_pools_list = context.LiquidityPool.whitelistedPools.filter(
+    (item): item is LiquidityPoolEntity => item !== undefined
+  );
 
   // Get the LatestETHPrice object
   let latest_eth_price = context.StateStore.getLatestEthPrice(stateStore);

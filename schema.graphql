@@ -110,7 +110,6 @@ type Gauge {
 type StateStore {
   id: ID! # ID will always be "STORE"
   latestEthPrice: LatestETHPrice!
-  poolsWithWhitelistedTokens: [LiquidityPool!]!
 }
 
 type Token {
