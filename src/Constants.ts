@@ -86,5 +86,4 @@ export const INITIAL_ETH_PRICE: LatestETHPriceEntity = {
 export const DEFAULT_STATE_STORE: StateStoreEntity = {
   id: STATE_STORE_ID,
   latestEthPrice: INITIAL_ETH_PRICE.id,
-  poolsWithWhitelistedTokens: [],
 };
