@@ -5,6 +5,7 @@ type LatestETHPrice {
 
 type LiquidityPool {
   id: ID! # pool address
+  chainID: BigInt! # chain id of the pool
   token0: Token!
   token1: Token!
   isStable: Boolean! # whether the pool is a stable AMM or a volatile AMM
@@ -35,6 +36,7 @@ type LiquidityPool {
 
 type LiquidityPoolHourlySnapshot {
   id: ID! # address of the pool - number of days since unix epoch time
+  chainID: BigInt! # chain id of the pool
   pool: String! # address of the pool
   reserve0: BigInt!
   reserve1: BigInt!
@@ -57,6 +59,7 @@ type LiquidityPoolHourlySnapshot {
 
 type LiquidityPoolDailySnapshot {
   id: ID! # address of the pool - number of days since unix epoch time
+  chainID: BigInt! # chain id of the pool
   pool: String! # address of the pool
   reserve0: BigInt!
   reserve1: BigInt!
@@ -79,6 +82,7 @@ type LiquidityPoolDailySnapshot {
 
 type LiquidityPoolWeeklySnapshot {
   id: ID! # address of the pool - number of weeks since unix epoch time
+  chainID: BigInt! # chain id of the pool
   pool: String! # address of the pool
   reserve0: BigInt!
   reserve1: BigInt!
@@ -101,6 +105,7 @@ type LiquidityPoolWeeklySnapshot {
 
 type Gauge {
   id: ID! # gauge address
+  chainID: BigInt! # chain id of the pool
   pool: LiquidityPool!
   totalEmissions: BigInt!
   totalEmissionsUSD: BigInt!
@@ -114,6 +119,7 @@ type StateStore {
 
 type Token {
   id: ID! # token address
+  chainID: BigInt! # chain id of the token
   pricePerETH: BigInt! # price of token per ETH
   pricePerUSD: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
@@ -124,6 +130,7 @@ type Token {
 
 type TokenHourlySnapshot {
   id: ID! # address of the token - number of weeks since unix epoch time
+  chainID: BigInt! # chain id of the token
   token: String! # token address
   pricePerETH: BigInt! # price of token per ETH
   pricePerUSD: BigInt! # price of token per USD
@@ -132,6 +139,7 @@ type TokenHourlySnapshot {
 
 type TokenDailySnapshot {
   id: ID! # address of the token - number of weeks since unix epoch time
+  chainID: BigInt! # chain id of the token
   token: String! # token address
   pricePerETH: BigInt! # price of token per ETH
   pricePerUSD: BigInt! # price of token per USD
@@ -140,6 +148,7 @@ type TokenDailySnapshot {
 
 type TokenWeeklySnapshot {
   id: ID! # address of the token - number of weeks since unix epoch time
+  chainID: BigInt! # chain id of the token
   token: String! # token address
   pricePerETH: BigInt! # price of token per ETH
   pricePerUSD: BigInt! # price of token per USD

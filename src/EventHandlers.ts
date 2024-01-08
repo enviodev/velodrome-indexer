@@ -65,6 +65,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
     // Create new instances of TokenEntity to be updated in the DB
     const token0_instance: TokenEntity = {
       id: event.params.token0.toString(),
+      chainID: BigInt(event.chainId),
       pricePerETH: 0n,
       pricePerUSD: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
@@ -72,6 +73,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
 
     const token1_instance: TokenEntity = {
       id: event.params.token1.toString(),
+      chainID: BigInt(event.chainId),
       pricePerETH: 0n,
       pricePerUSD: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
@@ -80,6 +82,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
     const new_pool: LiquidityPoolEntity = {
       id: event.params.pool.toString(),
+      chainID: BigInt(event.chainId),
       token0: token0_instance.id,
       token1: token1_instance.id,
       isStable: event.params.stable,
@@ -434,12 +437,14 @@ PoolContract_Sync_handler(({ event, context }) => {
     // Create a new instance of TokenEntity to be updated in the DB
     const new_token0_instance: TokenEntity = {
       id: token0_instance.id,
+      chainID: BigInt(event.chainId),
       pricePerETH: token0PricePerETH,
       pricePerUSD: multiplyBase1e18(token0PricePerETH, latest_eth_price.price),
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     const new_token1_instance: TokenEntity = {
       id: token1_instance.id,
+      chainID: BigInt(event.chainId),
       pricePerETH: token1PricePerETH,
       pricePerUSD: multiplyBase1e18(token1PricePerETH, latest_eth_price.price),
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
@@ -583,6 +588,7 @@ VoterContract_GaugeCreated_handler(({ event, context }) => {
     // Create a new instance of GaugeEntity to be updated in the DB
     let gauge: GaugeEntity = {
       id: event.params.gauge.toString(),
+      chainID: BigInt(event.chainId),
       pool: event.params.pool.toString(),
       totalEmissions: 0n,
       totalEmissionsUSD: 0n,
