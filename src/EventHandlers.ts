@@ -127,6 +127,12 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
         `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
       );
     }
+    // push pool address to whitelistedPoolIds
+    whitelistedPoolIds.push(new_pool.id);
+  } else {
+    context.log.info(
+      `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
+    );
   }
 });
 

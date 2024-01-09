@@ -7,16 +7,22 @@
     "watch": "tsc --watch",
     "dev": "envio dev",
     "codegen": "envio codegen",
-    "start": "ts-node generated/src/Index.bs.js"
+    "start": "ts-node generated/src/Index.bs.js",
+    "test": "mocha --require ts-node/register test/**/*.ts"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.11",
     "@types/node": "^18.16.1",
+    "chai": "4.3.10",
     "typescript": "^5.0.4",
     "rescript": "^10.1.2",
     "js-yaml": "4.1.0"
   },
   "dependencies": {
-    "ts-node": "^10.9.1",
-    "envio": "0.0.24"
+    "@types/mocha": "^10.0.6",
+    "chai": "4.3.10",
+    "envio": "0.0.24",
+    "mocha": "^10.2.0",
+    "ts-node": "^10.9.1"
   }
 }
