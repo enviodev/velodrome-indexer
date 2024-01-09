@@ -127,6 +127,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
         `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
       );
     }
+  }
 });
 
 PoolContract_Fees_loader(({ event, context }) => {
