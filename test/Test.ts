@@ -13,7 +13,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
   // Using mock address for pool
   const mockToken0Address = Addresses.mockAddresses[0];
   const mockToken1Address = Addresses.mockAddresses[1];
-  const mockPoolAddress = Addresses.mockAddresses[2];
+  const mockPoolAddress = "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b";
 
   // Creating mock PoolCreated event
   const mockPoolCreatedEvent = PoolFactory.PoolCreated.createMockEvent({
@@ -98,7 +98,7 @@ describe("Fees event correctly updates LiquidityPool", () => {
   // Using mock address for pool
   const mockToken0Address = Addresses.mockAddresses[0];
   const mockToken1Address = Addresses.mockAddresses[1];
-  const mockPoolAddress = Addresses.mockAddresses[2];
+  const mockPoolAddress = "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b";
 
   const feesAmount0 = 5n * TEN_TO_THE_18_BI;
   const feesAmount1 = 6n * TEN_TO_THE_18_BI;

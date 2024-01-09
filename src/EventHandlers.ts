@@ -96,7 +96,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       totalFees0: 0n,
       totalFees1: 0n,
       totalFeesUSD: 0n,
-      numberOfSwaps: 1n,
+      numberOfSwaps: 0n,
       token0Price: 0n,
       token1Price: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
@@ -127,12 +127,6 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
         `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
       );
     }
-    // push pool address to whitelistedPoolIds
-    whitelistedPoolIds.push(new_pool.id);
-  } else {
-    context.log.info(
-      `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
-    );
   }
 });
 
