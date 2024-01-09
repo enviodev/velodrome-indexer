@@ -25,12 +25,9 @@ import {
 import {
   DEFAULT_STATE_STORE,
   INITIAL_ETH_PRICE,
-  STABLECOIN_POOL_ADDRESSES,
   STATE_STORE_ID,
   TEN_TO_THE_18_BI,
-  TESTING_POOL_ADDRESSES,
-  WHITELISTED_TOKENS_ADDRESSES,
-  VELO,
+  CHAIN_CONSTANTS,
 } from "./Constants";
 
 import {
@@ -60,10 +57,15 @@ PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   // TODO remove this when we are indexing all the pools
-  if (TESTING_POOL_ADDRESSES.includes(event.params.pool.toString())) {
+  if (
+    CHAIN_CONSTANTS[event.chainId].testingPoolAddresses.includes(
+      event.params.pool.toString()
+    )
+  ) {
     // Create new instances of TokenEntity to be updated in the DB
     const token0_instance: TokenEntity = {
       id: event.params.token0.toString(),
+      chainID: BigInt(event.chainId),
       pricePerETH: 0n,
       pricePerUSD: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
@@ -71,6 +73,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
 
     const token1_instance: TokenEntity = {
       id: event.params.token1.toString(),
+      chainID: BigInt(event.chainId),
       pricePerETH: 0n,
       pricePerUSD: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
@@ -79,6 +82,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
     const new_pool: LiquidityPoolEntity = {
       id: event.params.pool.toString(),
+      chainID: BigInt(event.chainId),
       token0: token0_instance.id,
       token1: token1_instance.id,
       isStable: event.params.stable,
@@ -105,8 +109,12 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
 
     // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
     if (
-      WHITELISTED_TOKENS_ADDRESSES.includes(token0_instance.id) ||
-      WHITELISTED_TOKENS_ADDRESSES.includes(token1_instance.id)
+      CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
+        token0_instance.id
+      ) ||
+      CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
+        token1_instance.id
+      )
     ) {
       if (!context.StateStore.stateStore) {
         context.LatestETHPrice.set(INITIAL_ETH_PRICE);
@@ -152,11 +160,13 @@ PoolContract_Fees_handler(({ event, context }) => {
     // Normalize swap amounts to 1e18
     let normalized_fee_amount_0_total = normalizeTokenAmountTo1e18(
       current_liquidity_pool.token0,
-      event.params.amount0
+      event.params.amount0,
+      event.chainId
     );
     let normalized_fee_amount_1_total = normalizeTokenAmountTo1e18(
       current_liquidity_pool.token1,
-      event.params.amount1
+      event.params.amount1,
+      event.chainId
     );
 
     // Calculate amounts in USD
@@ -252,11 +262,13 @@ PoolContract_Swap_handler(({ event, context }) => {
     // Normalize swap amounts to 1e18
     let normalized_amount_0_total = normalizeTokenAmountTo1e18(
       current_liquidity_pool.token0,
-      event.params.amount0In + event.params.amount0Out
+      event.params.amount0In + event.params.amount0Out,
+      event.chainId
     );
     let normalized_amount_1_total = normalizeTokenAmountTo1e18(
       current_liquidity_pool.token1,
-      event.params.amount1In + event.params.amount1Out
+      event.params.amount1In + event.params.amount1Out,
+      event.chainId
     );
 
     // Calculate amounts in USD
@@ -328,9 +340,10 @@ PoolContract_Sync_loader(({ event, context }) => {
 
   // Load stablecoin pools for weighted average ETH price calculation, only if pool is stablecoin pool
   const stableCoinPoolAddresses = isStablecoinPool(
-    event.srcAddress.toString().toLowerCase()
+    event.srcAddress.toString().toLowerCase(),
+    event.chainId
   )
-    ? STABLECOIN_POOL_ADDRESSES
+    ? CHAIN_CONSTANTS[event.chainId].stablecoinPoolAddresses
     : [];
   context.LiquidityPool.stablecoinPoolsLoad(stableCoinPoolAddresses, {});
 
@@ -338,7 +351,9 @@ PoolContract_Sync_loader(({ event, context }) => {
   context.LiquidityPool.whitelistedPoolsLoad(whitelistedPoolIds, {});
 
   // Load all the whitelisted tokens to be potentially used in pricing
-  context.Token.whitelistedTokensLoad(WHITELISTED_TOKENS_ADDRESSES);
+  context.Token.whitelistedTokensLoad(
+    CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses
+  );
 });
 
 PoolContract_Sync_handler(({ event, context }) => {
@@ -373,11 +388,13 @@ PoolContract_Sync_handler(({ event, context }) => {
     // Normalize reserve amounts to 1e18
     let normalized_reserve0 = normalizeTokenAmountTo1e18(
       current_liquidity_pool.token0,
-      event.params.reserve0
+      event.params.reserve0,
+      event.chainId
     );
     let normalized_reserve1 = normalizeTokenAmountTo1e18(
       current_liquidity_pool.token1,
-      event.params.reserve1
+      event.params.reserve1,
+      event.chainId
     );
 
     // Calculate relative token prices
@@ -399,13 +416,15 @@ PoolContract_Sync_handler(({ event, context }) => {
     let token0PricePerETH = findPricePerETH(
       token0_instance.id,
       whitelisted_tokens_list,
-      relevant_pools_list
+      relevant_pools_list,
+      event.chainId
     );
 
     let token1PricePerETH = findPricePerETH(
       token1_instance.id,
       whitelisted_tokens_list,
-      relevant_pools_list
+      relevant_pools_list,
+      event.chainId
     );
 
     if (token0PricePerETH == TEN_TO_THE_18_BI) {
@@ -418,12 +437,14 @@ PoolContract_Sync_handler(({ event, context }) => {
     // Create a new instance of TokenEntity to be updated in the DB
     const new_token0_instance: TokenEntity = {
       id: token0_instance.id,
+      chainID: BigInt(event.chainId),
       pricePerETH: token0PricePerETH,
       pricePerUSD: multiplyBase1e18(token0PricePerETH, latest_eth_price.price),
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     const new_token1_instance: TokenEntity = {
       id: token1_instance.id,
+      chainID: BigInt(event.chainId),
       pricePerETH: token1PricePerETH,
       pricePerUSD: multiplyBase1e18(token1PricePerETH, latest_eth_price.price),
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
@@ -512,7 +533,9 @@ PoolContract_Sync_handler(({ event, context }) => {
     }
 
     // Updating of ETH price if the pool is a stablecoin pool
-    if (isStablecoinPool(event.srcAddress.toString().toLowerCase())) {
+    if (
+      isStablecoinPool(event.srcAddress.toString().toLowerCase(), event.chainId)
+    ) {
       // Filter out undefined values
       let stablecoin_pools_list = context.LiquidityPool.stablecoinPools.filter(
         (item): item is LiquidityPoolEntity => item !== undefined
@@ -565,6 +588,7 @@ VoterContract_GaugeCreated_handler(({ event, context }) => {
     // Create a new instance of GaugeEntity to be updated in the DB
     let gauge: GaugeEntity = {
       id: event.params.gauge.toString(),
+      chainID: BigInt(event.chainId),
       pool: event.params.pool.toString(),
       totalEmissions: 0n,
       totalEmissionsUSD: 0n,
@@ -580,26 +604,29 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
   // Load the Gauge entity to be updated
   context.Gauge.load(event.params.gauge.toString(), {});
   // Load VELO token for conversion of emissions amount into USD
-  context.Token.veloTokenLoad(VELO.address);
+  context.Token.rewardTokenLoad(
+    CHAIN_CONSTANTS[event.chainId].rewardToken.address
+  );
 });
 
 VoterContract_DistributeReward_handler(({ event, context }) => {
   // Fetch VELO Token entity
-  let veloToken = context.Token.veloToken;
+  let rewardToken = context.Token.rewardToken;
   // Fetch the Gauge entity that was loaded
   let gauge = context.Gauge.get(event.params.gauge.toString());
 
   // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
   // Dev note: Assumption here is that the VELO token entity has already been created at this point
-  if (gauge && veloToken) {
+  if (gauge && rewardToken) {
     let normalized_emissions_amount = normalizeTokenAmountTo1e18(
-      VELO.address,
-      event.params.amount
+      CHAIN_CONSTANTS[event.chainId].rewardToken.address,
+      event.params.amount,
+      event.chainId
     );
 
     let normalized_emissions_amount_usd = multiplyBase1e18(
       normalized_emissions_amount,
-      veloToken.pricePerUSD
+      rewardToken.pricePerUSD
     );
     // Create a new instance of GaugeEntity to be updated in the DB
     let new_gauge_instance: GaugeEntity = {

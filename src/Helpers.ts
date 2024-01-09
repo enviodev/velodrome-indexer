@@ -1,20 +1,16 @@
 import { LiquidityPoolEntity, TokenEntity } from "./src/Types.gen";
 
-import {
-  WHITELISTED_TOKENS,
-  TEN_TO_THE_18_BI,
-  STABLECOIN_POOL_ADDRESSES,
-  WETH,
-} from "./Constants";
+import { TEN_TO_THE_18_BI, CHAIN_CONSTANTS } from "./Constants";
 
 import { multiplyBase1e18 } from "./Maths";
 
 // Helper function to normalize token amounts to 1e18
 export const normalizeTokenAmountTo1e18 = (
   token_address: string,
-  amount: bigint
+  amount: bigint,
+  chainId: number
 ): bigint => {
-  let token = WHITELISTED_TOKENS.find(
+  let token = CHAIN_CONSTANTS[chainId].whitelistedTokens.find(
     (token) => token.address.toLowerCase() === token_address.toLowerCase()
   );
   if (token) {
@@ -53,8 +49,11 @@ export const calculateETHPriceInUSD = (
 };
 
 // Helper function to check if a pool is a stablecoin pool
-export const isStablecoinPool = (pool_address: string): boolean => {
-  return STABLECOIN_POOL_ADDRESSES.some(
+export const isStablecoinPool = (
+  pool_address: string,
+  chainId: number
+): boolean => {
+  return CHAIN_CONSTANTS[chainId].stablecoinPoolAddresses.some(
     (address) => address.toLowerCase() === pool_address
   );
 };
@@ -84,10 +83,14 @@ const extractRelevantLiquidityPoolEntities = (
 export const findPricePerETH = (
   token_address: string,
   whitelisted_tokens_list: TokenEntity[],
-  liquidityPoolEntities: LiquidityPoolEntity[]
+  liquidityPoolEntities: LiquidityPoolEntity[],
+  chainId: number
 ): bigint => {
   // Case 1: token is ETH
-  if (token_address.toLowerCase() === WETH.address.toLowerCase()) {
+  if (
+    token_address.toLowerCase() ===
+    CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()
+  ) {
     return TEN_TO_THE_18_BI;
   }
   // Case 2: token is not ETH
