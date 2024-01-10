@@ -223,6 +223,7 @@ describe("Sync event correctly updates LiquidityPool", () => {
   // Create a mock LiquidityPool entity
   const mockLiquidityPoolEntity: LiquidityPoolEntity = {
     id: mockPoolAddress,
+    chainID: BigInt(mockChainID),
     token0: mockToken0Address,
     token1: mockToken1Address,
     isStable: false,
@@ -245,6 +246,7 @@ describe("Sync event correctly updates LiquidityPool", () => {
   // Expected Token entities
   const mockToken0Entity: TokenEntity = {
     id: mockToken0Address,
+    chainID: BigInt(mockChainID),
     pricePerETH: 0n,
     pricePerUSD: token0PriceUSD,
     lastUpdatedTimestamp: 0n,
@@ -252,6 +254,7 @@ describe("Sync event correctly updates LiquidityPool", () => {
   // Expected Token entities
   const mockToken1Entity: TokenEntity = {
     id: mockToken1Address,
+    chainID: BigInt(mockChainID),
     pricePerETH: 0n,
     pricePerUSD: token1PriceUSD,
     lastUpdatedTimestamp: 0n,
@@ -285,6 +288,7 @@ describe("Sync event correctly updates LiquidityPool", () => {
   const mockSyncEvent = Pool.Sync.createMockEvent({
     reserve0: reserveAmount0,
     reserve1: reserveAmount1,
+    mockEventData: { chainId: mockChainID },
   });
 
   // Processing the event
