@@ -5,6 +5,9 @@ import { LiquidityPoolEntity, TokenEntity } from "../generated/src/Types.gen";
 import { multiplyBase1e18 } from "../src/Maths";
 import { TEN_TO_THE_18_BI } from "../src/Constants";
 
+// Global mock chain ID to be used
+const mockChainID = 10;
+
 // Testing PoolCreated event
 describe("PoolCreated event correctly creates LiquidityPool and Token entities", () => {
   // Create mock db
@@ -21,6 +24,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
     token1: mockToken1Address,
     pool: mockPoolAddress,
     stable: false,
+    mockEventData: { chainId: mockChainID },
   });
 
   // Processing the event
@@ -37,6 +41,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
     // Expected LiquidityPool entity
     const expectedLiquidityPoolEntity: LiquidityPoolEntity = {
       id: mockPoolAddress,
+      chainID: BigInt(mockChainID),
       token0: mockToken0Address,
       token1: mockToken1Address,
       isStable: false,
@@ -72,6 +77,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
     // Expected Token entities
     const expectedToken0Entity: TokenEntity = {
       id: mockToken0Address,
+      chainID: BigInt(mockChainID),
       pricePerETH: 0n,
       pricePerUSD: 0n,
       lastUpdatedTimestamp: BigInt(mockPoolCreatedEvent.blockTimestamp),
@@ -79,6 +85,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
     // Expected Token entities
     const expectedToken1Entity: TokenEntity = {
       id: mockToken1Address,
+      chainID: BigInt(mockChainID),
       pricePerETH: 0n,
       pricePerUSD: 0n,
       lastUpdatedTimestamp: BigInt(mockPoolCreatedEvent.blockTimestamp),
@@ -108,6 +115,7 @@ describe("Fees event correctly updates LiquidityPool", () => {
   // Create a mock LiquidityPool entity
   const mockLiquidityPoolEntity: LiquidityPoolEntity = {
     id: mockPoolAddress,
+    chainID: BigInt(mockChainID),
     token0: mockToken0Address,
     token1: mockToken1Address,
     isStable: false,
@@ -130,6 +138,7 @@ describe("Fees event correctly updates LiquidityPool", () => {
   // Expected Token entities
   const mockToken0Entity: TokenEntity = {
     id: mockToken0Address,
+    chainID: BigInt(mockChainID),
     pricePerETH: 0n,
     pricePerUSD: token0PriceUSD,
     lastUpdatedTimestamp: 0n,
@@ -137,6 +146,7 @@ describe("Fees event correctly updates LiquidityPool", () => {
   // Expected Token entities
   const mockToken1Entity: TokenEntity = {
     id: mockToken1Address,
+    chainID: BigInt(mockChainID),
     pricePerETH: 0n,
     pricePerUSD: token1PriceUSD,
     lastUpdatedTimestamp: 0n,
@@ -157,6 +167,7 @@ describe("Fees event correctly updates LiquidityPool", () => {
     amount1: feesAmount1,
     mockEventData: {
       srcAddress: mockPoolAddress,
+      chainId: mockChainID,
     },
   });
 
