@@ -1,22 +1,28 @@
 import { expect } from "chai";
 import { MockDb, Pool, PoolFactory } from "../generated/src/TestHelpers.gen";
-import { Addresses } from "../generated/src/bindings/Ethers.gen";
-import { LiquidityPoolEntity, TokenEntity } from "../generated/src/Types.gen";
-import { multiplyBase1e18 } from "../src/Maths";
-import { TEN_TO_THE_18_BI } from "../src/Constants";
+import {
+  LiquidityPoolEntity,
+  TokenEntity,
+  StateStoreEntity,
+  LatestETHPriceEntity,
+} from "../generated/src/Types.gen";
+import { divideBase1e18, multiplyBase1e18 } from "../src/Maths";
+import { STATE_STORE_ID, TEN_TO_THE_18_BI } from "../src/Constants";
 
-// Global mock chain ID to be used
+// Global mock values to be used
 const mockChainID = 10;
+const mockToken0Address = "0x4200000000000000000000000000000000000006"; // WETH
+const mockToken1Address = "0x4200000000000000000000000000000000000006"; // WETH
+const mockPoolAddress = "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b";
+const token0PriceUSD = 2000n;
+const token1PriceUSD = 2000n;
+
+const mockBlockTimestamp = 1629811200;
 
 // Testing PoolCreated event
 describe("PoolCreated event correctly creates LiquidityPool and Token entities", () => {
   // Create mock db
   const mockDbInitial = MockDb.createMockDb();
-
-  // Using mock address for pool
-  const mockToken0Address = Addresses.mockAddresses[0];
-  const mockToken1Address = Addresses.mockAddresses[1];
-  const mockPoolAddress = "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b";
 
   // Creating mock PoolCreated event
   const mockPoolCreatedEvent = PoolFactory.PoolCreated.createMockEvent({
@@ -24,7 +30,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
     token1: mockToken1Address,
     pool: mockPoolAddress,
     stable: false,
-    mockEventData: { chainId: mockChainID },
+    mockEventData: { blockTimestamp: mockBlockTimestamp, chainId: mockChainID },
   });
 
   // Processing the event
@@ -102,15 +108,8 @@ describe("Fees event correctly updates LiquidityPool", () => {
   // Create mock db
   const mockDbEmpty = MockDb.createMockDb();
 
-  // Using mock address for pool
-  const mockToken0Address = Addresses.mockAddresses[0];
-  const mockToken1Address = Addresses.mockAddresses[1];
-  const mockPoolAddress = "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b";
-
   const feesAmount0 = 5n * TEN_TO_THE_18_BI;
   const feesAmount1 = 6n * TEN_TO_THE_18_BI;
-  const token0PriceUSD = 1n;
-  const token1PriceUSD = 1n;
 
   // Create a mock LiquidityPool entity
   const mockLiquidityPoolEntity: LiquidityPoolEntity = {
@@ -130,12 +129,12 @@ describe("Fees event correctly updates LiquidityPool", () => {
     totalFees1: 0n,
     totalFeesUSD: 0n,
     numberOfSwaps: 0n,
-    token0Price: token0PriceUSD,
-    token1Price: token1PriceUSD,
+    token0Price: 0n,
+    token1Price: 0n,
     lastUpdatedTimestamp: 0n,
   };
 
-  // Expected Token entities
+  // Mock Token entities
   const mockToken0Entity: TokenEntity = {
     id: mockToken0Address,
     chainID: BigInt(mockChainID),
@@ -166,6 +165,7 @@ describe("Fees event correctly updates LiquidityPool", () => {
     amount0: feesAmount0,
     amount1: feesAmount1,
     mockEventData: {
+      blockTimestamp: mockBlockTimestamp,
       srcAddress: mockPoolAddress,
       chainId: mockChainID,
     },
@@ -200,7 +200,123 @@ describe("Fees event correctly updates LiquidityPool", () => {
   });
 });
 
-// 2. Fees event correctly updates liquidityPool
+// Testing Sync event correctly updates LiquidityPool
+describe("Sync event correctly updates LiquidityPool entity", () => {
+  // Create mock db
+  const mockDbEmpty = MockDb.createMockDb();
+
+  const reserveAmount0 = 10n * TEN_TO_THE_18_BI;
+  const reserveAmount1 = 10n * TEN_TO_THE_18_BI;
+
+  // Create a mock LiquidityPool entity
+  const mockLiquidityPoolEntity: LiquidityPoolEntity = {
+    id: mockPoolAddress,
+    chainID: BigInt(mockChainID),
+    token0: mockToken0Address,
+    token1: mockToken1Address,
+    isStable: false,
+    reserve0: 0n,
+    reserve1: 0n,
+    totalLiquidityETH: 0n,
+    totalLiquidityUSD: 0n,
+    totalVolume0: 0n,
+    totalVolume1: 0n,
+    totalVolumeUSD: 0n,
+    totalFees0: 0n,
+    totalFees1: 0n,
+    totalFeesUSD: 0n,
+    numberOfSwaps: 0n,
+    token0Price: 0n,
+    token1Price: 0n,
+    lastUpdatedTimestamp: 0n,
+  };
+
+  // Mock Token entities
+  const mockToken0Entity: TokenEntity = {
+    id: mockToken0Address,
+    chainID: BigInt(mockChainID),
+    pricePerETH: 1n,
+    pricePerUSD: token0PriceUSD,
+    lastUpdatedTimestamp: 0n,
+  };
+  const mockToken1Entity: TokenEntity = {
+    id: mockToken1Address,
+    chainID: BigInt(mockChainID),
+    pricePerETH: 1n,
+    pricePerUSD: token1PriceUSD,
+    lastUpdatedTimestamp: 0n,
+  };
+  // Mock LatestETHPrice entity
+  const mockLatestETHPriceEntity: LatestETHPriceEntity = {
+    id: "TIMESTAMP_PLACEHOLDER",
+    price: 2000n,
+  };
+  // Mock State Store entity
+  const mockStateStoreEntity: StateStoreEntity = {
+    id: STATE_STORE_ID,
+    latestEthPrice: mockLatestETHPriceEntity.id,
+  };
+
+  // Updating the mock DB with the mock entities
+  const mockDbWithToken0 = mockDbEmpty.entities.Token.set(mockToken0Entity);
+  const mockDbWithTokens =
+    mockDbWithToken0.entities.Token.set(mockToken1Entity);
+  const mockDbWithLiquidityPool = mockDbWithTokens.entities.LiquidityPool.set(
+    mockLiquidityPoolEntity
+  );
+  const mockDbWithLatestETHPrice =
+    mockDbWithLiquidityPool.entities.LatestETHPrice.set(
+      mockLatestETHPriceEntity
+    );
+  const mockDbWithStateStore =
+    mockDbWithLatestETHPrice.entities.StateStore.set(mockStateStoreEntity);
+
+  // Creating mock Sync event
+  const mockSyncEvent = Pool.Sync.createMockEvent({
+    reserve0: reserveAmount0,
+    reserve1: reserveAmount1,
+    mockEventData: {
+      blockTimestamp: mockBlockTimestamp,
+      chainId: mockChainID,
+      srcAddress: mockPoolAddress,
+    },
+  });
+
+  // Processing the event
+  const updatedMockDb = Pool.Sync.processEvent({
+    event: mockSyncEvent,
+    mockDb: mockDbWithStateStore,
+  });
+
+  it("Reserve and token price values of LiquidityPool entity are updated correctly", () => {
+    // Getting the entity from the mock database
+    const actualLiquidityPoolEntity =
+      updatedMockDb.entities.LiquidityPool.get(mockPoolAddress);
+
+    // Expected LiquidityPool entity
+    const expectedLiquidityPoolEntity: LiquidityPoolEntity = {
+      ...mockLiquidityPoolEntity,
+      reserve0: reserveAmount0,
+      reserve1: reserveAmount1,
+      token0Price: divideBase1e18(reserveAmount1, reserveAmount0),
+      token1Price: divideBase1e18(reserveAmount0, reserveAmount1),
+      totalLiquidityETH:
+        (multiplyBase1e18(reserveAmount0, mockToken0Entity.pricePerETH) +
+          multiplyBase1e18(reserveAmount1, mockToken1Entity.pricePerETH)) *
+        TEN_TO_THE_18_BI,
+      totalLiquidityUSD:
+        multiplyBase1e18(reserveAmount0, mockToken0Entity.pricePerUSD) +
+        multiplyBase1e18(reserveAmount1, mockToken1Entity.pricePerUSD),
+      lastUpdatedTimestamp: BigInt(mockSyncEvent.blockTimestamp),
+    };
+
+    // Asserting that the entity in the mock database is the same as the expected entity
+    expect(actualLiquidityPoolEntity).to.deep.equal(
+      expectedLiquidityPoolEntity
+    );
+  });
+});
+
 // 3. Swap event correctly updates liquidityPool and User entities
 // 4. Sync event correctly updates liquidityPool event and Token entities, especially prices of tokens
 // 5. GaugeCreated event correctly creates Gauge entity

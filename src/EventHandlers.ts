@@ -333,8 +333,8 @@ PoolContract_Sync_loader(({ event, context }) => {
   // Load the single liquidity pool from the loader to be updated
   context.LiquidityPool.singlePoolLoad(event.srcAddress.toString(), {
     loaders: {
-      loadToken0: false,
-      loadToken1: false,
+      loadToken0: true,
+      loadToken1: true,
     },
   });
 
