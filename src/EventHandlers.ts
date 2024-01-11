@@ -96,7 +96,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       totalFees0: 0n,
       totalFees1: 0n,
       totalFeesUSD: 0n,
-      numberOfSwaps: 1n,
+      numberOfSwaps: 0n,
       token0Price: 0n,
       token1Price: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
