@@ -50,18 +50,22 @@ import { SnapshotInterval } from "./CustomTypes";
 import { whitelistedPoolIds } from "./Store";
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
+  context.contractRegistration.addPool(event.params.pool)
+
+  // load the global state store
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
     loaders: {},
   });
+
 });
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   // TODO remove this when we are indexing all the pools
-  if (
-    CHAIN_CONSTANTS[event.chainId].testingPoolAddresses.includes(
-      event.params.pool.toString()
-    )
-  ) {
+  // if (
+  //   CHAIN_CONSTANTS[event.chainId].testingPoolAddresses.includes(
+  //     event.params.pool.toString()
+  //   )
+  // ) {
     // Create new instances of TokenEntity to be updated in the DB
     const token0_instance: TokenEntity = {
       id: event.params.token0.toString(),
@@ -127,7 +131,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
         `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
       );
     }
-  }
+  // }
 });
 
 PoolContract_Fees_loader(({ event, context }) => {
