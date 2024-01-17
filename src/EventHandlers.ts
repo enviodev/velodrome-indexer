@@ -107,6 +107,11 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
     // Create the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(new_pool);
 
+    if (!context.StateStore.stateStore) {
+      context.LatestETHPrice.set(INITIAL_ETH_PRICE);
+      context.StateStore.set(DEFAULT_STATE_STORE);
+    }
+    
     // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
     if (
       CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
@@ -116,10 +121,6 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
         token1_instance.id
       )
     ) {
-      if (!context.StateStore.stateStore) {
-        context.LatestETHPrice.set(INITIAL_ETH_PRICE);
-        context.StateStore.set(DEFAULT_STATE_STORE);
-      }
       // push pool address to whitelistedPoolIds
       whitelistedPoolIds.push(new_pool.id);
     } else {
