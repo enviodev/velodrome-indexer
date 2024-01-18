@@ -315,6 +315,26 @@ describe("Sync event correctly updates LiquidityPool entity", () => {
       expectedLiquidityPoolEntity
     );
   });
+
+  it("Token0 entity is updated correctly", () => {
+    // Getting the entity from the mock database
+    const acutualToken0Entity =
+      updatedMockDb.entities.Token.get(mockToken0Address);
+
+    // Expected LiquidityPool entity
+    const expectedToken0Entity: TokenEntity = {
+      ...mockToken0Entity,
+      pricePerETH: divideBase1e18(
+        mockLatestETHPriceEntity.price,
+        token0PriceUSD
+      ),
+      pricePerUSD: token0PriceUSD,
+      lastUpdatedTimestamp: BigInt(mockSyncEvent.blockTimestamp),
+    };
+
+    // Asserting that the entity in the mock database is the same as the expected entity
+    expect(acutualToken0Entity).to.deep.equal(expectedToken0Entity);
+  });
 });
 
 // 3. Swap event correctly updates liquidityPool and User entities
