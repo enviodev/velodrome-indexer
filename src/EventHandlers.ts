@@ -14,7 +14,6 @@ import {
 } from "../generated/src/Handlers.gen";
 
 import {
-  GaugeEntity,
   LatestETHPriceEntity,
   LiquidityPoolEntity,
   TokenEntity,
@@ -47,9 +46,17 @@ import {
 
 import { SnapshotInterval } from "./CustomTypes";
 
-import { whitelistedPoolIds } from "./Store";
+import {
+  poolRewardAddressStore,
+  whitelistedPoolIds,
+  getPoolAddressByGaugeAddress,
+} from "./Store";
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
+  // Dynamic contract registration for Pool contracts
+  // context.contractRegistration.addPool(event.params.pool)
+
+  // load the global state store
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
     loaders: {},
   });
@@ -86,6 +93,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       token0: token0_instance.id,
       token1: token1_instance.id,
       isStable: event.params.stable,
+      gauge: "",
       reserve0: 0n,
       reserve1: 0n,
       totalLiquidityETH: 0n,
@@ -99,6 +107,8 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       numberOfSwaps: 0n,
       token0Price: 0n,
       token1Price: 0n,
+      totalEmissions: 0n,
+      totalEmissionsUSD: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     // Create TokenEntities in the DB
@@ -111,7 +121,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       context.LatestETHPrice.set(INITIAL_ETH_PRICE);
       context.StateStore.set(DEFAULT_STATE_STORE);
     }
-    
+
     // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
     if (
       CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
@@ -207,7 +217,7 @@ PoolContract_Swap_loader(({ event, context }) => {
   });
 
   //Load the mapping for liquidity pool and the user
-  context.LiquidityPoolUserMapping.load(
+  context.LiquidityPoolUserMapping.poolUserMappingLoad(
     getLiquidityPoolAndUserMappingId(
       event.srcAddress.toString(),
       event.params.sender.toString()
@@ -226,12 +236,8 @@ PoolContract_Swap_handler(({ event, context }) => {
   );
 
   // Fetching the relevant liquidity pool user mapping
-  const liquidityPoolUserMapping = context.LiquidityPoolUserMapping.get(
-    getLiquidityPoolAndUserMappingId(
-      event.srcAddress.toString(),
-      event.params.sender.toString()
-    )
-  );
+  const liquidityPoolUserMapping =
+    context.LiquidityPoolUserMapping.poolUserMapping;
 
   // If the mapping doesn't exist yet, create the mapping and save in DB
   if (!liquidityPoolUserMapping) {
@@ -586,39 +592,42 @@ VoterContract_GaugeCreated_handler(({ event, context }) => {
   );
 
   if (current_liquidity_pool) {
-    // Create a new instance of GaugeEntity to be updated in the DB
-    let gauge: GaugeEntity = {
-      id: event.params.gauge.toString(),
-      chainID: BigInt(event.chainId),
-      pool: event.params.pool.toString(),
-      totalEmissions: 0n,
-      totalEmissionsUSD: 0n,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    // Store pool details in poolRewardAddressStore
+    let current_pool_reward_address_mapping = {
+      poolAddress: event.params.pool,
+      gaugeAddress: event.params.gauge,
+      bribeVotingRewardAddress: event.params.bribeVotingReward,
+      feeVotingRewardAddress: event.params.feeVotingReward,
     };
 
-    // Create Gauge entity in the DB
-    context.Gauge.set(gauge);
+    poolRewardAddressStore.push(current_pool_reward_address_mapping);
   }
 });
 
 VoterContract_DistributeReward_loader(({ event, context }) => {
-  // Load the Gauge entity to be updated
-  context.Gauge.load(event.params.gauge.toString(), {});
-  // Load VELO token for conversion of emissions amount into USD
-  context.Token.rewardTokenLoad(
-    CHAIN_CONSTANTS[event.chainId].rewardToken.address
-  );
+  // retrieve the pool address from the gauge address
+  let poolAddress = getPoolAddressByGaugeAddress(event.params.gauge);
+
+  if (poolAddress) {
+    // Load the LiquidityPool entity to be updated,
+    context.LiquidityPool.singlePoolLoad(poolAddress, {});
+
+    // Load VELO token for conversion of emissions smount into USD
+    context.Token.rewardTokenLoad(
+      CHAIN_CONSTANTS[event.chainId].rewardToken.address
+    );
+  } 
 });
 
 VoterContract_DistributeReward_handler(({ event, context }) => {
   // Fetch VELO Token entity
   let rewardToken = context.Token.rewardToken;
   // Fetch the Gauge entity that was loaded
-  let gauge = context.Gauge.get(event.params.gauge.toString());
+  let current_liquidity_pool = context.LiquidityPool.singlePool;
 
   // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
   // Dev note: Assumption here is that the VELO token entity has already been created at this point
-  if (gauge && rewardToken) {
+  if (current_liquidity_pool && rewardToken) {
     let normalized_emissions_amount = normalizeTokenAmountTo1e18(
       CHAIN_CONSTANTS[event.chainId].rewardToken.address,
       event.params.amount,
@@ -630,14 +639,16 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
       rewardToken.pricePerUSD
     );
     // Create a new instance of GaugeEntity to be updated in the DB
-    let new_gauge_instance: GaugeEntity = {
-      ...gauge,
-      totalEmissions: gauge.totalEmissions + normalized_emissions_amount,
-      totalEmissionsUSD: gauge.totalEmissions + normalized_emissions_amount_usd,
+    let new_liquidity_pool_instance: LiquidityPoolEntity = {
+      ...current_liquidity_pool,
+      totalEmissions:
+        current_liquidity_pool.totalEmissions + normalized_emissions_amount,
+      totalEmissionsUSD:
+        current_liquidity_pool.totalEmissions + normalized_emissions_amount_usd,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
     // Create Gauge entity in the DB
-    context.Gauge.set(new_gauge_instance);
+    context.LiquidityPool.set(new_liquidity_pool_instance);
   }
 });

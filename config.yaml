@@ -18,6 +18,7 @@ contracts:
         requiredEntities:
           - name: LiquidityPool
           - name: LiquidityPoolUserMapping
+            labels: ["poolUserMapping"]
           - name: User
             labels: ["user"]
       - event: Sync(uint256 reserve0, uint256 reserve1)
@@ -38,7 +39,9 @@ contracts:
     events:
       - event: DistributeReward(address indexed sender, address indexed gauge, uint256 amount)
         requiredEntities:
-          - name: Gauge
+          - name: LiquidityPool
+            labels:
+              - singlePool
           - name: Token
             labels:
               - rewardToken
@@ -62,7 +65,7 @@ networks:
           - 0x0df083de449F75691fc5A36477a6f3284C269108 # vAMMV2-OP/USDC
           - 0x8134A2fDC127549480865fB8E5A9E8A8a95a54c5 # vAMMV2-USDC/VELO
           - 0x58e6433A6903886E440Ddf519eCC573c4046a6b2 # vAMMV2-WETH/VELO
-          # - 0x7A7f1187c4710010DB17d0a9ad3fcE85e6ecD90a # vAMMV2-RED/VELO
+          - 0x7A7f1187c4710010DB17d0a9ad3fcE85e6ecD90a # vAMMV2-RED/VELO
           # - 0x6387765fFA609aB9A1dA1B16C455548Bfed7CbEA # vAMM-WETH/LUSD
       - name: Voter
         address:

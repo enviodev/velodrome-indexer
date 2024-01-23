@@ -48,6 +48,8 @@ export function getLiquidityPoolSnapshotByInterval(
     numberOfSwaps: liquidityPoolEntity.numberOfSwaps,
     token0Price: liquidityPoolEntity.token0Price,
     token1Price: liquidityPoolEntity.token1Price,
+    totalEmissions: liquidityPoolEntity.totalEmissions,
+    totalEmissionsUSD: liquidityPoolEntity.totalEmissionsUSD,
     lastUpdatedTimestamp: liquidityPoolEntity.lastUpdatedTimestamp,
   };
   return liquidityPoolSnapshotByIntervalEntity;
