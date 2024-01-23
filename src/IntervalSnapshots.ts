@@ -50,6 +50,7 @@ export function getLiquidityPoolSnapshotByInterval(
     token1Price: liquidityPoolEntity.token1Price,
     totalEmissions: liquidityPoolEntity.totalEmissions,
     totalEmissionsUSD: liquidityPoolEntity.totalEmissionsUSD,
+    totalBribesUSD: liquidityPoolEntity.totalBribesUSD,
     lastUpdatedTimestamp: liquidityPoolEntity.lastUpdatedTimestamp,
   };
   return liquidityPoolSnapshotByIntervalEntity;

@@ -25,6 +25,7 @@ type LiquidityPool {
   token1Price: BigInt! # price of token1 relative to token0
   totalEmissions: BigInt!
   totalEmissionsUSD: BigInt!
+  totalBribesUSD: BigInt!
   lastUpdatedTimestamp: BigInt! # timestamp of last update
   userMappings: [LiquidityPoolUserMapping!]!
     @derivedFrom(field: "liquidityPool")
@@ -55,6 +56,7 @@ type LiquidityPoolHourlySnapshot {
   token1Price: BigInt! # price of token1 relative to token0
   totalEmissions: BigInt!
   totalEmissionsUSD: BigInt!
+  totalBribesUSD: BigInt!
   lastUpdatedTimestamp: BigInt! # timestamp of last update
   userMappings: [LiquidityPoolUserMapping!]!
     @derivedFrom(field: "liquidityPool")
@@ -79,6 +81,7 @@ type LiquidityPoolDailySnapshot {
   token1Price: BigInt! # price of token1 relative to token0
   totalEmissions: BigInt!
   totalEmissionsUSD: BigInt!
+  totalBribesUSD: BigInt!
   lastUpdatedTimestamp: BigInt! # timestamp of last update
   userMappings: [LiquidityPoolUserMapping!]!
     @derivedFrom(field: "liquidityPool")
@@ -103,6 +106,7 @@ type LiquidityPoolWeeklySnapshot {
   token1Price: BigInt! # price of token1 relative to token0
   totalEmissions: BigInt!
   totalEmissionsUSD: BigInt!
+  totalBribesUSD: BigInt!
   lastUpdatedTimestamp: BigInt! # timestamp of last update
   userMappings: [LiquidityPoolUserMapping!]!
     @derivedFrom(field: "liquidityPool")

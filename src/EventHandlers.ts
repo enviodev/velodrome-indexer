@@ -11,6 +11,8 @@ import {
   VoterContract_DistributeReward_handler,
   VoterContract_GaugeCreated_loader,
   VoterContract_GaugeCreated_handler,
+  VotingRewardContract_NotifyReward_loader,
+  VotingRewardContract_NotifyReward_handler
 } from "../generated/src/Handlers.gen";
 
 import {
@@ -50,6 +52,7 @@ import {
   poolRewardAddressStore,
   whitelistedPoolIds,
   getPoolAddressByGaugeAddress,
+  getPoolAddressByBribeVotingRewardAddress
 } from "./Store";
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
@@ -109,6 +112,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
       token1Price: 0n,
       totalEmissions: 0n,
       totalEmissionsUSD: 0n,
+      totalBribesUSD: 0n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     // Create TokenEntities in the DB
@@ -576,6 +580,9 @@ PoolContract_Sync_handler(({ event, context }) => {
 });
 
 VoterContract_GaugeCreated_loader(({ event, context }) => {
+  // Dynamically register bribe VotingReward contracts
+  context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
+
   // Load the single liquidity pool from the loader to be updated
   context.LiquidityPool.load(event.params.pool.toString(), {
     loaders: {
@@ -612,7 +619,7 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
     // Load the LiquidityPool entity to be updated,
     context.LiquidityPool.singlePoolLoad(poolAddress, {});
 
-    // Load VELO token for conversion of emissions smount into USD
+    // Load VELO token for conversion of emissions amount into USD
     context.Token.rewardTokenLoad(
       CHAIN_CONSTANTS[event.chainId].rewardToken.address
     );
@@ -644,7 +651,54 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
       totalEmissions:
         current_liquidity_pool.totalEmissions + normalized_emissions_amount,
       totalEmissionsUSD:
-        current_liquidity_pool.totalEmissions + normalized_emissions_amount_usd,
+        current_liquidity_pool.totalEmissionsUSD + normalized_emissions_amount_usd,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+
+    // Create Gauge entity in the DB
+    context.LiquidityPool.set(new_liquidity_pool_instance);
+  }
+});
+
+VotingRewardContract_NotifyReward_loader(({ event, context }) => {
+  // retrieve the pool address from the gauge address
+  let poolAddress = getPoolAddressByBribeVotingRewardAddress(event.srcAddress);
+
+  if (poolAddress) {
+    // Load the LiquidityPool entity to be updated,
+    context.LiquidityPool.singlePoolLoad(poolAddress, {});
+
+    // Load VELO token for conversion of emissions amount into USD
+    context.Token.rewardTokenLoad(
+      event.params.reward
+    );
+  } 
+});
+
+VotingRewardContract_NotifyReward_handler(({ event, context }) => {
+  // Fetch VELO Token entity
+  let rewardToken = context.Token.rewardToken;
+  // Fetch the Gauge entity that was loaded
+  let current_liquidity_pool = context.LiquidityPool.singlePool;
+
+  // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
+  // Dev note: Assumption here is that the VELO token entity has already been created at this point
+  if (current_liquidity_pool && rewardToken) {
+    let normalized_bribes_amount = normalizeTokenAmountTo1e18(
+      rewardToken.id,
+      event.params.amount,
+      event.chainId
+    );
+
+    let normalized_bribes_amount_usd = multiplyBase1e18(
+      normalized_bribes_amount,
+      rewardToken.pricePerUSD
+    );
+    // Create a new instance of GaugeEntity to be updated in the DB
+    let new_liquidity_pool_instance: LiquidityPoolEntity = {
+      ...current_liquidity_pool,
+        totalBribesUSD:
+        current_liquidity_pool.totalBribesUSD + normalized_bribes_amount_usd,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 

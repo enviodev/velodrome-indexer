@@ -13,3 +13,8 @@ export function getPoolAddressByGaugeAddress(gaugeAddress: string): string | nul
     const mapping = poolRewardAddressStore.find(mapping => mapping.gaugeAddress === gaugeAddress);
     return mapping ? mapping.poolAddress : null;
 }
+
+export function getPoolAddressByBribeVotingRewardAddress(gaugeAddress: string): string | null {
+    const mapping = poolRewardAddressStore.find(mapping => mapping.bribeVotingRewardAddress === gaugeAddress);
+    return mapping ? mapping.poolAddress : null;
+}
