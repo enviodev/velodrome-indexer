@@ -134,6 +134,7 @@ const BASE_TESTING_POOL_ADDRESSES: string[] = [
 
 type chainConstants = {
   eth: Token;
+  firstPriceFetchedBlockNumber: number;
   rewardToken: Token;
   stablecoinPools: Pool[];
   stablecoinPoolAddresses: string[];
@@ -144,6 +145,7 @@ type chainConstants = {
 
 const OPTIMISM_CONSTANTS: chainConstants = {
   eth: WETH,
+  firstPriceFetchedBlockNumber: 106247807,
   rewardToken: VELO,
   stablecoinPools: OPTIMISM_STABLECOIN_POOLS,
   stablecoinPoolAddresses: OPTIMISM_STABLECOIN_POOLS.map(
@@ -158,6 +160,7 @@ const OPTIMISM_CONSTANTS: chainConstants = {
 
 const BASE_CONSTANTS: chainConstants = {
   eth: WETH,
+  firstPriceFetchedBlockNumber: 3347620,
   rewardToken: AERO,
   stablecoinPools: BASE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: BASE_STABLECOIN_POOLS.map((pool) => pool.address),
