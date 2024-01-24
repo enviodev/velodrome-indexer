@@ -170,3 +170,11 @@ type LiquidityPoolUserMapping {
   liquidityPool: LiquidityPool!
   user: User!
 }
+
+type RewardToken {
+  id: ID! # token address
+  chainID: BigInt! # chain id of the token
+  pricePerETH: BigInt! # price of token per ETH
+  pricePerUSD: BigInt! # price of token per USD
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
+}

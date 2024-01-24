@@ -61,17 +61,6 @@ contracts:
           - name: Token
             labels:
               - rewardToken
-  # - name: FeesVotingReward
-  #   handler: src/EventHandlers.ts
-  #   events:
-  #     - event: NotifyReward(address indexed from, address indexed reward, uint256 indexed epoch, uint256 amount)
-  #       requiredEntities:
-  #         - name: LiquidityPool
-  #           labels:
-  #             - singlePool
-  #         - name: Token
-  #           labels:
-  #             - rewardToken
 networks:
   - id: 10 # Optimism
     start_block: 0
