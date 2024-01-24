@@ -64,82 +64,82 @@ PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
 
 PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   // TODO remove this when we are indexing all the pools
+  // if (
+  //   CHAIN_CONSTANTS[event.chainId].testingPoolAddresses.includes(
+  //     event.params.pool.toString()
+  //   )
+  // ) {
+  // Create new instances of TokenEntity to be updated in the DB
+  const token0_instance: TokenEntity = {
+    id: event.params.token0.toString(),
+    chainID: BigInt(event.chainId),
+    pricePerETH: 0n,
+    pricePerUSD: 0n,
+    lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+  };
+
+  const token1_instance: TokenEntity = {
+    id: event.params.token1.toString(),
+    chainID: BigInt(event.chainId),
+    pricePerETH: 0n,
+    pricePerUSD: 0n,
+    lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+  };
+
+  // Create a new instance of LiquidityPoolEntity to be updated in the DB
+  const new_pool: LiquidityPoolEntity = {
+    id: event.params.pool.toString(),
+    chainID: BigInt(event.chainId),
+    token0: token0_instance.id,
+    token1: token1_instance.id,
+    isStable: event.params.stable,
+    gauge: "",
+    reserve0: 0n,
+    reserve1: 0n,
+    totalLiquidityETH: 0n,
+    totalLiquidityUSD: 0n,
+    totalVolume0: 0n,
+    totalVolume1: 0n,
+    totalVolumeUSD: 0n,
+    totalFees0: 0n,
+    totalFees1: 0n,
+    totalFeesUSD: 0n,
+    numberOfSwaps: 0n,
+    token0Price: 0n,
+    token1Price: 0n,
+    totalEmissions: 0n,
+    totalEmissionsUSD: 0n,
+    totalBribesUSD: 0n,
+    lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+  };
+  // Create TokenEntities in the DB
+  context.Token.set(token0_instance);
+  context.Token.set(token1_instance);
+  // Create the LiquidityPoolEntity in the DB
+  context.LiquidityPool.set(new_pool);
+
+  if (!context.StateStore.stateStore) {
+    context.LatestETHPrice.set(INITIAL_ETH_PRICE);
+    context.StateStore.set(DEFAULT_STATE_STORE);
+  }
+
+  // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
   if (
-    CHAIN_CONSTANTS[event.chainId].testingPoolAddresses.includes(
-      event.params.pool.toString()
+    CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
+      token0_instance.id
+    ) ||
+    CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
+      token1_instance.id
     )
   ) {
-    // Create new instances of TokenEntity to be updated in the DB
-    const token0_instance: TokenEntity = {
-      id: event.params.token0.toString(),
-      chainID: BigInt(event.chainId),
-      pricePerETH: 0n,
-      pricePerUSD: 0n,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
-
-    const token1_instance: TokenEntity = {
-      id: event.params.token1.toString(),
-      chainID: BigInt(event.chainId),
-      pricePerETH: 0n,
-      pricePerUSD: 0n,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
-
-    // Create a new instance of LiquidityPoolEntity to be updated in the DB
-    const new_pool: LiquidityPoolEntity = {
-      id: event.params.pool.toString(),
-      chainID: BigInt(event.chainId),
-      token0: token0_instance.id,
-      token1: token1_instance.id,
-      isStable: event.params.stable,
-      gauge: "",
-      reserve0: 0n,
-      reserve1: 0n,
-      totalLiquidityETH: 0n,
-      totalLiquidityUSD: 0n,
-      totalVolume0: 0n,
-      totalVolume1: 0n,
-      totalVolumeUSD: 0n,
-      totalFees0: 0n,
-      totalFees1: 0n,
-      totalFeesUSD: 0n,
-      numberOfSwaps: 0n,
-      token0Price: 0n,
-      token1Price: 0n,
-      totalEmissions: 0n,
-      totalEmissionsUSD: 0n,
-      totalBribesUSD: 0n,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
-    // Create TokenEntities in the DB
-    context.Token.set(token0_instance);
-    context.Token.set(token1_instance);
-    // Create the LiquidityPoolEntity in the DB
-    context.LiquidityPool.set(new_pool);
-
-    if (!context.StateStore.stateStore) {
-      context.LatestETHPrice.set(INITIAL_ETH_PRICE);
-      context.StateStore.set(DEFAULT_STATE_STORE);
-    }
-
-    // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
-    if (
-      CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
-        token0_instance.id
-      ) ||
-      CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
-        token1_instance.id
-      )
-    ) {
-      // push pool address to whitelistedPoolIds
-      whitelistedPoolIds.push(new_pool.id);
-    } else {
-      context.log.info(
-        `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
-      );
-    }
+    // push pool address to whitelistedPoolIds
+    whitelistedPoolIds.push(new_pool.id);
+  } else {
+    context.log.info(
+      `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
+    );
   }
+  // }
 });
 
 PoolContract_Fees_loader(({ event, context }) => {
@@ -688,6 +688,11 @@ VotingRewardContract_NotifyReward_handler(({ event, context }) => {
     );
 
     if (rewardToken.pricePerUSD == 0n) {
+      console.log("current liquidity pool");
+      console.log(current_liquidity_pool);
+      console.log("reward token");
+      console.log(rewardToken);
+
       throw new Error("Bug: Reward token for the bribe does not have a price.");
     }
 
