@@ -1,6 +1,9 @@
-name: Pool
-description: velodrome v2
+name: Velodrome_v2
+description: Multi-chain indexer for Velodrome V2 on Optimism and Aerodrome on Base
+# Global contracts configuration that will be shared across all chains that are defined later in the config file
+# (i.e. Velodrome V2 on Optimism and Aerodrome on Base)
 contracts:
+  # PoolFactory contract is responsible for creating new pools
   - name: PoolFactory
     handler: src/EventHandlers.ts
     events:
@@ -8,12 +11,15 @@ contracts:
         requiredEntities:
           - name: StateStore
             labels: ["stateStore"]
+  # Pool contract emits all the events related to a particular swap pool
   - name: Pool
     handler: src/EventHandlers.ts
     events:
+      # Used to update the total fees earned by a swap pool
       - event: Fees(address indexed sender, uint256 amount0, uint256 amount1)
         requiredEntities:
           - name: LiquidityPool
+      # Used to update the swap and volume metrics of a particular pool and user
       - event: Swap(address indexed sender, address indexed to, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out)
         requiredEntities:
           - name: LiquidityPool
@@ -21,6 +27,7 @@ contracts:
             labels: ["poolUserMapping"]
           - name: User
             labels: ["user"]
+      # Used to update the liquidity values of a particular pool
       - event: Sync(uint256 reserve0, uint256 reserve1)
         requiredEntities:
           - name: StateStore
@@ -34,15 +41,19 @@ contracts:
           - name: Token
             arrayLabels:
               - whitelistedTokens
+  # PriceFetcher contract is responsible for fetching the price of a particular token
   - name: PriceFetcher
     handler: src/EventHandlers.ts
     events:
+      # Used to update the price of a particular token in USD
       - event: PriceFetched(address indexed token, uint256 price)
         requiredEntities:
           - name: Token
+  # Voter contract is responsible for creating reward contracts and distributing rewards to the liquidity pools
   - name: Voter
     handler: src/EventHandlers.ts
     events:
+      # Used to update the reward emission metrics of a particular pool
       - event: DistributeReward(address indexed sender, address indexed gauge, uint256 amount)
         requiredEntities:
           - name: LiquidityPool
@@ -51,14 +62,17 @@ contracts:
           - name: Token
             labels:
               - rewardToken
+      # Used to update the reward address details of a particular pool
       - event: GaugeCreated(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory, address pool, address bribeVotingReward, address feeVotingReward, address gauge, address creator)
         requiredEntities:
           - name: LiquidityPool
       # TODO: Figure out how to handle this event
       # - event: GaugeKilled(address indexed gauge)
+  # VotingReward contract is responsible for distributing bribe rewards to the liquidity providers
   - name: VotingReward
     handler: src/EventHandlers.ts
     events:
+      # Used to update the bribe reward metrics of a particular pool
       - event: NotifyReward(address indexed from, address indexed reward, uint256 indexed epoch, uint256 amount)
         requiredEntities:
           - name: LiquidityPool
@@ -67,9 +81,11 @@ contracts:
           - name: Token
             labels:
               - rewardToken
+# Used to define the different chains that contracts (defined above) will be indexed from
 networks:
   - id: 10 # Optimism
     start_block: 0
+    # Specification of addresses per contract type defined above
     contracts:
       - name: PoolFactory
         address:
@@ -244,6 +260,7 @@ networks:
       - name: VotingReward
   - id: 8453 # Base
     start_block: 0
+    # Specification of addresses per contract type defined above
     contracts:
       - name: PoolFactory
         address:
