@@ -25,6 +25,7 @@ type LiquidityPool {
   token1Price: BigInt! # price of token1 relative to token0
   totalEmissions: BigInt!
   totalEmissionsUSD: BigInt!
+  totalBribesUSD: BigInt!
   lastUpdatedTimestamp: BigInt! # timestamp of last update
   userMappings: [LiquidityPoolUserMapping!]!
     @derivedFrom(field: "liquidityPool")
@@ -55,6 +56,7 @@ type LiquidityPoolHourlySnapshot {
   token1Price: BigInt! # price of token1 relative to token0
   totalEmissions: BigInt!
   totalEmissionsUSD: BigInt!
+  totalBribesUSD: BigInt!
   lastUpdatedTimestamp: BigInt! # timestamp of last update
   userMappings: [LiquidityPoolUserMapping!]!
     @derivedFrom(field: "liquidityPool")
@@ -79,6 +81,7 @@ type LiquidityPoolDailySnapshot {
   token1Price: BigInt! # price of token1 relative to token0
   totalEmissions: BigInt!
   totalEmissionsUSD: BigInt!
+  totalBribesUSD: BigInt!
   lastUpdatedTimestamp: BigInt! # timestamp of last update
   userMappings: [LiquidityPoolUserMapping!]!
     @derivedFrom(field: "liquidityPool")
@@ -103,6 +106,7 @@ type LiquidityPoolWeeklySnapshot {
   token1Price: BigInt! # price of token1 relative to token0
   totalEmissions: BigInt!
   totalEmissionsUSD: BigInt!
+  totalBribesUSD: BigInt!
   lastUpdatedTimestamp: BigInt! # timestamp of last update
   userMappings: [LiquidityPoolUserMapping!]!
     @derivedFrom(field: "liquidityPool")
@@ -165,4 +169,12 @@ type LiquidityPoolUserMapping {
   id: ID! # concatenation of liquidityPool and user id
   liquidityPool: LiquidityPool!
   user: User!
+}
+
+type RewardToken {
+  id: ID! # token address
+  chainID: BigInt! # chain id of the token
+  pricePerETH: BigInt! # price of token per ETH
+  pricePerUSD: BigInt! # price of token per USD
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
 }

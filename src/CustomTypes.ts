@@ -20,3 +20,10 @@ export enum SnapshotInterval {
   Daily = 86400,
   Weekly = 604800,
 }
+
+export type poolRewardAddressMapping = {
+  poolAddress: string;
+  gaugeAddress: string;
+  bribeVotingRewardAddress: string;
+  feeVotingRewardAddress: string;
+};

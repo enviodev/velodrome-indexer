@@ -4,6 +4,8 @@ import { TEN_TO_THE_18_BI, CHAIN_CONSTANTS } from "./Constants";
 
 import { multiplyBase1e18 } from "./Maths";
 
+import { poolRewardAddressStore } from "./Store";
+
 // Helper function to normalize token amounts to 1e18
 export const normalizeTokenAmountTo1e18 = (
   token_address: string,
@@ -136,3 +138,23 @@ export const getLiquidityPoolAndUserMappingId = (
 ): string => {
   return liquidityPoolId + "-" + userId;
 };
+
+// Helper function to get the pool address from the gauge address
+export function getPoolAddressByGaugeAddress(
+  gaugeAddress: string
+): string | null {
+  const mapping = poolRewardAddressStore.find(
+    (mapping) => mapping.gaugeAddress === gaugeAddress
+  );
+  return mapping ? mapping.poolAddress : null;
+}
+
+// Helper function to get the pool address from the bribe voting reward address
+export function getPoolAddressByBribeVotingRewardAddress(
+  gaugeAddress: string
+): string | null {
+  const mapping = poolRewardAddressStore.find(
+    (mapping) => mapping.bribeVotingRewardAddress === gaugeAddress
+  );
+  return mapping ? mapping.poolAddress : null;
+}
