@@ -132,6 +132,7 @@ const BASE_TESTING_POOL_ADDRESSES: string[] = [
   "0x0B25c51637c43decd6CC1C1e3da4518D54ddb528", // sAMM-DOLA/USDbC
 ];
 
+// Object containing all the constants for a chain
 type chainConstants = {
   eth: Token;
   firstPriceFetchedBlockNumber: number;
@@ -143,6 +144,7 @@ type chainConstants = {
   whitelistedTokenAddresses: string[];
 };
 
+// Constants for Optimism
 const OPTIMISM_CONSTANTS: chainConstants = {
   eth: WETH,
   firstPriceFetchedBlockNumber: 106247807,
@@ -158,6 +160,7 @@ const OPTIMISM_CONSTANTS: chainConstants = {
   ),
 };
 
+// Constants for Base
 const BASE_CONSTANTS: chainConstants = {
   eth: WETH,
   firstPriceFetchedBlockNumber: 3347620,

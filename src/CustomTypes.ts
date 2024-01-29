@@ -21,6 +21,7 @@ export enum SnapshotInterval {
   Weekly = 604800,
 }
 
+// Object type to store pool address and its corresponding reward addresses
 export type poolRewardAddressMapping = {
   poolAddress: string;
   gaugeAddress: string;
