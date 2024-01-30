@@ -352,8 +352,3 @@ describe("Sync event correctly updates LiquidityPool entity", () => {
     );
   });
 });
-
-// 3. Swap event correctly updates liquidityPool and User entities
-// 4. Sync event correctly updates liquidityPool event and Token entities, especially prices of tokens
-// 5. GaugeCreated event correctly creates Gauge entity
-// 6. DistributeReward event correctly updates Gauge entity
