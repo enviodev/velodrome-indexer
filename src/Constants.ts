@@ -22,55 +22,46 @@ export const DEFAULT_STATE_STORE: StateStoreEntity = {
 const WETH: Token = {
   address: "0x4200000000000000000000000000000000000006",
   symbol: "WETH",
-  decimals: 18,
 };
 
 const USDC: Token = {
   address: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
   symbol: "USDC.e",
-  decimals: 6,
 };
 
 const OP: Token = {
   address: "0x4200000000000000000000000000000000000042",
   symbol: "OP",
-  decimals: 18,
 };
 
 const LUSD: Token = {
   address: "0xc40f949f8a4e094d1b49a23ea9241d289b7b2819",
   symbol: "LUSD",
-  decimals: 18,
 };
 
 const VELO: Token = {
   address: "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db",
   symbol: "VELO",
-  decimals: 18,
 };
 
 const USDbC: Token = {
   address: "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca",
   symbol: "USCbC",
-  decimals: 6,
 };
 
 const DAI: Token = {
   address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
   symbol: "DAI",
-  decimals: 18,
 };
 
 const AERO: Token = {
   address: "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
   symbol: "AERO",
-  decimals: 18,
 };
 
 const DOLA: Token = {
   address: "0x4621b7A9c75199271F773Ebd9A499dbd165c3191",
   symbol: "DOLA",
-  decimals: 18,
 };
 // list of WHITELISTED tokens with their symbol and decimals to be used in pricing
 const OPTIMISM_WHITELISTED_TOKENS: Token[] = [WETH, USDC, OP, LUSD];
@@ -137,6 +128,7 @@ type chainConstants = {
   eth: Token;
   firstPriceFetchedBlockNumber: number;
   rewardToken: Token;
+  rpcURL: string;
   stablecoinPools: Pool[];
   stablecoinPoolAddresses: string[];
   testingPoolAddresses: string[];
@@ -149,6 +141,7 @@ const OPTIMISM_CONSTANTS: chainConstants = {
   eth: WETH,
   firstPriceFetchedBlockNumber: 106247807,
   rewardToken: VELO,
+  rpcURL: "https://rpc.ankr.com/optimism",
   stablecoinPools: OPTIMISM_STABLECOIN_POOLS,
   stablecoinPoolAddresses: OPTIMISM_STABLECOIN_POOLS.map(
     (pool) => pool.address
@@ -165,6 +158,7 @@ const BASE_CONSTANTS: chainConstants = {
   eth: WETH,
   firstPriceFetchedBlockNumber: 3347620,
   rewardToken: AERO,
+  rpcURL: "https://base.llamarpc.com",
   stablecoinPools: BASE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: BASE_STABLECOIN_POOLS.map((pool) => pool.address),
   testingPoolAddresses: BASE_TESTING_POOL_ADDRESSES,

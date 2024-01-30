@@ -16,6 +16,7 @@ type StateStore {
 type LiquidityPool {
   id: ID! # pool address
   chainID: BigInt! # chain id of the pool
+  name: String! # name of the pool
   token0: Token! # token0 entity
   token1: Token! # token1 entity
   isStable: Boolean! # whether the pool is a stable AMM or a volatile AMM
@@ -52,6 +53,7 @@ type LiquidityPoolHourlySnapshot {
   id: ID! # address of the pool - number of days since unix epoch time
   chainID: BigInt! # chain id of the pool
   pool: String! # address of the pool
+  name: String! # name of the pool
   reserve0: BigInt! # reserve of token0 in token units
   reserve1: BigInt! # reserve of token1 in token units
   totalLiquidityETH: BigInt! # total liquidity of the swap pool in ETH
@@ -78,6 +80,7 @@ type LiquidityPoolDailySnapshot {
   id: ID! # address of the pool - number of days since unix epoch time
   chainID: BigInt! # chain id of the pool
   pool: String! # address of the pool
+  name: String! # name of the pool
   reserve0: BigInt! # reserve of token0 in token units
   reserve1: BigInt! # reserve of token1 in token units
   totalLiquidityETH: BigInt! # total liquidity of the swap pool in ETH
@@ -104,6 +107,7 @@ type LiquidityPoolWeeklySnapshot {
   id: ID! # address of the pool - number of weeks since unix epoch time
   chainID: BigInt! # chain id of the pool
   pool: String! # address of the pool
+  name: String! # name of the pool
   reserve0: BigInt! # reserve of token0 in token units
   reserve1: BigInt! # reserve of token1 in token units
   totalLiquidityETH: BigInt! # total liquidity of the swap pool in ETH
@@ -129,7 +133,10 @@ type LiquidityPoolWeeklySnapshot {
 # By nature this entity saves the latest state of the token, and its state at different times should be attained from the snapshot entities
 type Token {
   id: ID! # token address
+  symbol: String! # token symbol
+  name: String! # token name
   chainID: BigInt! # chain id of the token
+  decimals: BigInt! # number of decimals
   pricePerETH: BigInt! # price of token per ETH
   pricePerUSD: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
@@ -141,6 +148,8 @@ type Token {
 # Hourly snapshot of the LiquidityPool entity
 type TokenHourlySnapshot {
   id: ID! # address of the token - number of weeks since unix epoch time
+  symbol: String! # token symbol
+  name: String! # token name
   chainID: BigInt! # chain id of the token
   token: String! # token address
   pricePerETH: BigInt! # price of token per ETH
@@ -151,6 +160,8 @@ type TokenHourlySnapshot {
 # Daily snapshot of the LiquidityPool entity
 type TokenDailySnapshot {
   id: ID! # address of the token - number of weeks since unix epoch time
+  symbol: String! # token symbol
+  name: String! # token name
   chainID: BigInt! # chain id of the token
   token: String! # token address
   pricePerETH: BigInt! # price of token per ETH
@@ -161,6 +172,8 @@ type TokenDailySnapshot {
 # Weekly snapshot of the LiquidityPool entity
 type TokenWeeklySnapshot {
   id: ID! # address of the token - number of weeks since unix epoch time
+  symbol: String! # token symbol
+  name: String! # token name
   chainID: BigInt! # chain id of the token
   token: String! # token address
   pricePerETH: BigInt! # price of token per ETH

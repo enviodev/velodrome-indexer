@@ -6,7 +6,7 @@ import {
   PoolContract_Swap_loader,
   PoolContract_Swap_handler,
   PoolFactoryContract_PoolCreated_loader,
-  PoolFactoryContract_PoolCreated_handler,
+  PoolFactoryContract_PoolCreated_handlerAsync,
   PriceFetcherContract_PriceFetched_loader,
   PriceFetcherContract_PriceFetched_handler,
   VoterContract_DistributeReward_loader,
@@ -41,6 +41,7 @@ import {
   getLiquidityPoolAndUserMappingId,
   getPoolAddressByGaugeAddress,
   getPoolAddressByBribeVotingRewardAddress,
+  generatePoolName,
 } from "./Helpers";
 
 import { divideBase1e18, multiplyBase1e18 } from "./Maths";
@@ -54,6 +55,8 @@ import { SnapshotInterval } from "./CustomTypes";
 
 import { poolRewardAddressStore, whitelistedPoolIds } from "./Store";
 
+import { getDecimals, getName, getSymbol } from "./Erc20";
+
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   // Dynamic contract registration for Pool contracts
   // context.contractRegistration.addPool(event.params.pool)
@@ -64,16 +67,55 @@ PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   });
 });
 
-PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
+PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
   // TODO remove this when we are indexing all the pools
   // if (
   //   CHAIN_CONSTANTS[event.chainId].testingPoolAddresses.includes(
   //     event.params.pool.toString()
   //   )
   // ) {
+
+  // Retrieve the global state store
+  let stateStore = await context.StateStore.stateStore;
+
+  if (!stateStore) {
+    context.LatestETHPrice.set(INITIAL_ETH_PRICE);
+    context.StateStore.set(DEFAULT_STATE_STORE);
+  }
+
+  // getting decimals and symbol for token0 and token1
+  const token0_decimals = await getDecimals(
+    event.params.token0.toString(),
+    event.chainId
+  );
+  const token0_name = await getName(
+    event.params.token0.toString(),
+    event.chainId
+  );
+  const token0_symbol = await getSymbol(
+    event.params.token0.toString(),
+    event.chainId
+  );
+  const token1_decimals = await getDecimals(
+    event.params.token1.toString(),
+    event.chainId
+  );
+  const token1_name = await getName(
+    event.params.token1.toString(),
+    event.chainId
+  );
+  const token1_symbol = await getSymbol(
+    event.params.token1.toString(),
+    event.chainId
+  );
+
+  // TODO this should only be done if the token entity doesn't exist already
   // Create new instances of TokenEntity to be updated in the DB
   const token0_instance: TokenEntity = {
     id: event.params.token0.toString(),
+    symbol: token0_symbol,
+    name: token0_name,
+    decimals: BigInt(token0_decimals),
     chainID: BigInt(event.chainId),
     pricePerETH: 0n,
     pricePerUSD: 0n,
@@ -82,6 +124,9 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
 
   const token1_instance: TokenEntity = {
     id: event.params.token1.toString(),
+    symbol: token1_symbol,
+    name: token1_name,
+    decimals: BigInt(token1_decimals),
     chainID: BigInt(event.chainId),
     pricePerETH: 0n,
     pricePerUSD: 0n,
@@ -92,6 +137,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   const new_pool: LiquidityPoolEntity = {
     id: event.params.pool.toString(),
     chainID: BigInt(event.chainId),
+    name: generatePoolName(token0_symbol, token1_symbol, event.params.stable),
     token0: token0_instance.id,
     token1: token1_instance.id,
     isStable: event.params.stable,
@@ -120,11 +166,6 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   // Create the LiquidityPoolEntity in the DB
   context.LiquidityPool.set(new_pool);
 
-  if (!context.StateStore.stateStore) {
-    context.LatestETHPrice.set(INITIAL_ETH_PRICE);
-    context.StateStore.set(DEFAULT_STATE_STORE);
-  }
-
   // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
   if (
     CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
@@ -136,10 +177,6 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   ) {
     // push pool address to whitelistedPoolIds
     whitelistedPoolIds.push(new_pool.id);
-  } else {
-    context.log.info(
-      `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
-    );
   }
   // }
 });
@@ -173,14 +210,12 @@ PoolContract_Fees_handler(({ event, context }) => {
 
     // Normalize swap amounts to 1e18
     let normalized_fee_amount_0_total = normalizeTokenAmountTo1e18(
-      current_liquidity_pool.token0,
       event.params.amount0,
-      event.chainId
+      Number(token0_instance.decimals)
     );
     let normalized_fee_amount_1_total = normalizeTokenAmountTo1e18(
-      current_liquidity_pool.token1,
       event.params.amount1,
-      event.chainId
+      Number(token1_instance.decimals)
     );
 
     // Calculate amounts in USD
@@ -272,14 +307,12 @@ PoolContract_Swap_handler(({ event, context }) => {
 
     // Normalize swap amounts to 1e18
     let normalized_amount_0_total = normalizeTokenAmountTo1e18(
-      current_liquidity_pool.token0,
       event.params.amount0In + event.params.amount0Out,
-      event.chainId
+      Number(token0_instance.decimals)
     );
     let normalized_amount_1_total = normalizeTokenAmountTo1e18(
-      current_liquidity_pool.token1,
       event.params.amount1In + event.params.amount1Out,
-      event.chainId
+      Number(token1_instance.decimals)
     );
 
     // Calculate amounts in USD
@@ -396,28 +429,6 @@ PoolContract_Sync_handler(({ event, context }) => {
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   if (current_liquidity_pool) {
-    let token0Price = current_liquidity_pool.token0Price;
-    let token1Price = current_liquidity_pool.token1Price;
-
-    // Normalize reserve amounts to 1e18
-    let normalized_reserve0 = normalizeTokenAmountTo1e18(
-      current_liquidity_pool.token0,
-      event.params.reserve0,
-      event.chainId
-    );
-    let normalized_reserve1 = normalizeTokenAmountTo1e18(
-      current_liquidity_pool.token1,
-      event.params.reserve1,
-      event.chainId
-    );
-
-    // Calculate relative token prices
-    if (normalized_reserve0 != 0n && normalized_reserve1 != 0n) {
-      token0Price = divideBase1e18(normalized_reserve1, normalized_reserve0);
-
-      token1Price = divideBase1e18(normalized_reserve0, normalized_reserve1);
-    }
-
     // Get the tokens from the loader and update their pricing
     let token0_instance = context.LiquidityPool.getToken0(
       current_liquidity_pool
@@ -426,6 +437,26 @@ PoolContract_Sync_handler(({ event, context }) => {
     let token1_instance = context.LiquidityPool.getToken1(
       current_liquidity_pool
     );
+
+    let token0Price = current_liquidity_pool.token0Price;
+    let token1Price = current_liquidity_pool.token1Price;
+
+    // Normalize reserve amounts to 1e18
+    let normalized_reserve0 = normalizeTokenAmountTo1e18(
+      event.params.reserve0,
+      Number(token0_instance.decimals)
+    );
+    let normalized_reserve1 = normalizeTokenAmountTo1e18(
+      event.params.reserve1,
+      Number(token1_instance.decimals)
+    );
+
+    // Calculate relative token prices
+    if (normalized_reserve0 != 0n && normalized_reserve1 != 0n) {
+      token0Price = divideBase1e18(normalized_reserve1, normalized_reserve0);
+
+      token1Price = divideBase1e18(normalized_reserve0, normalized_reserve1);
+    }
 
     let token0PricePerETH = findPricePerETH(
       token0_instance.id,
@@ -473,14 +504,14 @@ PoolContract_Sync_handler(({ event, context }) => {
 
     // Create a new instance of TokenEntity to be updated in the DB
     const new_token0_instance: TokenEntity = {
-      id: token0_instance.id,
+      ...token0_instance,
       chainID: BigInt(event.chainId),
       pricePerETH: token0PricePerETH,
       pricePerUSD: token0PricePerUSD,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     const new_token1_instance: TokenEntity = {
-      id: token1_instance.id,
+      ...token1_instance,
       chainID: BigInt(event.chainId),
       pricePerETH: token1PricePerETH,
       pricePerUSD: token1PricePerUSD,
@@ -688,9 +719,8 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
   // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point
   if (current_liquidity_pool && rewardToken) {
     let normalized_emissions_amount = normalizeTokenAmountTo1e18(
-      CHAIN_CONSTANTS[event.chainId].rewardToken.address,
       event.params.amount,
-      event.chainId
+      Number(rewardToken.decimals)
     );
 
     let normalized_emissions_amount_usd = multiplyBase1e18(
@@ -737,19 +767,15 @@ VotingRewardContract_NotifyReward_handler(({ event, context }) => {
   // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point
   if (current_liquidity_pool && rewardToken) {
     let normalized_bribes_amount = normalizeTokenAmountTo1e18(
-      rewardToken.id,
       event.params.amount,
-      event.chainId
+      Number(rewardToken.decimals)
     );
 
-    // If the reward token does not have a price in USD, throw an error
+    // If the reward token does not have a price in USD, log
     if (rewardToken.pricePerUSD == 0n) {
-      console.log("current liquidity pool");
-      console.log(current_liquidity_pool);
-      console.log("reward token");
-      console.log(rewardToken);
-
-      throw new Error("Bug: Reward token for the bribe does not have a price.");
+      context.log.warn(
+        `Reward token with address ${event.params.reward.toString()} does not have a USD price yet.`
+      );
     }
 
     // Calculate the bribes amount in USD

@@ -14,9 +14,10 @@
     "@types/chai": "^4.3.11",
     "@types/node": "^18.16.1",
     "chai": "4.3.10",
-    "typescript": "^5.0.4",
+    "js-yaml": "4.1.0",
     "rescript": "^10.1.2",
-    "js-yaml": "4.1.0"
+    "typescript": "^5.0.4",
+    "web3": "^4.4.0"
   },
   "dependencies": {
     "@types/mocha": "^10.0.6",
