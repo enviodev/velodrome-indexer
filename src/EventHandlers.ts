@@ -210,14 +210,12 @@ PoolContract_Fees_handler(({ event, context }) => {
 
     // Normalize swap amounts to 1e18
     let normalized_fee_amount_0_total = normalizeTokenAmountTo1e18(
-      current_liquidity_pool.token0,
       event.params.amount0,
-      event.chainId
+      Number(token0_instance.decimals)
     );
     let normalized_fee_amount_1_total = normalizeTokenAmountTo1e18(
-      current_liquidity_pool.token1,
       event.params.amount1,
-      event.chainId
+      Number(token1_instance.decimals)
     );
 
     // Calculate amounts in USD
@@ -309,14 +307,12 @@ PoolContract_Swap_handler(({ event, context }) => {
 
     // Normalize swap amounts to 1e18
     let normalized_amount_0_total = normalizeTokenAmountTo1e18(
-      current_liquidity_pool.token0,
       event.params.amount0In + event.params.amount0Out,
-      event.chainId
+      Number(token0_instance.decimals)
     );
     let normalized_amount_1_total = normalizeTokenAmountTo1e18(
-      current_liquidity_pool.token1,
       event.params.amount1In + event.params.amount1Out,
-      event.chainId
+      Number(token1_instance.decimals)
     );
 
     // Calculate amounts in USD
@@ -433,28 +429,6 @@ PoolContract_Sync_handler(({ event, context }) => {
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   if (current_liquidity_pool) {
-    let token0Price = current_liquidity_pool.token0Price;
-    let token1Price = current_liquidity_pool.token1Price;
-
-    // Normalize reserve amounts to 1e18
-    let normalized_reserve0 = normalizeTokenAmountTo1e18(
-      current_liquidity_pool.token0,
-      event.params.reserve0,
-      event.chainId
-    );
-    let normalized_reserve1 = normalizeTokenAmountTo1e18(
-      current_liquidity_pool.token1,
-      event.params.reserve1,
-      event.chainId
-    );
-
-    // Calculate relative token prices
-    if (normalized_reserve0 != 0n && normalized_reserve1 != 0n) {
-      token0Price = divideBase1e18(normalized_reserve1, normalized_reserve0);
-
-      token1Price = divideBase1e18(normalized_reserve0, normalized_reserve1);
-    }
-
     // Get the tokens from the loader and update their pricing
     let token0_instance = context.LiquidityPool.getToken0(
       current_liquidity_pool
@@ -463,6 +437,26 @@ PoolContract_Sync_handler(({ event, context }) => {
     let token1_instance = context.LiquidityPool.getToken1(
       current_liquidity_pool
     );
+
+    let token0Price = current_liquidity_pool.token0Price;
+    let token1Price = current_liquidity_pool.token1Price;
+
+    // Normalize reserve amounts to 1e18
+    let normalized_reserve0 = normalizeTokenAmountTo1e18(
+      event.params.reserve0,
+      Number(token0_instance.decimals)
+    );
+    let normalized_reserve1 = normalizeTokenAmountTo1e18(
+      event.params.reserve1,
+      Number(token1_instance.decimals)
+    );
+
+    // Calculate relative token prices
+    if (normalized_reserve0 != 0n && normalized_reserve1 != 0n) {
+      token0Price = divideBase1e18(normalized_reserve1, normalized_reserve0);
+
+      token1Price = divideBase1e18(normalized_reserve0, normalized_reserve1);
+    }
 
     let token0PricePerETH = findPricePerETH(
       token0_instance.id,
@@ -725,9 +719,8 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
   // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point
   if (current_liquidity_pool && rewardToken) {
     let normalized_emissions_amount = normalizeTokenAmountTo1e18(
-      CHAIN_CONSTANTS[event.chainId].rewardToken.address,
       event.params.amount,
-      event.chainId
+      Number(rewardToken.decimals)
     );
 
     let normalized_emissions_amount_usd = multiplyBase1e18(
@@ -774,9 +767,8 @@ VotingRewardContract_NotifyReward_handler(({ event, context }) => {
   // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point
   if (current_liquidity_pool && rewardToken) {
     let normalized_bribes_amount = normalizeTokenAmountTo1e18(
-      rewardToken.id,
       event.params.amount,
-      event.chainId
+      Number(rewardToken.decimals)
     );
 
     // If the reward token does not have a price in USD, log

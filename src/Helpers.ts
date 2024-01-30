@@ -8,15 +8,11 @@ import { poolRewardAddressStore } from "./Store";
 
 // Helper function to normalize token amounts to 1e18
 export const normalizeTokenAmountTo1e18 = (
-  token_address: string,
   amount: bigint,
-  chainId: number
+  token_decimals: number
 ): bigint => {
-  let token = CHAIN_CONSTANTS[chainId].whitelistedTokens.find(
-    (token) => token.address.toLowerCase() === token_address.toLowerCase()
-  );
-  if (token) {
-    return (amount * TEN_TO_THE_18_BI) / BigInt(10 ** token.decimals);
+  if (token_decimals != 0) {
+    return (amount * TEN_TO_THE_18_BI) / BigInt(10 ** token_decimals);
   } else {
     return amount;
   }
