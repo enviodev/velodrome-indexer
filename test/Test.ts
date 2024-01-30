@@ -34,19 +34,21 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
   });
 
   // Processing the event
-  const updatedMockDb = PoolFactory.PoolCreated.processEvent({
+  const updatedMockDb = PoolFactory.PoolCreated.processEventAsync({
     event: mockPoolCreatedEvent,
     mockDb: mockDbInitial,
   });
 
-  it("LiquidityPool entity is created correctly", () => {
+  it("LiquidityPool entity is created correctly", async () => {
     // Getting the entity from the mock database
-    let actualLiquidityPoolEntity =
-      updatedMockDb.entities.LiquidityPool.get(mockPoolAddress);
+    let actualLiquidityPoolEntity = (
+      await updatedMockDb
+    ).entities.LiquidityPool.get(mockPoolAddress);
 
     // Expected LiquidityPool entity
     const expectedLiquidityPoolEntity: LiquidityPoolEntity = {
       id: mockPoolAddress,
+      name: "Volatile AMM - WETH/WETH",
       chainID: BigInt(mockChainID),
       token0: mockToken0Address,
       token1: mockToken1Address,
@@ -77,16 +79,21 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
     );
   });
 
-  it("Token entities are created correctly", () => {
+  it("Token entities are created correctly", async () => {
     // Getting the entity from the mock database
-    let actualToken0Entity =
-      updatedMockDb.entities.Token.get(mockToken0Address);
-    let actualToken1Entity =
-      updatedMockDb.entities.Token.get(mockToken1Address);
+    let actualToken0Entity = (await updatedMockDb).entities.Token.get(
+      mockToken0Address
+    );
+    let actualToken1Entity = (await updatedMockDb).entities.Token.get(
+      mockToken1Address
+    );
 
     // Expected Token entities
     const expectedToken0Entity: TokenEntity = {
       id: mockToken0Address,
+      symbol: "WETH",
+      name: "Wrapped Ether",
+      decimals: 18n,
       chainID: BigInt(mockChainID),
       pricePerETH: 0n,
       pricePerUSD: 0n,
@@ -95,6 +102,9 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
     // Expected Token entities
     const expectedToken1Entity: TokenEntity = {
       id: mockToken1Address,
+      symbol: "WETH",
+      name: "Wrapped Ether",
+      decimals: 18n,
       chainID: BigInt(mockChainID),
       pricePerETH: 0n,
       pricePerUSD: 0n,
@@ -118,6 +128,7 @@ describe("Fees event correctly updates LiquidityPool", () => {
   // Create a mock LiquidityPool entity
   const mockLiquidityPoolEntity: LiquidityPoolEntity = {
     id: mockPoolAddress,
+    name: "Volatile AMM - WETH/WETH",
     chainID: BigInt(mockChainID),
     token0: mockToken0Address,
     token1: mockToken1Address,
@@ -145,6 +156,9 @@ describe("Fees event correctly updates LiquidityPool", () => {
   // Mock Token entities
   const mockToken0Entity: TokenEntity = {
     id: mockToken0Address,
+    symbol: "WETH",
+    name: "Wrapped Ether",
+    decimals: 18n,
     chainID: BigInt(mockChainID),
     pricePerETH: 0n,
     pricePerUSD: token0PriceUSD,
@@ -152,6 +166,9 @@ describe("Fees event correctly updates LiquidityPool", () => {
   };
   // Expected Token entities
   const mockToken1Entity: TokenEntity = {
+    symbol: "WETH",
+    name: "Wrapped Ether",
+    decimals: 18n,
     id: mockToken1Address,
     chainID: BigInt(mockChainID),
     pricePerETH: 0n,
@@ -219,6 +236,7 @@ describe("Sync event correctly updates LiquidityPool entity", () => {
   // Create a mock LiquidityPool entity
   const mockLiquidityPoolEntity: LiquidityPoolEntity = {
     id: mockPoolAddress,
+    name: "Volatile AMM - WETH/WETH",
     chainID: BigInt(mockChainID),
     token0: mockToken0Address,
     token1: mockToken1Address,
@@ -246,6 +264,9 @@ describe("Sync event correctly updates LiquidityPool entity", () => {
   // Mock Token entities
   const mockToken0Entity: TokenEntity = {
     id: mockToken0Address,
+    symbol: "WETH",
+    name: "Wrapped Ether",
+    decimals: 18n,
     chainID: BigInt(mockChainID),
     pricePerETH: 1n,
     pricePerUSD: token0PriceUSD,
@@ -253,6 +274,9 @@ describe("Sync event correctly updates LiquidityPool entity", () => {
   };
   const mockToken1Entity: TokenEntity = {
     id: mockToken1Address,
+    symbol: "WETH",
+    name: "Wrapped Ether",
+    decimals: 18n,
     chainID: BigInt(mockChainID),
     pricePerETH: 1n,
     pricePerUSD: token1PriceUSD,

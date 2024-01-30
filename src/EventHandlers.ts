@@ -6,7 +6,7 @@ import {
   PoolContract_Swap_loader,
   PoolContract_Swap_handler,
   PoolFactoryContract_PoolCreated_loader,
-  PoolFactoryContract_PoolCreated_handler,
+  PoolFactoryContract_PoolCreated_handlerAsync,
   PriceFetcherContract_PriceFetched_loader,
   PriceFetcherContract_PriceFetched_handler,
   VoterContract_DistributeReward_loader,
@@ -41,6 +41,7 @@ import {
   getLiquidityPoolAndUserMappingId,
   getPoolAddressByGaugeAddress,
   getPoolAddressByBribeVotingRewardAddress,
+  generatePoolName,
 } from "./Helpers";
 
 import { divideBase1e18, multiplyBase1e18 } from "./Maths";
@@ -54,6 +55,8 @@ import { SnapshotInterval } from "./CustomTypes";
 
 import { poolRewardAddressStore, whitelistedPoolIds } from "./Store";
 
+import { getDecimals, getName, getSymbol } from "./Erc20";
+
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   // Dynamic contract registration for Pool contracts
   // context.contractRegistration.addPool(event.params.pool)
@@ -64,16 +67,55 @@ PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   });
 });
 
-PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
+PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
   // TODO remove this when we are indexing all the pools
   // if (
   //   CHAIN_CONSTANTS[event.chainId].testingPoolAddresses.includes(
   //     event.params.pool.toString()
   //   )
   // ) {
+
+  // Retrieve the global state store
+  let stateStore = await context.StateStore.stateStore;
+
+  if (!stateStore) {
+    context.LatestETHPrice.set(INITIAL_ETH_PRICE);
+    context.StateStore.set(DEFAULT_STATE_STORE);
+  }
+
+  // getting decimals and symbol for token0 and token1
+  const token0_decimals = await getDecimals(
+    event.params.token0.toString(),
+    event.chainId
+  );
+  const token0_name = await getName(
+    event.params.token0.toString(),
+    event.chainId
+  );
+  const token0_symbol = await getSymbol(
+    event.params.token0.toString(),
+    event.chainId
+  );
+  const token1_decimals = await getDecimals(
+    event.params.token1.toString(),
+    event.chainId
+  );
+  const token1_name = await getName(
+    event.params.token1.toString(),
+    event.chainId
+  );
+  const token1_symbol = await getSymbol(
+    event.params.token1.toString(),
+    event.chainId
+  );
+
+  // TODO this should only be done if the token entity doesn't exist already
   // Create new instances of TokenEntity to be updated in the DB
   const token0_instance: TokenEntity = {
     id: event.params.token0.toString(),
+    symbol: token0_symbol,
+    name: token0_name,
+    decimals: BigInt(token0_decimals),
     chainID: BigInt(event.chainId),
     pricePerETH: 0n,
     pricePerUSD: 0n,
@@ -82,6 +124,9 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
 
   const token1_instance: TokenEntity = {
     id: event.params.token1.toString(),
+    symbol: token1_symbol,
+    name: token1_name,
+    decimals: BigInt(token1_decimals),
     chainID: BigInt(event.chainId),
     pricePerETH: 0n,
     pricePerUSD: 0n,
@@ -92,6 +137,7 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   const new_pool: LiquidityPoolEntity = {
     id: event.params.pool.toString(),
     chainID: BigInt(event.chainId),
+    name: generatePoolName(token0_symbol, token1_symbol, event.params.stable),
     token0: token0_instance.id,
     token1: token1_instance.id,
     isStable: event.params.stable,
@@ -119,11 +165,6 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   context.Token.set(token1_instance);
   // Create the LiquidityPoolEntity in the DB
   context.LiquidityPool.set(new_pool);
-
-  if (!context.StateStore.stateStore) {
-    context.LatestETHPrice.set(INITIAL_ETH_PRICE);
-    context.StateStore.set(DEFAULT_STATE_STORE);
-  }
 
   // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
   if (
@@ -469,14 +510,14 @@ PoolContract_Sync_handler(({ event, context }) => {
 
     // Create a new instance of TokenEntity to be updated in the DB
     const new_token0_instance: TokenEntity = {
-      id: token0_instance.id,
+      ...token0_instance,
       chainID: BigInt(event.chainId),
       pricePerETH: token0PricePerETH,
       pricePerUSD: token0PricePerUSD,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     const new_token1_instance: TokenEntity = {
-      id: token1_instance.id,
+      ...token1_instance,
       chainID: BigInt(event.chainId),
       pricePerETH: token1PricePerETH,
       pricePerUSD: token1PricePerUSD,

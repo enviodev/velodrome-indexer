@@ -137,6 +137,7 @@ type chainConstants = {
   eth: Token;
   firstPriceFetchedBlockNumber: number;
   rewardToken: Token;
+  rpcURL: string;
   stablecoinPools: Pool[];
   stablecoinPoolAddresses: string[];
   testingPoolAddresses: string[];
@@ -149,6 +150,7 @@ const OPTIMISM_CONSTANTS: chainConstants = {
   eth: WETH,
   firstPriceFetchedBlockNumber: 106247807,
   rewardToken: VELO,
+  rpcURL: "https://rpc.ankr.com/optimism",
   stablecoinPools: OPTIMISM_STABLECOIN_POOLS,
   stablecoinPoolAddresses: OPTIMISM_STABLECOIN_POOLS.map(
     (pool) => pool.address
@@ -165,6 +167,7 @@ const BASE_CONSTANTS: chainConstants = {
   eth: WETH,
   firstPriceFetchedBlockNumber: 3347620,
   rewardToken: AERO,
+  rpcURL: "https://base.llamarpc.com",
   stablecoinPools: BASE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: BASE_STABLECOIN_POOLS.map((pool) => pool.address),
   testingPoolAddresses: BASE_TESTING_POOL_ADDRESSES,

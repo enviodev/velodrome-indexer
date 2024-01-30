@@ -158,3 +158,13 @@ export function getPoolAddressByBribeVotingRewardAddress(
   );
   return mapping ? mapping.poolAddress : null;
 }
+
+// Helper function to get generate the pool name given token0 and token1 symbols and isStable boolean
+export function generatePoolName(
+  token0Symbol: string,
+  token1Symbol: string,
+  isStable: boolean
+): string {
+  const poolType = isStable ? "Stable" : "Volatile";
+  return `${poolType} AMM - ${token0Symbol}/${token1Symbol}`;
+}

@@ -39,6 +39,7 @@ export function getLiquidityPoolSnapshotByInterval(
   const liquidityPoolSnapshotByIntervalEntity = {
     id: intervalId,
     pool: liquidityPoolEntity.id,
+    name: liquidityPoolEntity.name,
     chainID: liquidityPoolEntity.chainID,
     reserve0: liquidityPoolEntity.reserve0,
     reserve1: liquidityPoolEntity.reserve1,
@@ -85,6 +86,9 @@ export function getTokenSnapshotByInterval(
   const tokenSnapshotByIntervalEntity = {
     id: intervalId,
     chainID: tokenEntity.chainID,
+    decimals: tokenEntity.decimals,
+    symbol: tokenEntity.symbol,
+    name: tokenEntity.name,
     token: tokenEntity.id,
     pricePerETH: tokenEntity.pricePerETH,
     pricePerUSD: tokenEntity.pricePerUSD,
