@@ -136,10 +136,6 @@ PoolFactoryContract_PoolCreated_handler(({ event, context }) => {
   ) {
     // push pool address to whitelistedPoolIds
     whitelistedPoolIds.push(new_pool.id);
-  } else {
-    context.log.info(
-      `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
-    );
   }
   // }
 });
@@ -742,14 +738,11 @@ VotingRewardContract_NotifyReward_handler(({ event, context }) => {
       event.chainId
     );
 
-    // If the reward token does not have a price in USD, throw an error
+    // If the reward token does not have a price in USD, log
     if (rewardToken.pricePerUSD == 0n) {
-      console.log("current liquidity pool");
-      console.log(current_liquidity_pool);
-      console.log("reward token");
-      console.log(rewardToken);
-
-      throw new Error("Bug: Reward token for the bribe does not have a price.");
+      context.log.warn(
+        `Reward token with address ${event.params.reward.toString()} does not have a USD price yet.`
+      );
     }
 
     // Calculate the bribes amount in USD
