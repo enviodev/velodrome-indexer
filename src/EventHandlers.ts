@@ -58,8 +58,8 @@ import { poolRewardAddressStore, whitelistedPoolIds } from "./Store";
 import { getErc20TokenDetails } from "./Erc20";
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
-  // Dynamic contract registration for Pool contracts
-  context.contractRegistration.addPool(event.params.pool);
+  // // Dynamic contract registration for Pool contracts
+  // context.contractRegistration.addPool(event.params.pool);
 
   // load the global state store
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
@@ -635,9 +635,9 @@ PriceFetcherContract_PriceFetched_handler(({ event, context }) => {
 });
 
 VoterContract_GaugeCreated_loader(({ event, context }) => {
-  // Dynamically register bribe VotingReward contracts
-  // This means that user does not need to manually define all the BribeVotingReward contract address in the configuration file
-  context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
+  // // Dynamically register bribe VotingReward contracts
+  // // This means that user does not need to manually define all the BribeVotingReward contract address in the configuration file
+  // context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
 
   // Load the single liquidity pool from the loader to be updated
   context.LiquidityPool.load(event.params.pool.toString(), {
