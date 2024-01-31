@@ -24,9 +24,14 @@ const WETH: Token = {
   symbol: "WETH",
 };
 
-const USDC: Token = {
+export const USDC: Token = {
   address: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
   symbol: "USDC.e",
+};
+
+const USDC_BASE: Token = {
+  address: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+  symbol: "USDC",
 };
 
 const OP: Token = {
@@ -66,8 +71,7 @@ const DOLA: Token = {
 // list of WHITELISTED tokens with their symbol and decimals to be used in pricing
 const OPTIMISM_WHITELISTED_TOKENS: Token[] = [WETH, USDC, OP, LUSD];
 
-// TODO update this list
-const BASE_WHITELISTED_TOKENS: Token[] = [WETH, USDbC, DAI, DOLA];
+const BASE_WHITELISTED_TOKENS: Token[] = [WETH, USDbC, USDC_BASE, DAI, DOLA];
 
 // List of stablecoin pools with their token0, token1 and name
 const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
@@ -173,3 +177,9 @@ export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   10: OPTIMISM_CONSTANTS,
   8453: BASE_CONSTANTS,
 };
+
+export const CacheCategory = {
+  Token: "token",
+} as const;
+
+export type CacheCategory = (typeof CacheCategory)[keyof typeof CacheCategory];

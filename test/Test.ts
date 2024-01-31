@@ -7,7 +7,7 @@ import {
   LatestETHPriceEntity,
 } from "../generated/src/Types.gen";
 import { divideBase1e18, multiplyBase1e18 } from "../src/Maths";
-import { STATE_STORE_ID, TEN_TO_THE_18_BI } from "../src/Constants";
+import { STATE_STORE_ID, TEN_TO_THE_18_BI, USDC } from "../src/Constants";
 
 // Global mock values to be used
 const mockChainID = 10;
@@ -27,7 +27,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
   // Creating mock PoolCreated event
   const mockPoolCreatedEvent = PoolFactory.PoolCreated.createMockEvent({
     token0: mockToken0Address,
-    token1: mockToken1Address,
+    token1: USDC.address, // USDC
     pool: mockPoolAddress,
     stable: false,
     mockEventData: { blockTimestamp: mockBlockTimestamp, chainId: mockChainID },
@@ -48,10 +48,10 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
     // Expected LiquidityPool entity
     const expectedLiquidityPoolEntity: LiquidityPoolEntity = {
       id: mockPoolAddress,
-      name: "Volatile AMM - WETH/WETH",
+      name: "Volatile AMM - WETH/USDC",
       chainID: BigInt(mockChainID),
       token0: mockToken0Address,
-      token1: mockToken1Address,
+      token1: USDC.address,
       isStable: false,
       gauge: "",
       reserve0: 0n,
@@ -85,7 +85,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
       mockToken0Address
     );
     let actualToken1Entity = (await updatedMockDb).entities.Token.get(
-      mockToken1Address
+      USDC.address
     );
 
     // Expected Token entities
@@ -101,10 +101,10 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
     };
     // Expected Token entities
     const expectedToken1Entity: TokenEntity = {
-      id: mockToken1Address,
-      symbol: "WETH",
-      name: "Wrapped Ether",
-      decimals: 18n,
+      id: USDC.address,
+      symbol: "USDC",
+      name: "USD Coin",
+      decimals: 6n,
       chainID: BigInt(mockChainID),
       pricePerETH: 0n,
       pricePerUSD: 0n,

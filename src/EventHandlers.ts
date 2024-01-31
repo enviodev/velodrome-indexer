@@ -51,30 +51,26 @@ import {
   getTokenSnapshotByInterval,
 } from "./IntervalSnapshots";
 
-import { SnapshotInterval } from "./CustomTypes";
+import { SnapshotInterval, TokenEntityMapping } from "./CustomTypes";
 
 import { poolRewardAddressStore, whitelistedPoolIds } from "./Store";
 
-import { getDecimals, getName, getSymbol } from "./Erc20";
+import { getErc20TokenDetails } from "./Erc20";
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
-  // Dynamic contract registration for Pool contracts
-  // context.contractRegistration.addPool(event.params.pool)
+  // // Dynamic contract registration for Pool contracts
+  // context.contractRegistration.addPool(event.params.pool);
 
   // load the global state store
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
     loaders: {},
   });
+
+  // load the token entities
+  context.Token.poolTokensLoad([event.params.token0, event.params.token1]);
 });
 
 PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
-  // TODO remove this when we are indexing all the pools
-  // if (
-  //   CHAIN_CONSTANTS[event.chainId].testingPoolAddresses.includes(
-  //     event.params.pool.toString()
-  //   )
-  // ) {
-
   // Retrieve the global state store
   let stateStore = await context.StateStore.stateStore;
 
@@ -83,63 +79,65 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
     context.StateStore.set(DEFAULT_STATE_STORE);
   }
 
-  // getting decimals and symbol for token0 and token1
-  const token0Decimals = await getDecimals(
-    event.params.token0.toString(),
-    event.chainId
-  );
-  const token0Name = await getName(
-    event.params.token0.toString(),
-    event.chainId
-  );
-  const token0Symbol = await getSymbol(
-    event.params.token0.toString(),
-    event.chainId
-  );
-  const token1Decimals = await getDecimals(
-    event.params.token1.toString(),
-    event.chainId
-  );
-  const token1Name = await getName(
-    event.params.token1.toString(),
-    event.chainId
-  );
-  const token1Symbol = await getSymbol(
-    event.params.token1.toString(),
-    event.chainId
-  );
+  // Retrieve the token entities - they might be undefined at this point
+  let poolTokens = await context.Token.poolTokens;
 
-  // TODO this should only be done if the token entity doesn't exist already
-  // Create new instances of TokenEntity to be updated in the DB
-  const token0Instance: TokenEntity = {
-    id: event.params.token0.toString(),
-    symbol: token0Symbol,
-    name: token0Name,
-    decimals: BigInt(token0Decimals),
-    chainID: BigInt(event.chainId),
-    pricePerETH: 0n,
-    pricePerUSD: 0n,
-    lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-  };
+  // Create an array to store the token symbols for pool naming later
+  let poolTokenSymbols: string[] = [];
 
-  const token1Instance: TokenEntity = {
-    id: event.params.token1.toString(),
-    symbol: token1Symbol,
-    name: token1Name,
-    decimals: BigInt(token1Decimals),
-    chainID: BigInt(event.chainId),
-    pricePerETH: 0n,
-    pricePerUSD: 0n,
-    lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-  };
+  // Create a mapping of poolToken to its address
+  let poolTokenAddressMappings: TokenEntityMapping[] = [
+    { address: event.params.token0, tokenInstance: poolTokens[0] },
+    { address: event.params.token1, tokenInstance: poolTokens[1] },
+  ];
+
+  // Iterating over each token
+  for (let poolTokenAddressMapping of poolTokenAddressMappings) {
+    if (poolTokenAddressMapping.tokenInstance == undefined) {
+      // If token entity is undefined, then make the async calls and create token entity
+      const {
+        name: tokenName,
+        decimals: tokenDecimals,
+        symbol: tokenSymbol,
+      } = await getErc20TokenDetails(
+        poolTokenAddressMapping.address,
+        event.chainId
+      );
+
+      // Create new instances of TokenEntity to be updated in the DB
+      const tokenInstance: TokenEntity = {
+        id: poolTokenAddressMapping.address,
+        symbol: tokenSymbol,
+        name: tokenName,
+        decimals: BigInt(tokenDecimals),
+        chainID: BigInt(event.chainId),
+        pricePerETH: 0n,
+        pricePerUSD: 0n,
+        lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+      };
+
+      // Update the TokenEntity in the DB
+      context.Token.set(tokenInstance);
+
+      // Push the token symbol to the poolTokenSymbols array
+      poolTokenSymbols.push(tokenSymbol);
+    } else {
+      // If token entity exists, then push the token symbol to the poolTokenSymbols array
+      poolTokenSymbols.push(poolTokenAddressMapping.tokenInstance.symbol);
+    }
+  }
 
   // Create a new instance of LiquidityPoolEntity to be updated in the DB
   const newPool: LiquidityPoolEntity = {
     id: event.params.pool.toString(),
     chainID: BigInt(event.chainId),
-    name: generatePoolName(token0Symbol, token1Symbol, event.params.stable),
-    token0: token0Instance.id,
-    token1: token1Instance.id,
+    name: generatePoolName(
+      poolTokenSymbols[0],
+      poolTokenSymbols[1],
+      event.params.stable
+    ),
+    token0: event.params.token0,
+    token1: event.params.token1,
     isStable: event.params.stable,
     gauge: "",
     reserve0: 0n,
@@ -160,25 +158,22 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
     totalBribesUSD: 0n,
     lastUpdatedTimestamp: BigInt(event.blockTimestamp),
   };
-  // Create TokenEntities in the DB
-  context.Token.set(token0Instance);
-  context.Token.set(token1Instance);
+
   // Create the LiquidityPoolEntity in the DB
   context.LiquidityPool.set(newPool);
 
   // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
   if (
     CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
-      token0Instance.id
+      event.params.token0
     ) ||
     CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
-      token1Instance.id
+      event.params.token1
     )
   ) {
     // push pool address to whitelistedPoolIds
     whitelistedPoolIds.push(newPool.id);
   }
-  // }
 });
 
 PoolContract_Fees_loader(({ event, context }) => {
@@ -640,9 +635,9 @@ PriceFetcherContract_PriceFetched_handler(({ event, context }) => {
 });
 
 VoterContract_GaugeCreated_loader(({ event, context }) => {
-  // Dynamically register bribe VotingReward contracts
-  // This means that user does not need to manually define all the BribeVotingReward contract address in the configuration file
-  context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
+  // // Dynamically register bribe VotingReward contracts
+  // // This means that user does not need to manually define all the BribeVotingReward contract address in the configuration file
+  // context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
 
   // Load the single liquidity pool from the loader to be updated
   context.LiquidityPool.load(event.params.pool.toString(), {
@@ -680,10 +675,10 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
   // If there is a pool address with the particular gauge address, load the pool
   if (poolAddress) {
     // Load the LiquidityPool entity to be updated,
-    context.LiquidityPool.singlePoolLoad(poolAddress, {});
+    context.LiquidityPool.emissionSinglePoolLoad(poolAddress, {});
 
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
-    context.Token.rewardTokenLoad(
+    context.Token.emissionRewardTokenLoad(
       CHAIN_CONSTANTS[event.chainId].rewardToken.address
     );
   }
@@ -691,9 +686,9 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
 
 VoterContract_DistributeReward_handler(({ event, context }) => {
   // Fetch reward token (VELO for Optimism and AERO for Base) entity
-  let rewardToken = context.Token.rewardToken;
+  let rewardToken = context.Token.emissionRewardToken;
   // Fetch the Gauge entity that was loaded
-  let currentLiquidityPool = context.LiquidityPool.singlePool;
+  let currentLiquidityPool = context.LiquidityPool.emissionSinglePool;
 
   // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
   // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point
@@ -729,18 +724,18 @@ VotingRewardContract_NotifyReward_loader(({ event, context }) => {
 
   if (poolAddress) {
     // Load the LiquidityPool entity to be updated,
-    context.LiquidityPool.singlePoolLoad(poolAddress, {});
+    context.LiquidityPool.bribeSinglePoolLoad(poolAddress, {});
 
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
-    context.Token.rewardTokenLoad(event.params.reward);
+    context.Token.bribeRewardTokenLoad(event.params.reward);
   }
 });
 
 VotingRewardContract_NotifyReward_handler(({ event, context }) => {
   // Fetch reward token (VELO for Optimism and AERO for Base) entity
-  let rewardToken = context.Token.rewardToken;
+  let rewardToken = context.Token.bribeRewardToken;
   // Fetch the Gauge entity that was loaded
-  let currentLiquidityPool = context.LiquidityPool.singlePool;
+  let currentLiquidityPool = context.LiquidityPool.bribeSinglePool;
 
   // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
   // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point

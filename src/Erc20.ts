@@ -2,36 +2,28 @@ import { Web3 } from "web3";
 
 import { CHAIN_CONSTANTS } from "./Constants";
 
+import { Cache } from "./cache"
+import { CacheCategory } from "./Constants";
+
 // ERC20 Contract ABI
 const contractABI = require("../abis/ERC20.json");
 
-export async function getDecimals(
+// Function to get ERC20 token details
+export async function getErc20TokenDetails(
   contractAddress: string,
   chainId: number
-): Promise<number> {
-  // RPC URL
-  const rpcURL = CHAIN_CONSTANTS[chainId].rpcURL;
+): Promise<{ readonly name: string; readonly decimals: number; readonly symbol: string }> {
+  const cache = Cache.init(CacheCategory.Token, chainId);
+  const token = cache.read(contractAddress.toLowerCase());
 
-  // Create Web3 instance
-  const web3 = new Web3(rpcURL);
-
-  // Create ERC20 contract instance
-  const erc20token = new web3.eth.Contract(contractABI, contractAddress);
-
-  try {
-    // Get decimals
-    const decimals = await erc20token.methods.decimals().call();
-    return Number(decimals);
-  } catch (err) {
-    console.error("An error occurred", err);
-    throw err; // or handle the error as needed
+  if (token) {
+    return {
+      decimals: Number(token.decimals),
+      name: token.name,
+      symbol: token.symbol,
+    };
   }
-}
 
-export async function getName(
-  contractAddress: string,
-  chainId: number
-): Promise<string> {
   // RPC URL
   const rpcURL = CHAIN_CONSTANTS[chainId].rpcURL;
 
@@ -42,32 +34,25 @@ export async function getName(
   const erc20token = new web3.eth.Contract(contractABI, contractAddress);
 
   try {
-    // Get name
-    const name = await erc20token.methods.name().call();
-    return String(name);
-  } catch (err) {
-    console.error("An error occurred", err);
-    throw err; // or handle the error as needed
-  }
-}
+    // Use Promise.all to execute all calls in parallel and wait for all of them to resolve
+    const [name, decimals, symbol] = await Promise.all([
+      erc20token.methods.name().call(),
+      erc20token.methods.decimals().call(),
+      erc20token.methods.symbol().call(),
+    ]);
 
-export async function getSymbol(
-  contractAddress: string,
-  chainId: number
-): Promise<string> {
-  // RPC URL
-  const rpcURL = CHAIN_CONSTANTS[chainId].rpcURL;
+    // Return an object containing the name, decimals, and symbol
+    const entry = {
+      decimals: Number(decimals) || 0,
+      name: name?.toString() || "",
+      symbol: symbol?.toString() || "",
+    } as const;
 
-  // Create Web3 instance
-  const web3 = new Web3(rpcURL);
+    cache.add({ [contractAddress.toLowerCase()]: entry as any });
 
-  // Create ERC20 contract instance
-  const erc20token = new web3.eth.Contract(contractABI, contractAddress);
+    // throw 'test';
+    return entry;
 
-  try {
-    // Get symbol
-    const symbol = await erc20token.methods.symbol().call();
-    return String(symbol);
   } catch (err) {
     console.error("An error occurred", err);
     throw err; // or handle the error as needed
