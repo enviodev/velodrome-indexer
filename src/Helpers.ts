@@ -1,24 +1,18 @@
 import { LiquidityPoolEntity, TokenEntity } from "./src/Types.gen";
 
-import {
-  WHITELISTED_TOKENS,
-  TEN_TO_THE_18_BI,
-  STABLECOIN_POOL_ADDRESSES,
-  WETH,
-} from "./Constants";
+import { TEN_TO_THE_18_BI, CHAIN_CONSTANTS } from "./Constants";
 
 import { multiplyBase1e18 } from "./Maths";
 
+import { poolRewardAddressStore } from "./Store";
+
 // Helper function to normalize token amounts to 1e18
 export const normalizeTokenAmountTo1e18 = (
-  token_address: string,
-  amount: bigint
+  amount: bigint,
+  tokenDecimals: number
 ): bigint => {
-  let token = WHITELISTED_TOKENS.find(
-    (token) => token.address.toLowerCase() === token_address.toLowerCase()
-  );
-  if (token) {
-    return (amount * TEN_TO_THE_18_BI) / BigInt(10 ** token.decimals);
+  if (tokenDecimals != 0) {
+    return (amount * TEN_TO_THE_18_BI) / BigInt(10 ** tokenDecimals);
   } else {
     return amount;
   }
@@ -26,13 +20,16 @@ export const normalizeTokenAmountTo1e18 = (
 
 // Function to calculate the price of ETH as the weighted average of ETH price from the stablecoin vs ETH pools
 export const calculateETHPriceInUSD = (
-  stablecoin_pools: LiquidityPoolEntity[]
+  stablecoinPools: LiquidityPoolEntity[]
 ): bigint => {
   let totalWeight = 0n;
   let weightedPriceSum = 0n;
 
-  // TODO check that each stablecoin pool has sufficient liquidity for it to be used in the calculation
-  for (let pool of stablecoin_pools) {
+  for (let pool of stablecoinPools) {
+    // Skip pools with insufficient liquidity (i.e. 2 ETH) to avoid skewing the price
+    if (pool.reserve0 < 2n) {
+      continue;
+    }
     // Use token0 price of pool as ETH price
     // assumption is that all stablecoin pools are token0 = ETH, token1 = stablecoin
     const ethPrice = pool.token0Price;
@@ -53,15 +50,18 @@ export const calculateETHPriceInUSD = (
 };
 
 // Helper function to check if a pool is a stablecoin pool
-export const isStablecoinPool = (pool_address: string): boolean => {
-  return STABLECOIN_POOL_ADDRESSES.some(
-    (address) => address.toLowerCase() === pool_address
+export const isStablecoinPool = (
+  poolAddress: string,
+  chainId: number
+): boolean => {
+  return CHAIN_CONSTANTS[chainId].stablecoinPoolAddresses.some(
+    (address) => address.toLowerCase() === poolAddress
   );
 };
 
 // Helper function to extract a subset of LiquidityPool entities from a list of LiquidityPool entities with whitelisted tokens
 const extractRelevantLiquidityPoolEntities = (
-  token_address: string,
+  tokenAddress: string,
   liquidityPoolEntities: LiquidityPoolEntity[]
 ): LiquidityPoolEntity[] => {
   // Create a list to store the relevant liquidity pool entities
@@ -70,8 +70,8 @@ const extractRelevantLiquidityPoolEntities = (
   // Search through the liquidity pool entities and add the relevant ones to the list
   for (let pool of liquidityPoolEntities) {
     if (
-      pool.token0.toLowerCase() === token_address.toLowerCase() ||
-      pool.token1.toLowerCase() === token_address.toLowerCase()
+      pool.token0.toLowerCase() === tokenAddress.toLowerCase() ||
+      pool.token1.toLowerCase() === tokenAddress.toLowerCase()
     ) {
       relevantLiquidityPoolEntities.push(pool);
     }
@@ -82,42 +82,46 @@ const extractRelevantLiquidityPoolEntities = (
 
 // Helper function to return pricePerETH given token address and LiquidityPool entities
 export const findPricePerETH = (
-  token_address: string,
-  whitelisted_tokens_list: TokenEntity[],
-  liquidityPoolEntities: LiquidityPoolEntity[]
+  tokenAddress: string,
+  whitelistedTokensList: TokenEntity[],
+  liquidityPoolEntities: LiquidityPoolEntity[],
+  chainId: number
 ): bigint => {
   // Case 1: token is ETH
-  if (token_address.toLowerCase() === WETH.address.toLowerCase()) {
+  if (
+    tokenAddress.toLowerCase() ===
+    CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()
+  ) {
     return TEN_TO_THE_18_BI;
   }
   // Case 2: token is not ETH
   else {
-    let relevant_liquidity_pool_entities = extractRelevantLiquidityPoolEntities(
-      token_address,
+    let relevantLiquidityPoolEntities = extractRelevantLiquidityPoolEntities(
+      tokenAddress,
       liquidityPoolEntities
     );
     // If the token is not WETH, then run through the pricing pools to price the token
-    for (let pool of relevant_liquidity_pool_entities) {
-      if (pool.token0 == token_address) {
+    for (let pool of relevantLiquidityPoolEntities) {
+      if (pool.token0 == tokenAddress) {
         // load whitelist token
-        let whitelisted_token_instance = whitelisted_tokens_list.find(
+        let whitelistedTokenInstance = whitelistedTokensList.find(
           (token) => token.id === pool.token1
         );
-        if (whitelisted_token_instance) {
+        if (whitelistedTokenInstance) {
           return multiplyBase1e18(
             pool.token0Price,
-            whitelisted_token_instance.pricePerETH
+            whitelistedTokenInstance.pricePerETH
           );
         }
-      } else if (pool.token1 == token_address) {
+      } else if (pool.token1 == tokenAddress) {
         // load whitelist token
-        let whitelisted_token_instance = whitelisted_tokens_list.find(
+        let whitelistedTokenInstance = whitelistedTokensList.find(
           (token) => token.id === pool.token0
         );
-        if (whitelisted_token_instance) {
+        if (whitelistedTokenInstance) {
           return multiplyBase1e18(
             pool.token1Price,
-            whitelisted_token_instance.pricePerETH
+            whitelistedTokenInstance.pricePerETH
           );
         }
       }
@@ -133,3 +137,33 @@ export const getLiquidityPoolAndUserMappingId = (
 ): string => {
   return liquidityPoolId + "-" + userId;
 };
+
+// Helper function to get the pool address from the gauge address
+export function getPoolAddressByGaugeAddress(
+  gaugeAddress: string
+): string | null {
+  const mapping = poolRewardAddressStore.find(
+    (mapping) => mapping.gaugeAddress === gaugeAddress
+  );
+  return mapping ? mapping.poolAddress : null;
+}
+
+// Helper function to get the pool address from the bribe voting reward address
+export function getPoolAddressByBribeVotingRewardAddress(
+  gaugeAddress: string
+): string | null {
+  const mapping = poolRewardAddressStore.find(
+    (mapping) => mapping.bribeVotingRewardAddress === gaugeAddress
+  );
+  return mapping ? mapping.poolAddress : null;
+}
+
+// Helper function to get generate the pool name given token0 and token1 symbols and isStable boolean
+export function generatePoolName(
+  token0Symbol: string,
+  token1Symbol: string,
+  isStable: boolean
+): string {
+  const poolType = isStable ? "Stable" : "Volatile";
+  return `${poolType} AMM - ${token0Symbol}/${token1Symbol}`;
+}

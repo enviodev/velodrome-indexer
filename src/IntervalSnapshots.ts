@@ -17,6 +17,7 @@ import {
 
 import { SnapshotInterval } from "./CustomTypes";
 
+// Generic function to return a snapshot of entity of type LiquidityPool given a specific snapshot interval
 export function getLiquidityPoolSnapshotByInterval(
   liquidityPoolEntity: LiquidityPoolEntity,
   interval: SnapshotInterval
@@ -24,16 +25,22 @@ export function getLiquidityPoolSnapshotByInterval(
   | LiquidityPoolHourlySnapshotEntity
   | LiquidityPoolDailySnapshotEntity
   | LiquidityPoolWeeklySnapshotEntity {
+  // Get the number of seconds in the interval
   const numberOfSecondsInInterval = getNumberOfSecondsInInterval(interval);
+
+  // Get the interval ID for the snapshot entity
   let intervalId = getIdForEntityByInterval(
     liquidityPoolEntity.id,
     liquidityPoolEntity.lastUpdatedTimestamp,
     numberOfSecondsInInterval
   );
 
+  // Create the snapshot entity
   const liquidityPoolSnapshotByIntervalEntity = {
     id: intervalId,
     pool: liquidityPoolEntity.id,
+    name: liquidityPoolEntity.name,
+    chainID: liquidityPoolEntity.chainID,
     reserve0: liquidityPoolEntity.reserve0,
     reserve1: liquidityPoolEntity.reserve1,
     totalLiquidityETH: liquidityPoolEntity.totalLiquidityETH,
@@ -47,11 +54,17 @@ export function getLiquidityPoolSnapshotByInterval(
     numberOfSwaps: liquidityPoolEntity.numberOfSwaps,
     token0Price: liquidityPoolEntity.token0Price,
     token1Price: liquidityPoolEntity.token1Price,
+    totalEmissions: liquidityPoolEntity.totalEmissions,
+    totalEmissionsUSD: liquidityPoolEntity.totalEmissionsUSD,
+    totalBribesUSD: liquidityPoolEntity.totalBribesUSD,
     lastUpdatedTimestamp: liquidityPoolEntity.lastUpdatedTimestamp,
   };
+
+  // Return the snapshot entity
   return liquidityPoolSnapshotByIntervalEntity;
 }
 
+// Generic function to return a snapshot of entity of type Token given a specific snapshot interval
 export function getTokenSnapshotByInterval(
   tokenEntity: TokenEntity,
   interval: SnapshotInterval
@@ -59,23 +72,34 @@ export function getTokenSnapshotByInterval(
   | TokenHourlySnapshotEntity
   | TokenDailySnapshotEntity
   | TokenWeeklySnapshotEntity {
+  // Get the number of seconds in the interval
   const numberOfSecondsInInterval = getNumberOfSecondsInInterval(interval);
+
+  // Get the interval ID for the snapshot entity
   let intervalId = getIdForEntityByInterval(
     tokenEntity.id,
     tokenEntity.lastUpdatedTimestamp,
     numberOfSecondsInInterval
   );
 
+  // Create the snapshot entity
   const tokenSnapshotByIntervalEntity = {
     id: intervalId,
+    chainID: tokenEntity.chainID,
+    decimals: tokenEntity.decimals,
+    symbol: tokenEntity.symbol,
+    name: tokenEntity.name,
     token: tokenEntity.id,
     pricePerETH: tokenEntity.pricePerETH,
     pricePerUSD: tokenEntity.pricePerUSD,
     lastUpdatedTimestamp: tokenEntity.lastUpdatedTimestamp,
   };
+
+  // Return the snapshot entity
   return tokenSnapshotByIntervalEntity;
 }
 
+// Function to return the number of seconds in a given interval
 function getNumberOfSecondsInInterval(interval: SnapshotInterval): bigint {
   switch (interval) {
     case SnapshotInterval.Hourly:
@@ -89,6 +113,7 @@ function getNumberOfSecondsInInterval(interval: SnapshotInterval): bigint {
   }
 }
 
+// Function to return the interval ID for a given snapshot entity
 function getIdForEntityByInterval(
   id: string,
   lastUpdatedTimestamp: bigint,
