@@ -71,13 +71,6 @@ PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
 });
 
 PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
-  // TODO remove this when we are indexing all the pools
-  // if (
-  //   CHAIN_CONSTANTS[event.chainId].testingPoolAddresses.includes(
-  //     event.params.pool.toString()
-  //   )
-  // ) {
-
   // Retrieve the global state store
   let stateStore = await context.StateStore.stateStore;
 
@@ -178,7 +171,6 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
     // push pool address to whitelistedPoolIds
     whitelistedPoolIds.push(newPool.id);
   }
-  // }
 });
 
 PoolContract_Fees_loader(({ event, context }) => {
