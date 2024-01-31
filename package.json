@@ -21,7 +21,7 @@
   "dependencies": {
     "@types/mocha": "^10.0.6",
     "chai": "4.3.10",
-    "envio": "0.0.24",
+    "envio": "0.0.29",
     "mocha": "^10.2.0",
     "ts-node": "^10.9.1"
   }
