@@ -59,7 +59,7 @@ import { getErc20TokenDetails } from "./Erc20";
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   // Dynamic contract registration for Pool contracts
-  // context.contractRegistration.addPool(event.params.pool)
+  context.contractRegistration.addPool(event.params.pool)
 
   // load the global state store
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
