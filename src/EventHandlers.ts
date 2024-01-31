@@ -58,8 +58,8 @@ import { poolRewardAddressStore, whitelistedPoolIds } from "./Store";
 import { getErc20TokenDetails } from "./Erc20";
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
-  // Dynamic contract registration for Pool contracts
-  // context.contractRegistration.addPool(event.params.pool)
+  // // Dynamic contract registration for Pool contracts
+  // context.contractRegistration.addPool(event.params.pool);
 
   // load the global state store
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
@@ -71,13 +71,6 @@ PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
 });
 
 PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
-  // TODO remove this when we are indexing all the pools
-  // if (
-  //   CHAIN_CONSTANTS[event.chainId].testingPoolAddresses.includes(
-  //     event.params.pool.toString()
-  //   )
-  // ) {
-
   // Retrieve the global state store
   let stateStore = await context.StateStore.stateStore;
 
@@ -102,11 +95,14 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
   for (let poolTokenAddressMapping of poolTokenAddressMappings) {
     if (poolTokenAddressMapping.tokenInstance == undefined) {
       // If token entity is undefined, then make the async calls and create token entity
-      const { tokenName, tokenDecimals, tokenSymbol } =
-        await getErc20TokenDetails(
-          poolTokenAddressMapping.address,
-          event.chainId
-        );
+      const {
+        name: tokenName,
+        decimals: tokenDecimals,
+        symbol: tokenSymbol,
+      } = await getErc20TokenDetails(
+        poolTokenAddressMapping.address,
+        event.chainId
+      );
 
       // Create new instances of TokenEntity to be updated in the DB
       const tokenInstance: TokenEntity = {
@@ -178,7 +174,6 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
     // push pool address to whitelistedPoolIds
     whitelistedPoolIds.push(newPool.id);
   }
-  // }
 });
 
 PoolContract_Fees_loader(({ event, context }) => {
@@ -640,9 +635,9 @@ PriceFetcherContract_PriceFetched_handler(({ event, context }) => {
 });
 
 VoterContract_GaugeCreated_loader(({ event, context }) => {
-  // Dynamically register bribe VotingReward contracts
-  // This means that user does not need to manually define all the BribeVotingReward contract address in the configuration file
-  context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
+  // // Dynamically register bribe VotingReward contracts
+  // // This means that user does not need to manually define all the BribeVotingReward contract address in the configuration file
+  // context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
 
   // Load the single liquidity pool from the loader to be updated
   context.LiquidityPool.load(event.params.pool.toString(), {
