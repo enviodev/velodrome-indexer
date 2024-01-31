@@ -25,8 +25,11 @@ export const calculateETHPriceInUSD = (
   let totalWeight = 0n;
   let weightedPriceSum = 0n;
 
-  // TODO check that each stablecoin pool has sufficient liquidity for it to be used in the calculation
   for (let pool of stablecoinPools) {
+    // Skip pools with insufficient liquidity (i.e. 2 ETH) to avoid skewing the price
+    if (pool.reserve0 < 2n) {
+      continue;
+    }
     // Use token0 price of pool as ETH price
     // assumption is that all stablecoin pools are token0 = ETH, token1 = stablecoin
     const ethPrice = pool.token0Price;
