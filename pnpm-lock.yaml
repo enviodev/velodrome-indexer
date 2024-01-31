@@ -15,8 +15,8 @@ importers:
         specifier: 4.3.10
         version: 4.3.10
       envio:
-        specifier: 0.0.24
-        version: 0.0.24
+        specifier: 0.0.29
+        version: 0.0.29
       mocha:
         specifier: ^10.2.0
         version: 10.2.0
@@ -683,37 +683,37 @@ packages:
       once: 1.4.0
     dev: false
 
-  /envio-darwin-arm64@0.0.24:
-    resolution: {integrity: sha512-WeGJdkO2hF/y92y/oMtjhg4wplNM0cKTbhWNjvH90ARl6Z3/t6aqgYaePqKDmVXMm4MooN2dB4LSAoma/5yFFw==}
+  /envio-darwin-arm64@0.0.29:
+    resolution: {integrity: sha512-NzeisiHhEzxz4+g65OK4+oODM/wa2TQ1wmhDF1NgSZO/aFZTOas/JXrsfxYpxRR2AVoYO33Ilzsp2q0gJmcy9g==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-darwin-x64@0.0.24:
-    resolution: {integrity: sha512-U+FrZDVmlLqzSvM1f8niysCy5Da7I4J29wE9VKm9Rvbv/7eOG95XqtMMiteqWtddQJ1QbS3gLFsEpNH+teN72g==}
+  /envio-darwin-x64@0.0.29:
+    resolution: {integrity: sha512-mnpn1g6RpPBmSWA1dmRLdl3/UOqrbji0tw036X7z4w3F3xdPjLYE2sLBqh4sTcxGfKjiCHlAzS/9EK5PalJCWw==}
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-linux-x64@0.0.24:
-    resolution: {integrity: sha512-zUSbM6fExLPBvbzvbY76GMV0Ngec9udmW+eY/NUZAEb/oeuqYfQKxrZTCWEGllk6lNQmTvWSy6qu1bUmwawKlg==}
+  /envio-linux-x64@0.0.29:
+    resolution: {integrity: sha512-SxIMyGuvlMuVtg3zO0B94MHQ75TgXta5JLgdmjX5gaWGQwk43zn5WHhekaS+kBrHECrTBIPCwACHusNMraPoig==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio@0.0.24:
-    resolution: {integrity: sha512-7rzx6ANEGbyt960iewZEGf7+3s4cYq6wPezvYJB73vWqaLM0YaSdlQqOVKCzuS1a+0c6yG6PmKcCyCdkYU4O9w==}
+  /envio@0.0.29:
+    resolution: {integrity: sha512-dHz7rL2TL0Anm5Pghc1w8E0kwbx3Y8rixCmj+O451WJ3Mg3ue9uruP4iSTFeTwQOLlf554DGEkr+Aa+loZO44g==}
     hasBin: true
     optionalDependencies:
-      envio-darwin-arm64: 0.0.24
-      envio-darwin-x64: 0.0.24
-      envio-linux-x64: 0.0.24
+      envio-darwin-arm64: 0.0.29
+      envio-darwin-x64: 0.0.29
+      envio-linux-x64: 0.0.29
     dev: false
 
   /escalade@3.1.1:
