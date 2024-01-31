@@ -1,8 +1,15 @@
+import { TokenEntity } from "./src/Types.gen";
+
 // Token type
 // TODO align this with the TokenEntity type in src/Types.gen.ts
 export type Token = {
   address: string;
   symbol: string;
+};
+
+export type TokenEntityMapping = {
+  address: string;
+  tokenInstance: TokenEntity | undefined;
 };
 
 // Pool type

@@ -11,6 +11,9 @@ contracts:
         requiredEntities:
           - name: StateStore
             labels: ["stateStore"]
+          - name: Token
+            arrayLabels:
+              - poolTokens
         isAsync: true
   # Pool contract emits all the events related to a particular swap pool
   - name: Pool

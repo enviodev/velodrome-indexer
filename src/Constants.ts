@@ -24,7 +24,7 @@ const WETH: Token = {
   symbol: "WETH",
 };
 
-const USDC: Token = {
+export const USDC: Token = {
   address: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
   symbol: "USDC.e",
 };
