@@ -122,61 +122,54 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
       // If token entity exists, then push the token symbol to the poolTokenSymbols array
       poolTokenSymbols.push(poolTokenAddressMapping.tokenInstance.symbol);
     }
-    // push pool address to whitelistedPoolIds
-    whitelistedPoolIds.push(new_pool.id);
-  } else {
-    context.log.info(
-      `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
-    );
-    // }
-  }
 
-  // Create a new instance of LiquidityPoolEntity to be updated in the DB
-  const newPool: LiquidityPoolEntity = {
-    id: event.params.pool.toString(),
-    chainID: BigInt(event.chainId),
-    name: generatePoolName(
-      poolTokenSymbols[0],
-      poolTokenSymbols[1],
-      event.params.stable
-    ),
-    token0: event.params.token0,
-    token1: event.params.token1,
-    isStable: event.params.stable,
-    gauge: "",
-    reserve0: 0n,
-    reserve1: 0n,
-    totalLiquidityETH: 0n,
-    totalLiquidityUSD: 0n,
-    totalVolume0: 0n,
-    totalVolume1: 0n,
-    totalVolumeUSD: 0n,
-    totalFees0: 0n,
-    totalFees1: 0n,
-    totalFeesUSD: 0n,
-    numberOfSwaps: 0n,
-    token0Price: 0n,
-    token1Price: 0n,
-    totalEmissions: 0n,
-    totalEmissionsUSD: 0n,
-    totalBribesUSD: 0n,
-    lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-  };
+    // Create a new instance of LiquidityPoolEntity to be updated in the DB
+    const newPool: LiquidityPoolEntity = {
+      id: event.params.pool.toString(),
+      chainID: BigInt(event.chainId),
+      name: generatePoolName(
+        poolTokenSymbols[0],
+        poolTokenSymbols[1],
+        event.params.stable
+      ),
+      token0: event.params.token0,
+      token1: event.params.token1,
+      isStable: event.params.stable,
+      gauge: "",
+      reserve0: 0n,
+      reserve1: 0n,
+      totalLiquidityETH: 0n,
+      totalLiquidityUSD: 0n,
+      totalVolume0: 0n,
+      totalVolume1: 0n,
+      totalVolumeUSD: 0n,
+      totalFees0: 0n,
+      totalFees1: 0n,
+      totalFeesUSD: 0n,
+      numberOfSwaps: 0n,
+      token0Price: 0n,
+      token1Price: 0n,
+      totalEmissions: 0n,
+      totalEmissionsUSD: 0n,
+      totalBribesUSD: 0n,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
 
-  // Create the LiquidityPoolEntity in the DB
-  context.LiquidityPool.set(newPool);
+    // Create the LiquidityPoolEntity in the DB
+    context.LiquidityPool.set(newPool);
 
-  // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
-  if (
-    CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
-      event.params.token0
-    ) ||
-    CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
-      event.params.token1
-    )
-  ) {
-    // push pool address to whitelistedPoolIds
-    whitelistedPoolIds.push(newPool.id);
+    // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
+    if (
+      CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
+        event.params.token0
+      ) ||
+      CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
+        event.params.token1
+      )
+    ) {
+      // push pool address to whitelistedPoolIds
+      whitelistedPoolIds.push(newPool.id);
+    }
   }
 });
 
