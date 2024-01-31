@@ -55,7 +55,7 @@ import { SnapshotInterval, TokenEntityMapping } from "./CustomTypes";
 
 import { poolRewardAddressStore, whitelistedPoolIds } from "./Store";
 
-import { getErc20TokenDetails, getDecimals, getName, getSymbol } from "./Erc20";
+import { getErc20TokenDetails } from "./Erc20";
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   // Dynamic contract registration for Pool contracts
@@ -680,10 +680,10 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
   // If there is a pool address with the particular gauge address, load the pool
   if (poolAddress) {
     // Load the LiquidityPool entity to be updated,
-    context.LiquidityPool.singlePoolLoad(poolAddress, {});
+    context.LiquidityPool.emissionSinglePoolLoad(poolAddress, {});
 
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
-    context.Token.rewardTokenLoad(
+    context.Token.emissionRewardTokenLoad(
       CHAIN_CONSTANTS[event.chainId].rewardToken.address
     );
   }
@@ -691,9 +691,9 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
 
 VoterContract_DistributeReward_handler(({ event, context }) => {
   // Fetch reward token (VELO for Optimism and AERO for Base) entity
-  let rewardToken = context.Token.rewardToken;
+  let rewardToken = context.Token.emissionRewardToken;
   // Fetch the Gauge entity that was loaded
-  let currentLiquidityPool = context.LiquidityPool.singlePool;
+  let currentLiquidityPool = context.LiquidityPool.emissionSinglePool;
 
   // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
   // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point
@@ -729,18 +729,18 @@ VotingRewardContract_NotifyReward_loader(({ event, context }) => {
 
   if (poolAddress) {
     // Load the LiquidityPool entity to be updated,
-    context.LiquidityPool.singlePoolLoad(poolAddress, {});
+    context.LiquidityPool.bribeSinglePoolLoad(poolAddress, {});
 
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
-    context.Token.rewardTokenLoad(event.params.reward);
+    context.Token.bribeRewardTokenLoad(event.params.reward);
   }
 });
 
 VotingRewardContract_NotifyReward_handler(({ event, context }) => {
   // Fetch reward token (VELO for Optimism and AERO for Base) entity
-  let rewardToken = context.Token.rewardToken;
+  let rewardToken = context.Token.bribeRewardToken;
   // Fetch the Gauge entity that was loaded
-  let currentLiquidityPool = context.LiquidityPool.singlePool;
+  let currentLiquidityPool = context.LiquidityPool.bribeSinglePool;
 
   // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
   // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point

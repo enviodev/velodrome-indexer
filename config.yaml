@@ -62,10 +62,10 @@ contracts:
         requiredEntities:
           - name: LiquidityPool
             labels:
-              - singlePool
+              - emissionSinglePool
           - name: Token
             labels:
-              - rewardToken
+              - emissionRewardToken
       # Used to update the reward address details of a particular pool
       - event: GaugeCreated(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory, address pool, address bribeVotingReward, address feeVotingReward, address gauge, address creator)
         requiredEntities:
@@ -81,10 +81,10 @@ contracts:
         requiredEntities:
           - name: LiquidityPool
             labels:
-              - singlePool
+              - bribeSinglePool
           - name: Token
             labels:
-              - rewardToken
+              - bribeRewardToken
 # Used to define the different chains that contracts (defined above) will be indexed from
 networks:
   - id: 10 # Optimism
