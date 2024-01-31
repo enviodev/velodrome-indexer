@@ -95,7 +95,7 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
   for (let poolTokenAddressMapping of poolTokenAddressMappings) {
     if (poolTokenAddressMapping.tokenInstance == undefined) {
       // If token entity is undefined, then make the async calls and create token entity
-      const { tokenName, tokenDecimals, tokenSymbol } =
+      const { name: tokenName, decimals: tokenDecimals, symbol: tokenSymbol } =
         await getErc20TokenDetails(
           poolTokenAddressMapping.address,
           event.chainId
