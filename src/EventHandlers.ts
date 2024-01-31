@@ -58,8 +58,8 @@ import { poolRewardAddressStore, whitelistedPoolIds } from "./Store";
 import { getErc20TokenDetails } from "./Erc20";
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
-  // Dynamic contract registration for Pool contracts
-  // context.contractRegistration.addPool(event.params.pool)
+  // // Dynamic contract registration for Pool contracts
+  // context.contractRegistration.addPool(event.params.pool);
 
   // load the global state store
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
@@ -95,11 +95,14 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
   for (let poolTokenAddressMapping of poolTokenAddressMappings) {
     if (poolTokenAddressMapping.tokenInstance == undefined) {
       // If token entity is undefined, then make the async calls and create token entity
-      const { tokenName, tokenDecimals, tokenSymbol } =
-        await getErc20TokenDetails(
-          poolTokenAddressMapping.address,
-          event.chainId
-        );
+      const {
+        name: tokenName,
+        decimals: tokenDecimals,
+        symbol: tokenSymbol,
+      } = await getErc20TokenDetails(
+        poolTokenAddressMapping.address,
+        event.chainId
+      );
 
       // Create new instances of TokenEntity to be updated in the DB
       const tokenInstance: TokenEntity = {
@@ -122,54 +125,54 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
       // If token entity exists, then push the token symbol to the poolTokenSymbols array
       poolTokenSymbols.push(poolTokenAddressMapping.tokenInstance.symbol);
     }
+  }
 
-    // Create a new instance of LiquidityPoolEntity to be updated in the DB
-    const newPool: LiquidityPoolEntity = {
-      id: event.params.pool.toString(),
-      chainID: BigInt(event.chainId),
-      name: generatePoolName(
-        poolTokenSymbols[0],
-        poolTokenSymbols[1],
-        event.params.stable
-      ),
-      token0: event.params.token0,
-      token1: event.params.token1,
-      isStable: event.params.stable,
-      gauge: "",
-      reserve0: 0n,
-      reserve1: 0n,
-      totalLiquidityETH: 0n,
-      totalLiquidityUSD: 0n,
-      totalVolume0: 0n,
-      totalVolume1: 0n,
-      totalVolumeUSD: 0n,
-      totalFees0: 0n,
-      totalFees1: 0n,
-      totalFeesUSD: 0n,
-      numberOfSwaps: 0n,
-      token0Price: 0n,
-      token1Price: 0n,
-      totalEmissions: 0n,
-      totalEmissionsUSD: 0n,
-      totalBribesUSD: 0n,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
+  // Create a new instance of LiquidityPoolEntity to be updated in the DB
+  const newPool: LiquidityPoolEntity = {
+    id: event.params.pool.toString(),
+    chainID: BigInt(event.chainId),
+    name: generatePoolName(
+      poolTokenSymbols[0],
+      poolTokenSymbols[1],
+      event.params.stable
+    ),
+    token0: event.params.token0,
+    token1: event.params.token1,
+    isStable: event.params.stable,
+    gauge: "",
+    reserve0: 0n,
+    reserve1: 0n,
+    totalLiquidityETH: 0n,
+    totalLiquidityUSD: 0n,
+    totalVolume0: 0n,
+    totalVolume1: 0n,
+    totalVolumeUSD: 0n,
+    totalFees0: 0n,
+    totalFees1: 0n,
+    totalFeesUSD: 0n,
+    numberOfSwaps: 0n,
+    token0Price: 0n,
+    token1Price: 0n,
+    totalEmissions: 0n,
+    totalEmissionsUSD: 0n,
+    totalBribesUSD: 0n,
+    lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+  };
 
-    // Create the LiquidityPoolEntity in the DB
-    context.LiquidityPool.set(newPool);
+  // Create the LiquidityPoolEntity in the DB
+  context.LiquidityPool.set(newPool);
 
-    // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
-    if (
-      CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
-        event.params.token0
-      ) ||
-      CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
-        event.params.token1
-      )
-    ) {
-      // push pool address to whitelistedPoolIds
-      whitelistedPoolIds.push(newPool.id);
-    }
+  // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
+  if (
+    CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
+      event.params.token0
+    ) ||
+    CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
+      event.params.token1
+    )
+  ) {
+    // push pool address to whitelistedPoolIds
+    whitelistedPoolIds.push(newPool.id);
   }
 });
 
@@ -632,9 +635,9 @@ PriceFetcherContract_PriceFetched_handler(({ event, context }) => {
 });
 
 VoterContract_GaugeCreated_loader(({ event, context }) => {
-  // Dynamically register bribe VotingReward contracts
-  // This means that user does not need to manually define all the BribeVotingReward contract address in the configuration file
-  context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
+  // // Dynamically register bribe VotingReward contracts
+  // // This means that user does not need to manually define all the BribeVotingReward contract address in the configuration file
+  // context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
 
   // Load the single liquidity pool from the loader to be updated
   context.LiquidityPool.load(event.params.pool.toString(), {
