@@ -177,3 +177,9 @@ export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   10: OPTIMISM_CONSTANTS,
   8453: BASE_CONSTANTS,
 };
+
+export const CacheCategory = {
+  Token: "token",
+} as const;
+
+export type CacheCategory = (typeof CacheCategory)[keyof typeof CacheCategory];

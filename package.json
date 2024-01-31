@@ -7,7 +7,7 @@
     "watch": "tsc --watch",
     "dev": "envio dev",
     "codegen": "envio codegen",
-    "start": "ts-node generated/src/Index.bs.js",
+    "start": "MAX_BATCH_SIZE=1 ts-node generated/src/Index.bs.js",
     "test": "mocha --require ts-node/register test/**/*.ts"
   },
   "devDependencies": {
