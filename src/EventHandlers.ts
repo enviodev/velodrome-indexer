@@ -59,7 +59,7 @@ import { getErc20TokenDetails } from "./Erc20";
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   // Dynamic contract registration for Pool contracts
-  // context.contractRegistration.addPool(event.params.pool)
+  context.contractRegistration.addPool(event.params.pool);
 
   // load the global state store
   context.StateStore.stateStoreLoad(STATE_STORE_ID, {
@@ -95,11 +95,14 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
   for (let poolTokenAddressMapping of poolTokenAddressMappings) {
     if (poolTokenAddressMapping.tokenInstance == undefined) {
       // If token entity is undefined, then make the async calls and create token entity
-      const { name: tokenName, decimals: tokenDecimals, symbol: tokenSymbol } =
-        await getErc20TokenDetails(
-          poolTokenAddressMapping.address,
-          event.chainId
-        );
+      const {
+        name: tokenName,
+        decimals: tokenDecimals,
+        symbol: tokenSymbol,
+      } = await getErc20TokenDetails(
+        poolTokenAddressMapping.address,
+        event.chainId
+      );
 
       // Create new instances of TokenEntity to be updated in the DB
       const tokenInstance: TokenEntity = {
