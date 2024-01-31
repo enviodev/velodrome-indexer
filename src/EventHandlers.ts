@@ -122,13 +122,6 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
       // If token entity exists, then push the token symbol to the poolTokenSymbols array
       poolTokenSymbols.push(poolTokenAddressMapping.tokenInstance.symbol);
     }
-    // push pool address to whitelistedPoolIds
-    whitelistedPoolIds.push(new_pool.id);
-  } else {
-    context.log.info(
-      `Pool with address ${event.params.pool.toString()} does not contain any whitelisted tokens`
-    );
-    // }
   }
 
   // Create a new instance of LiquidityPoolEntity to be updated in the DB
