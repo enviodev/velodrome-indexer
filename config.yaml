@@ -68,8 +68,6 @@ contracts:
               - emissionRewardToken
       # Used to update the reward address details of a particular pool
       - event: GaugeCreated(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory, address pool, address bribeVotingReward, address feeVotingReward, address gauge, address creator)
-        # requiredEntities:
-        #   - name: LiquidityPool
   # VotingReward contract is responsible for distributing bribe rewards to the liquidity providers
   - name: VotingReward
     handler: src/EventHandlers.ts

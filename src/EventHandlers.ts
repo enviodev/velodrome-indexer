@@ -638,22 +638,9 @@ VoterContract_GaugeCreated_loader(({ event, context }) => {
   // // Dynamically register bribe VotingReward contracts
   // // This means that user does not need to manually define all the BribeVotingReward contract address in the configuration file
   // context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
-
-  // Load the single liquidity pool from the loader to be updated
-  context.LiquidityPool.load(event.params.pool.toString(), {
-    loaders: {
-      loadToken0: false,
-      loadToken1: false,
-    },
-  });
 });
 
 VoterContract_GaugeCreated_handler(({ event, context }) => {
-  // Fetch the current liquidity pool from the loader
-  let currentLiquidityPool = context.LiquidityPool.get(
-    event.params.pool.toString()
-  );
-
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   // Store pool details in poolRewardAddressStore
   let currentPoolRewardAddressMapping = {
@@ -717,6 +704,9 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
 
     // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(newLiquidityPoolInstance);
+
+    // Update the RewardTokenEntity in the DB
+    context.RewardToken.set(rewardToken);
   } else{
     // If there is no pool entity with the particular gauge address, log the error
     context.log.warn(
@@ -780,5 +770,8 @@ VotingRewardContract_NotifyReward_handler(({ event, context }) => {
 
     // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(newLiquidityPoolInstance);
+
+    // Update the RewardTokenEntity in the DB
+    context.RewardToken.set(rewardToken);
   }
 });
