@@ -143,7 +143,7 @@ export function getPoolAddressByGaugeAddress(
   gaugeAddress: string
 ): string | null {
   const mapping = poolRewardAddressStore.find(
-    (mapping) => mapping.gaugeAddress === gaugeAddress
+    (mapping) => mapping.gaugeAddress.toLowerCase() === gaugeAddress.toLowerCase()
   );
   return mapping ? mapping.poolAddress : null;
 }
@@ -153,7 +153,7 @@ export function getPoolAddressByBribeVotingRewardAddress(
   gaugeAddress: string
 ): string | null {
   const mapping = poolRewardAddressStore.find(
-    (mapping) => mapping.bribeVotingRewardAddress === gaugeAddress
+    (mapping) => mapping.bribeVotingRewardAddress.toLowerCase() === gaugeAddress.toLowerCase()
   );
   return mapping ? mapping.poolAddress : null;
 }

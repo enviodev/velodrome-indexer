@@ -655,7 +655,6 @@ VoterContract_GaugeCreated_handler(({ event, context }) => {
   );
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
-  if (currentLiquidityPool) {
     // Store pool details in poolRewardAddressStore
     let currentPoolRewardAddressMapping = {
       poolAddress: event.params.pool,
@@ -665,7 +664,6 @@ VoterContract_GaugeCreated_handler(({ event, context }) => {
     };
 
     poolRewardAddressStore.push(currentPoolRewardAddressMapping);
-  }
 });
 
 VoterContract_DistributeReward_loader(({ event, context }) => {
@@ -680,6 +678,12 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
     context.Token.emissionRewardTokenLoad(
       CHAIN_CONSTANTS[event.chainId].rewardToken.address
+    );
+  }
+  {
+    // If there is no pool address with the particular gauge address, log the error
+    context.log.warn(
+      `No pool address found for the gauge address ${event.params.gauge.toString()}`
     );
   }
 });
@@ -712,9 +716,8 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
-    // Create Gauge entity in the DB
+    // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(newLiquidityPoolInstance);
-    context.RewardToken.set(rewardToken);
   }
 });
 
@@ -728,6 +731,12 @@ VotingRewardContract_NotifyReward_loader(({ event, context }) => {
 
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
     context.Token.bribeRewardTokenLoad(event.params.reward);
+  }
+  else{
+    // If there is no pool address with the particular gauge address, log the error
+    context.log.warn(
+      `No pool address found for the bribe voting address ${event.srcAddress.toString()}`
+    );
   }
 });
 
@@ -765,8 +774,7 @@ VotingRewardContract_NotifyReward_handler(({ event, context }) => {
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
-    // Create Gauge entity in the DB
+    // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(newLiquidityPoolInstance);
-    context.RewardToken.set(rewardToken);
   }
 });
