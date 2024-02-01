@@ -247,13 +247,13 @@ PoolContract_Swap_loader(({ event, context }) => {
   context.LiquidityPoolUserMapping.poolUserMappingLoad(
     getLiquidityPoolAndUserMappingId(
       event.srcAddress.toString(),
-      event.params.sender.toString()
+      event.params.to.toString()
     ),
     {}
   );
 
   //Load the user entity
-  context.User.userLoad(event.params.sender.toString());
+  context.User.userLoad(event.params.to.toString());
 });
 
 PoolContract_Swap_handler(({ event, context }) => {
@@ -271,7 +271,7 @@ PoolContract_Swap_handler(({ event, context }) => {
     let newLiquidityPoolUserMapping: LiquidityPoolUserMappingEntity = {
       id: getLiquidityPoolAndUserMappingId(
         event.srcAddress.toString(),
-        event.params.sender.toString()
+        event.params.to.toString()
       ),
       liquidityPool: event.srcAddress.toString(),
       user: event.params.sender.toString(),
@@ -313,7 +313,7 @@ PoolContract_Swap_handler(({ event, context }) => {
     // Get the user id from the loader or initialize it from the event if user doesn't exist
     let existingUserId = currentUser
       ? currentUser.id
-      : event.params.sender.toString();
+      : event.params.to.toString();
     let existingUserVolume = currentUser ? currentUser.totalSwapVolumeUSD : 0n;
     let existingUserNumberOfSwaps = currentUser
       ? currentUser.numberOfSwaps
