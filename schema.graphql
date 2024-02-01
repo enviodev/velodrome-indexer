@@ -201,7 +201,10 @@ type LiquidityPoolUserMapping {
 # Entity that tracks the latest state of the reward token entity
 type RewardToken {
   id: ID! # token address
+  symbol: String! # token symbol
+  name: String! # token name
   chainID: BigInt! # chain id of the token
+  decimals: BigInt! # number of decimals
   pricePerETH: BigInt! # price of token per ETH
   pricePerUSD: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update

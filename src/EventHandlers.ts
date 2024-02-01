@@ -247,13 +247,13 @@ PoolContract_Swap_loader(({ event, context }) => {
   context.LiquidityPoolUserMapping.poolUserMappingLoad(
     getLiquidityPoolAndUserMappingId(
       event.srcAddress.toString(),
-      event.params.sender.toString()
+      event.params.to.toString()
     ),
     {}
   );
 
   //Load the user entity
-  context.User.userLoad(event.params.sender.toString());
+  context.User.userLoad(event.params.to.toString());
 });
 
 PoolContract_Swap_handler(({ event, context }) => {
@@ -271,7 +271,7 @@ PoolContract_Swap_handler(({ event, context }) => {
     let newLiquidityPoolUserMapping: LiquidityPoolUserMappingEntity = {
       id: getLiquidityPoolAndUserMappingId(
         event.srcAddress.toString(),
-        event.params.sender.toString()
+        event.params.to.toString()
       ),
       liquidityPool: event.srcAddress.toString(),
       user: event.params.sender.toString(),
@@ -313,7 +313,7 @@ PoolContract_Swap_handler(({ event, context }) => {
     // Get the user id from the loader or initialize it from the event if user doesn't exist
     let existingUserId = currentUser
       ? currentUser.id
-      : event.params.sender.toString();
+      : event.params.to.toString();
     let existingUserVolume = currentUser ? currentUser.totalSwapVolumeUSD : 0n;
     let existingUserNumberOfSwaps = currentUser
       ? currentUser.numberOfSwaps
@@ -638,34 +638,19 @@ VoterContract_GaugeCreated_loader(({ event, context }) => {
   // // Dynamically register bribe VotingReward contracts
   // // This means that user does not need to manually define all the BribeVotingReward contract address in the configuration file
   // context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
-
-  // Load the single liquidity pool from the loader to be updated
-  context.LiquidityPool.load(event.params.pool.toString(), {
-    loaders: {
-      loadToken0: false,
-      loadToken1: false,
-    },
-  });
 });
 
 VoterContract_GaugeCreated_handler(({ event, context }) => {
-  // Fetch the current liquidity pool from the loader
-  let currentLiquidityPool = context.LiquidityPool.get(
-    event.params.pool.toString()
-  );
-
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
-  if (currentLiquidityPool) {
-    // Store pool details in poolRewardAddressStore
-    let currentPoolRewardAddressMapping = {
-      poolAddress: event.params.pool,
-      gaugeAddress: event.params.gauge,
-      bribeVotingRewardAddress: event.params.bribeVotingReward,
-      feeVotingRewardAddress: event.params.feeVotingReward,
-    };
+  // Store pool details in poolRewardAddressStore
+  let currentPoolRewardAddressMapping = {
+    poolAddress: event.params.pool,
+    gaugeAddress: event.params.gauge,
+    bribeVotingRewardAddress: event.params.bribeVotingReward,
+    feeVotingRewardAddress: event.params.feeVotingReward,
+  };
 
-    poolRewardAddressStore.push(currentPoolRewardAddressMapping);
-  }
+  poolRewardAddressStore.push(currentPoolRewardAddressMapping);
 });
 
 VoterContract_DistributeReward_loader(({ event, context }) => {
@@ -680,6 +665,11 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
     context.Token.emissionRewardTokenLoad(
       CHAIN_CONSTANTS[event.chainId].rewardToken.address
+    );
+  } else {
+    // If there is no pool address with the particular gauge address, log the error
+    context.log.warn(
+      `No pool address found for the gauge address ${event.params.gauge.toString()}`
     );
   }
 });
@@ -712,9 +702,16 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
-    // Create Gauge entity in the DB
+    // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(newLiquidityPoolInstance);
+
+    // Update the RewardTokenEntity in the DB
     context.RewardToken.set(rewardToken);
+  } else{
+    // If there is no pool entity with the particular gauge address, log the error
+    context.log.warn(
+      `No pool entity or reward token found for the gauge address ${event.params.gauge.toString()}`
+    );
   }
 });
 
@@ -728,6 +725,12 @@ VotingRewardContract_NotifyReward_loader(({ event, context }) => {
 
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
     context.Token.bribeRewardTokenLoad(event.params.reward);
+  }
+  else{
+    // If there is no pool address with the particular gauge address, log the error
+    context.log.warn(
+      `No pool address found for the bribe voting address ${event.srcAddress.toString()}`
+    );
   }
 });
 
@@ -765,8 +768,10 @@ VotingRewardContract_NotifyReward_handler(({ event, context }) => {
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
-    // Create Gauge entity in the DB
+    // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(newLiquidityPoolInstance);
+
+    // Update the RewardTokenEntity in the DB
     context.RewardToken.set(rewardToken);
   }
 });
