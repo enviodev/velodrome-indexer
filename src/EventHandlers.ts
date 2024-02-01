@@ -655,15 +655,15 @@ VoterContract_GaugeCreated_handler(({ event, context }) => {
   );
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
-    // Store pool details in poolRewardAddressStore
-    let currentPoolRewardAddressMapping = {
-      poolAddress: event.params.pool,
-      gaugeAddress: event.params.gauge,
-      bribeVotingRewardAddress: event.params.bribeVotingReward,
-      feeVotingRewardAddress: event.params.feeVotingReward,
-    };
+  // Store pool details in poolRewardAddressStore
+  let currentPoolRewardAddressMapping = {
+    poolAddress: event.params.pool,
+    gaugeAddress: event.params.gauge,
+    bribeVotingRewardAddress: event.params.bribeVotingReward,
+    feeVotingRewardAddress: event.params.feeVotingReward,
+  };
 
-    poolRewardAddressStore.push(currentPoolRewardAddressMapping);
+  poolRewardAddressStore.push(currentPoolRewardAddressMapping);
 });
 
 VoterContract_DistributeReward_loader(({ event, context }) => {
@@ -679,8 +679,7 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
     context.Token.emissionRewardTokenLoad(
       CHAIN_CONSTANTS[event.chainId].rewardToken.address
     );
-  }
-  {
+  } else {
     // If there is no pool address with the particular gauge address, log the error
     context.log.warn(
       `No pool address found for the gauge address ${event.params.gauge.toString()}`
@@ -718,6 +717,11 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
 
     // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(newLiquidityPoolInstance);
+  } else{
+    // If there is no pool entity with the particular gauge address, log the error
+    context.log.warn(
+      `No pool entity or reward token found for the gauge address ${event.params.gauge.toString()}`
+    );
   }
 });
 
