@@ -162,7 +162,7 @@ const BASE_CONSTANTS: chainConstants = {
   eth: WETH,
   firstPriceFetchedBlockNumber: 3347620,
   rewardToken: AERO,
-  rpcURL: "https://base.llamarpc.com",
+  rpcURL: "https://base.publicnode.com",
   stablecoinPools: BASE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: BASE_STABLECOIN_POOLS.map((pool) => pool.address),
   testingPoolAddresses: BASE_TESTING_POOL_ADDRESSES,
