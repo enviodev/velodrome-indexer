@@ -336,15 +336,12 @@ let queueSize = (self: t) => {
     )
 }
 
-let isReadyForNextQuery = (self: t, ~maxQueueSize, ~fetcherId) =>
-  switch fetcherId {
-  | Root =>
-    if self.pendingDynamicContractRegistrations->Map.size > 0 {
-      false
-    } else {
-      self.fetchState.fetchedEventQueue->List.size < maxQueueSize
-    }
-  | DynamicContract(_) => true
+let isReadyForNextQuery = (self: t, ~maxQueueSize, ~fetcherId, ~currentlyFetchingBatch) =>
+  switch (fetcherId, currentlyFetchingBatch) {
+  | (Root, true) => false
+  | (Root, false) if self.pendingDynamicContractRegistrations->Map.size > 0 => false
+  | (Root, false) => self.fetchState.fetchedEventQueue->List.size < maxQueueSize
+  | (DynamicContract(_), _) => true
   }
 
 let getAllAddressesForContract = (~contractName, self: t) => {

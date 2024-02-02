@@ -123,54 +123,63 @@ let actionReducer = (state: t, action: action) => {
     Logging.debug("Updating fetchers with hypersync block range res action")
     state->handleHyperSyncBlockRangeResponse(~chain, ~response)
   | EventBatchProcessed({
-      dynamicContractRegistration: Some({
+      dynamicContractRegistrations: Some({registrations, unprocessedBatchReversed}),
+    }) =>
+    let updatedArbQueue =
+      unprocessedBatchReversed
+      ->List.reverse
+      ->DynamicContractFetcher.mergeSortedList(~cmp=(a, b) => {
+        a->EventUtils.getEventComparatorFromQueueItem <
+          b->EventUtils.getEventComparatorFromQueueItem
+      }, state.chainManager.arbitraryEventPriorityQueue)
+
+    registrations->Array.reduce((state, [ProcessEventBatch, NextQuery(CheckAllChainsRoot)]), (
+      (state, nextTasks),
+      registration,
+    ) => {
+      let {
         registeringEventBlockNumber,
         registeringEventLogIndex,
         registeringEventChain,
         dynamicContracts,
-        unprocessedBatch,
-      }),
-    }) =>
-    let updatedArbQueue = unprocessedBatch->DynamicContractFetcher.mergeSortedList(~cmp=(a, b) => {
-      a->EventUtils.getEventComparatorFromQueueItem < b->EventUtils.getEventComparatorFromQueueItem
-    }, state.chainManager.arbitraryEventPriorityQueue)
+      } = registration
 
-    let contractAddressMapping =
-      dynamicContracts
-      ->Array.map(d => (d.contractAddress, d.contractType))
-      ->ContractAddressingMap.fromArray
+      let contractAddressMapping =
+        dynamicContracts
+        ->Array.map(d => (d.contractAddress, d.contractType))
+        ->ContractAddressingMap.fromArray
 
-    let currentChainFetcher = state.chainManager.chainFetchers->ChainMap.get(registeringEventChain)
+      let currentChainFetcher =
+        state.chainManager.chainFetchers->ChainMap.get(registeringEventChain)
 
-    let {newState, nextQueryId} =
-      currentChainFetcher.fetcher->DynamicContractFetcher.registerDynamicContract(
-        ~contractAddressMapping,
-        ~registeringEventBlockNumber,
-        ~registeringEventLogIndex,
+      let {newState, nextQueryId} =
+        currentChainFetcher.fetcher->DynamicContractFetcher.registerDynamicContract(
+          ~contractAddressMapping,
+          ~registeringEventBlockNumber,
+          ~registeringEventLogIndex,
+        )
+
+      let updatedChainFetcher = {...currentChainFetcher, fetcher: newState}
+
+      let updatedChainFetchers =
+        state.chainManager.chainFetchers->ChainMap.set(registeringEventChain, updatedChainFetcher)
+
+      let updatedChainManager: ChainManager.t = {
+        chainFetchers: updatedChainFetchers,
+        arbitraryEventPriorityQueue: updatedArbQueue,
+      }
+
+      (
+        {
+          ...state,
+          chainManager: updatedChainManager,
+          currentlyProcessingBatch: false,
+        },
+        nextTasks->Array.concat([NextQuery(Chain(registeringEventChain, nextQueryId))]),
       )
+    })
 
-    let updatedChainFetcher = {...currentChainFetcher, fetcher: newState}
-    let updatedChainFetchers =
-      state.chainManager.chainFetchers->ChainMap.set(registeringEventChain, updatedChainFetcher)
-
-    let updatedChainManager: ChainManager.t = {
-      chainFetchers: updatedChainFetchers,
-      arbitraryEventPriorityQueue: updatedArbQueue,
-    }
-
-    (
-      {
-        ...state,
-        chainManager: updatedChainManager,
-        currentlyProcessingBatch: false,
-      },
-      [
-        ProcessEventBatch,
-        NextQuery(Chain(registeringEventChain, nextQueryId)),
-        NextQuery(CheckAllChainsRoot),
-      ],
-    )
-  | EventBatchProcessed({dynamicContractRegistration: None}) => (
+  | EventBatchProcessed({dynamicContractRegistrations: None}) => (
       {...state, currentlyProcessingBatch: false},
       [ProcessEventBatch],
     )
@@ -211,10 +220,10 @@ let checkAndFetchForChain = (chain, ~fetcherId, ~state, ~dispatchAction) => {
     state.chainManager.chainFetchers->ChainMap.get(chain)
   Logging.debug("Check and fetch for chain")
   if (
-    !isFetchingBatch &&
     fetcher->DynamicContractFetcher.isReadyForNextQuery(
       ~fetcherId,
       ~maxQueueSize=state.maxPerChainQueueSize,
+      ~currentlyFetchingBatch=isFetchingBatch,
     )
   ) {
     switch chainWorker.contents {
