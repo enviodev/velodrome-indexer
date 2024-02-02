@@ -18,17 +18,13 @@
 *.annot
 *.cmj
 *.bak
-lib/*
+/lib/
 *.mlast
 *.mliast
 .vscode
 .merlin
 .bsb.lock
 /node_modules/
-benchmarks/
-artifacts
-cache
-# generated
-logs
+/benchmarks/
 *.bs.js
-build
+logs/*
