@@ -21,7 +21,7 @@ type action =
   | SetCurrentlyFetchingBatch(chain, bool)
   | UpdateQueues(ChainMap.t<DynamicContractFetcher.t>, arbitraryEventQueue)
 
-type queryChain = CheckAllChains | Chain(chain)
+type queryChain = CheckAllChainsRoot | Chain(chain, DynamicContractFetcher.id)
 type task =
   | NextQuery(queryChain)
   | ProcessEventBatch
@@ -81,12 +81,11 @@ let handleHyperSyncBlockRangeResponse = (
 
   // lastBlockScannedData->checkHasReorgOccurred(~parentHash, ~currentHeight=currentBlockHeight)
 
-  let updatedFetcher =
+  let {newState, nextQueryId} =
     chainFetcher.fetcher->DynamicContractFetcher.update(
       ~latestFetchedBlockTimestamp,
-      ~contractAddressMapping,
       ~latestFetchedBlockNumber=heighestQueriedBlockNumber,
-      ~newFetchedEvents=parsedQueueItems->List.fromArray,
+      ~fetchedEvents=parsedQueueItems->List.fromArray,
       ~id=fetcherId,
     )
   Logging.debug((
@@ -97,12 +96,12 @@ let handleHyperSyncBlockRangeResponse = (
     heighestQueriedBlockNumber,
     "parsed items:",
     parsedQueueItems->Array.length,
-    updatedFetcher->DynamicContractFetcher.queueSizeInternal,
+    newState->DynamicContractFetcher.queueSize,
   ))
 
   let updatedChainFetcher = {
     ...chainFetcher->updateChainFetcherCurrentBlockHeight(~currentBlockHeight),
-    fetcher: updatedFetcher,
+    fetcher: newState,
     isFetchingBatch: false,
   }
 
@@ -113,7 +112,7 @@ let handleHyperSyncBlockRangeResponse = (
     chainManager: {...state.chainManager, chainFetchers: updatedFetchers},
   }
 
-  (nextState, [ProcessEventBatch, NextQuery(Chain(chain))])
+  (nextState, [ProcessEventBatch, NextQuery(Chain(chain, nextQueryId))])
 }
 
 let actionReducer = (state: t, action: action) => {
@@ -143,16 +142,14 @@ let actionReducer = (state: t, action: action) => {
 
     let currentChainFetcher = state.chainManager.chainFetchers->ChainMap.get(registeringEventChain)
 
-    let updatedFetcher =
-      currentChainFetcher.fetcher
-      ->DynamicContractFetcher.registerDynamicContract(
+    let {newState, nextQueryId} =
+      currentChainFetcher.fetcher->DynamicContractFetcher.registerDynamicContract(
         ~contractAddressMapping,
         ~registeringEventBlockNumber,
         ~registeringEventLogIndex,
       )
-      ->unwrapExn //Note this will raise in a case where the same event tries to register twice. Should not be possible
 
-    let updatedChainFetcher = {...currentChainFetcher, fetcher: updatedFetcher}
+    let updatedChainFetcher = {...currentChainFetcher, fetcher: newState}
     let updatedChainFetchers =
       state.chainManager.chainFetchers->ChainMap.set(registeringEventChain, updatedChainFetcher)
 
@@ -161,15 +158,17 @@ let actionReducer = (state: t, action: action) => {
       arbitraryEventPriorityQueue: updatedArbQueue,
     }
 
-    Logging.debug(("updated fetcher:", updatedFetcher))
-
     (
       {
         ...state,
         chainManager: updatedChainManager,
         currentlyProcessingBatch: false,
       },
-      [ProcessEventBatch, NextQuery(CheckAllChains)],
+      [
+        ProcessEventBatch,
+        NextQuery(Chain(registeringEventChain, nextQueryId)),
+        NextQuery(CheckAllChainsRoot),
+      ],
     )
   | EventBatchProcessed({dynamicContractRegistration: None}) => (
       {...state, currentlyProcessingBatch: false},
@@ -202,35 +201,43 @@ let actionReducer = (state: t, action: action) => {
           arbitraryEventPriorityQueue,
         },
       },
-      [NextQuery(CheckAllChains)],
+      [NextQuery(CheckAllChainsRoot)],
     )
   }
 }
 
-let checkAndFetchForChain = (chain, ~state, ~dispatchAction) => {
+let checkAndFetchForChain = (chain, ~fetcherId, ~state, ~dispatchAction) => {
   let {fetcher, chainWorker, logger, currentBlockHeight, isFetchingBatch} =
     state.chainManager.chainFetchers->ChainMap.get(chain)
   Logging.debug("Check and fetch for chain")
   if (
     !isFetchingBatch &&
-    fetcher->DynamicContractFetcher.isReadyForNextQuery(~maxQueueSize=state.maxPerChainQueueSize)
+    fetcher->DynamicContractFetcher.isReadyForNextQuery(
+      ~fetcherId,
+      ~maxQueueSize=state.maxPerChainQueueSize,
+    )
   ) {
-    dispatchAction(SetCurrentlyFetchingBatch(chain, true))
     switch chainWorker.contents {
     | HyperSync(worker) =>
-      let query = fetcher->DynamicContractFetcher.getNextQuery
-      Logging.debug(("Query:", query))
-      let setCurrentBlockHeight = (~currentBlockHeight) =>
-        dispatchAction(SetFetcherCurrentBlockHeight(chain, currentBlockHeight))
-      worker
-      ->HyperSyncWorker.fetchBlockRange(
-        ~query,
-        ~logger,
-        ~currentBlockHeight,
-        ~setCurrentBlockHeight,
-      )
-      ->Promise.thenResolve(res => dispatchAction(HyperSyncBlockRangeResponse(chain, res)))
-      ->ignore
+      let optQuery = fetcher->DynamicContractFetcher.getNextQuery(~fetcherId)
+
+      switch optQuery {
+      | Some(query) =>
+        dispatchAction(SetCurrentlyFetchingBatch(chain, true))
+        Logging.debug(("Query:", query))
+        let setCurrentBlockHeight = (~currentBlockHeight) =>
+          dispatchAction(SetFetcherCurrentBlockHeight(chain, currentBlockHeight))
+        worker
+        ->HyperSyncWorker.fetchBlockRange(
+          ~query,
+          ~logger,
+          ~currentBlockHeight,
+          ~setCurrentBlockHeight,
+        )
+        ->Promise.thenResolve(res => dispatchAction(HyperSyncBlockRangeResponse(chain, res)))
+        ->ignore
+      | None => () //No action to dispatch
+      }
     | Rpc(_) | RawEvents(_) =>
       Js.Exn.raiseError("Currently unhandled rpc or raw events worker with hypersync query")
     }
@@ -243,8 +250,8 @@ let taskReducer = (state: t, task: task, ~dispatchAction) => {
     let fetchForChain = checkAndFetchForChain(~state, ~dispatchAction)
 
     switch chainCheck {
-    | Chain(chain) => chain->fetchForChain
-    | CheckAllChains => ChainMap.Chain.all->Array.forEach(fetchForChain)
+    | Chain(chain, fetcherId) => chain->fetchForChain(~fetcherId)
+    | CheckAllChainsRoot => ChainMap.Chain.all->Array.forEach(fetchForChain(~fetcherId=Root))
     }
   | ProcessEventBatch =>
     if !state.currentlyProcessingBatch {
