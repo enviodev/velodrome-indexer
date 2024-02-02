@@ -139,7 +139,6 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
     token0: event.params.token0,
     token1: event.params.token1,
     isStable: event.params.stable,
-    gauge: "",
     reserve0: 0n,
     reserve1: 0n,
     totalLiquidityETH: 0n,
