@@ -76,6 +76,7 @@ exception UnexpectedDynamicContractExists(id)
 
 let rec addDynamicContractNode = (root: t, val: t) => {
   if root.id == val.id {
+    Logging.debug("Hitting unecpected case")
     Error(UnexpectedDynamicContractExists(val.id))
   } else {
     switch root.pendingDynamicContractRegistrations {
@@ -110,6 +111,7 @@ let rec updateInternal = (
   } else {
     switch self.pendingDynamicContractRegistrations {
     | Some(child) =>
+      Logging.debug("updating child")
       //recurse through children to find the child with the matching id
       let pendingDynamicContractRegistrations =
         child
@@ -126,6 +128,7 @@ let rec updateInternal = (
         pendingDynamicContractRegistrations,
       }
     | None =>
+      Logging.debug("new child")
       //This means there is a new dynamic contract registration so add it
       //as a child
       let pendingDynamicContractRegistrations = {
@@ -317,4 +320,16 @@ let rec getAllAddressesForContract = (~addresses=Set.String.empty, ~contractName
 let checkContainsRegisteredContractAddress = (self: t, ~contractName, ~contractAddress) => {
   let allAddr = self->getAllAddressesForContract(~contractName)
   allAddr->Set.String.has(contractAddress->Ethers.ethAddressToString)
+}
+
+let rec getQueueSizes = (~accum=[], self: t) => {
+  let accum =
+    accum->Array.concat([
+      (self.id, self.latestFetchedBlockTimestamp, self.fetchedEventQueue->List.size),
+    ])
+
+  switch self.pendingDynamicContractRegistrations {
+  | None => accum
+  | Some(child) => child->getQueueSizes(~accum)
+  }
 }

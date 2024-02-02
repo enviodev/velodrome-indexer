@@ -1,3 +1,9 @@
+let unwrapExn = res =>
+  switch res {
+  | Ok(v) => v
+  | Error(exn) => exn->raise
+  }
+
 open Belt
 type t = {
   chainManager: ChainManager.t,
@@ -85,7 +91,10 @@ let handleHyperSyncBlockRangeResponse = (
     )
   Logging.debug((
     "Response received. Fetcher id:",
+    "fetcher id",
     fetcherId,
+    "heighestQueriedBlockNumber",
+    heighestQueriedBlockNumber,
     "parsed items:",
     parsedQueueItems->Array.length,
     updatedFetcher->DynamicContractFetcher.queueSizeInternal,
@@ -112,6 +121,7 @@ let actionReducer = (state: t, action: action) => {
   | SetFetcherCurrentBlockHeight(chain, currentBlockHeight) =>
     state->handleSetCurrentBlockHeight(~chain, ~currentBlockHeight)
   | HyperSyncBlockRangeResponse(chain, response) =>
+    Logging.debug("Updating fetchers with hypersync block range res action")
     state->handleHyperSyncBlockRangeResponse(~chain, ~response)
   | EventBatchProcessed({
       dynamicContractRegistration: Some({
@@ -140,7 +150,7 @@ let actionReducer = (state: t, action: action) => {
         ~registeringEventBlockNumber,
         ~registeringEventLogIndex,
       )
-      ->Result.getExn //Note this will raise in a case where the same event tries to register twice. Should not be possible
+      ->unwrapExn //Note this will raise in a case where the same event tries to register twice. Should not be possible
 
     let updatedChainFetcher = {...currentChainFetcher, fetcher: updatedFetcher}
     let updatedChainFetchers =
@@ -176,6 +186,7 @@ let actionReducer = (state: t, action: action) => {
 
     ({...state, chainManager: {...state.chainManager, chainFetchers}}, [])
   | UpdateQueues(fetchers, arbitraryEventPriorityQueue) =>
+    Logging.debug("Updating fetchers action")
     let chainFetchers = state.chainManager.chainFetchers->ChainMap.mapWithKey((chain, cf) => {
       {
         ...cf,
@@ -237,17 +248,23 @@ let taskReducer = (state: t, task: task, ~dispatchAction) => {
     }
   | ProcessEventBatch =>
     if !state.currentlyProcessingBatch {
+      Logging.debug("Start processing")
       dispatchAction(SetCurrentlyProcessing(true))
-
       switch state.chainManager->ChainManager.createBatch(~maxBatchSize=state.maxBatchSize) {
       | Some({batch, fetchers, arbitraryEventQueue}) =>
+        Logging.debug("got batch")
+
         dispatchAction(UpdateQueues(fetchers, arbitraryEventQueue))
         let inMemoryStore = IO.InMemoryStore.make()
         EventProcessing.processEventBatch(~eventBatch=batch, ~inMemoryStore, ~fetchers)
         ->Promise.thenResolve(res => dispatchAction(EventBatchProcessed(res)))
         ->ignore
-      | None => dispatchAction(SetCurrentlyProcessing(false))
+      | None =>
+        Logging.debug("no batch")
+        dispatchAction(SetCurrentlyProcessing(false))
       }
+    } else {
+      Logging.debug("Currently processing")
     }
   }
 }

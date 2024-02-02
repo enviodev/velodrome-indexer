@@ -448,6 +448,10 @@ let createBatch = (self: t, ~maxBatchSize: int) => {
 
   let {arbitraryEventPriorityQueue, chainFetchers} = self
   let fetchers = chainFetchers->ChainMap.map(cf => cf.fetcher)
+  Logging.debug((
+    "fetcher sizes",
+    fetchers->ChainMap.values->Array.map(DynamicContractFetcher.getQueueSizes)->Array.get(0),
+  ))
 
   let response = createBatchInternal(
     ~maxBatchSize,
@@ -457,6 +461,13 @@ let createBatch = (self: t, ~maxBatchSize: int) => {
     ~arbitraryEventQueue=arbitraryEventPriorityQueue,
   )
 
+  Logging.debug((
+    "fetcher sizes after",
+    response.fetchers
+    ->ChainMap.values
+    ->Array.map(DynamicContractFetcher.getQueueSizes)
+    ->Array.get(0),
+  ))
   if response.batchSize > 0 {
     let fetchedEventsBuffer =
       chainFetchers
