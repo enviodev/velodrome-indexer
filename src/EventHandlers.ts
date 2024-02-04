@@ -39,8 +39,8 @@ import {
   findPricePerETH,
   normalizeTokenAmountTo1e18,
   getLiquidityPoolAndUserMappingId,
-  getPoolAddressByGaugeAddress,
-  getPoolAddressByBribeVotingRewardAddress,
+  getPoolAddressByGaugeAddressOld,
+  getPoolAddressByBribeVotingRewardAddressOld,
   generatePoolName,
 } from "./Helpers";
 
@@ -53,9 +53,13 @@ import {
 
 import { SnapshotInterval, TokenEntityMapping } from "./CustomTypes";
 
-import { poolRewardAddressStore, whitelistedPoolIds } from "./Store";
+import { poolRewardAddressStoreManager, poolRewardAddressStoreOld, whitelistedPoolIds } from "./Store";
 
 import { getErc20TokenDetails } from "./Erc20";
+import { assert } from "console";
+
+//// global state!
+const { getPoolAddressByGaugeAddress, getPoolAddressByBribeVotingRewardAddress, addRewardAddressDetails } = poolRewardAddressStoreManager();
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   // // Dynamic contract registration for Pool contracts
@@ -646,15 +650,20 @@ VoterContract_GaugeCreated_handler(({ event, context }) => {
     poolAddress: event.params.pool,
     gaugeAddress: event.params.gauge,
     bribeVotingRewardAddress: event.params.bribeVotingReward,
-    feeVotingRewardAddress: event.params.feeVotingReward,
+    // feeVotingRewardAddress: event.params.feeVotingReward, // currently not used
   };
 
-  poolRewardAddressStore.push(currentPoolRewardAddressMapping);
+  // poolRewardAddressStoreOld.push(currentPoolRewardAddressMapping); /// kept to manually test there are no regressions.
+  addRewardAddressDetails(event.chainId, currentPoolRewardAddressMapping);
 });
 
 VoterContract_DistributeReward_loader(({ event, context }) => {
   // retrieve the pool address from the gauge address
-  let poolAddress = getPoolAddressByGaugeAddress(event.params.gauge);
+  let poolAddress = getPoolAddressByGaugeAddress(event.chainId, event.params.gauge);
+
+  // //// NOTE: below code should be deleted once it is manually determined that there aren't regressions.
+  // let poolAddressOld = getPoolAddressByGaugeAddressOld(event.params.gauge);
+  // assert(poolAddress == poolAddressOld, "poolAddress and poolAddressOld should be the same");
 
   // If there is a pool address with the particular gauge address, load the pool
   if (poolAddress) {
@@ -706,7 +715,7 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
 
     // Update the RewardTokenEntity in the DB
     context.RewardToken.set(rewardToken);
-  } else{
+  } else {
     // If there is no pool entity with the particular gauge address, log the error
     context.log.warn(
       `No pool entity or reward token found for the gauge address ${event.params.gauge.toString()}`
@@ -716,7 +725,11 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
 
 VotingRewardContract_NotifyReward_loader(({ event, context }) => {
   // retrieve the pool address from the gauge address
-  let poolAddress = getPoolAddressByBribeVotingRewardAddress(event.srcAddress);
+  let poolAddress = getPoolAddressByBribeVotingRewardAddress(event.chainId, event.srcAddress);
+
+  // //// NOTE: below code should be deleted once it is manually determined that there aren't regressions.
+  // let poolAddressOld = getPoolAddressByBribeVotingRewardAddressOld(event.params.gauge);
+  // assert(poolAddress == poolAddressOld, "poolAddress and poolAddressOld should be the same");
 
   if (poolAddress) {
     // Load the LiquidityPool entity to be updated,
@@ -725,7 +738,7 @@ VotingRewardContract_NotifyReward_loader(({ event, context }) => {
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
     context.Token.bribeRewardTokenLoad(event.params.reward);
   }
-  else{
+  else {
     // If there is no pool address with the particular gauge address, log the error
     context.log.warn(
       `No pool address found for the bribe voting address ${event.srcAddress.toString()}`
