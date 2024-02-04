@@ -1,10 +1,11 @@
-import { LiquidityPoolEntity, TokenEntity } from "./src/Types.gen";
+import { LiquidityPoolEntity, TokenEntity, liquidityPoolEntity, tokenEntity } from "./src/Types.gen";
 
 import { TEN_TO_THE_18_BI, CHAIN_CONSTANTS } from "./Constants";
 
 import { multiplyBase1e18 } from "./Maths";
 
 import { poolRewardAddressStoreOld } from "./Store";
+import { Address } from "web3";
 
 // Helper function to normalize token amounts to 1e18
 export const normalizeTokenAmountTo1e18 = (
@@ -80,8 +81,85 @@ const extractRelevantLiquidityPoolEntities = (
   return relevantLiquidityPoolEntities;
 };
 
-// Helper function to return pricePerETH given token address and LiquidityPool entities
+const calculatePrice = (relevantLiquidityPoolEntities: liquidityPoolEntity[], tokenAddress: Address, whitelistedTokensList: TokenEntity[]) => {
+  // If the token is not WETH, then run through the pricing pools to price the token
+  for (let pool of relevantLiquidityPoolEntities) {
+    if (pool.token0 == tokenAddress) {
+      // load whitelist token
+      let whitelistedTokenInstance = whitelistedTokensList.find(
+        (token) => token.id === pool.token1
+      );
+      if (whitelistedTokenInstance) {
+        return multiplyBase1e18(
+          pool.token0Price,
+          whitelistedTokenInstance.pricePerETH
+        );
+      }
+    } else if (pool.token1 == tokenAddress) {
+      // load whitelist token
+      let whitelistedTokenInstance = whitelistedTokensList.find(
+        (token) => token.id === pool.token0
+      );
+      if (whitelistedTokenInstance) {
+        return multiplyBase1e18(
+          pool.token1Price,
+          whitelistedTokenInstance.pricePerETH
+        );
+      }
+    } else {
+      throw "Token not part of pools it is meant to be part of."
+    }
+  }
+  return 0n;
+}
+
 export const findPricePerETH = (
+  currentLiquidityPool: liquidityPoolEntity,
+  getToken0: (currentLiquidityPool: liquidityPoolEntity) => tokenEntity,
+  getToken1: (currentLiquidityPool: liquidityPoolEntity) => tokenEntity,
+  whitelistedTokensList: TokenEntity[],
+  liquidityPoolEntities0: LiquidityPoolEntity[],
+  liquidityPoolEntities1: LiquidityPoolEntity[],
+  chainId: number,
+  relativeTokenPrice0: bigint,
+  relativeTokenPrice1: bigint
+): { token0PricePerETH: bigint, token1PricePerETH: bigint, } => {
+  let token0Instance = getToken0(currentLiquidityPool);
+
+  let token1Instance = getToken1(currentLiquidityPool);
+
+  // Case 1: token is ETH
+  if (
+    token0Instance.id.toLowerCase() ===
+    CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()
+  ) {
+    return {
+      token0PricePerETH: TEN_TO_THE_18_BI,
+      token1PricePerETH: relativeTokenPrice0,
+    }
+  } else if (
+    token1Instance.id.toLowerCase() ===
+    CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()
+  ) {
+    return {
+      token0PricePerETH: relativeTokenPrice0,
+      token1PricePerETH: TEN_TO_THE_18_BI,
+    }
+  }
+  // Case 2: both tokens are not ETH
+  else {
+    const token0PricePerETH = calculatePrice(liquidityPoolEntities0, token0Instance.id, whitelistedTokensList);
+    const token1PricePerETH = calculatePrice(liquidityPoolEntities1, token1Instance.id, whitelistedTokensList);
+
+    return {
+      token0PricePerETH,
+      token1PricePerETH,
+    }
+  }
+};
+
+// Helper function to return pricePerETH given token address and LiquidityPool entities
+export const findPricePerETHOld = (
   tokenAddress: string,
   whitelistedTokensList: TokenEntity[],
   liquidityPoolEntities: LiquidityPoolEntity[],
@@ -100,7 +178,7 @@ export const findPricePerETH = (
       tokenAddress,
       liquidityPoolEntities
     );
-    // If the token is not WETH, then run through the pricing pools to price the token
+    // If the token is not WETH, then run through the pricing pools to price the token, use the first price that matches
     for (let pool of relevantLiquidityPoolEntities) {
       if (pool.token0 == tokenAddress) {
         // load whitelist token
