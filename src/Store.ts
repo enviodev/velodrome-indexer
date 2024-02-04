@@ -1,4 +1,6 @@
 import { poolRewardAddressMapping } from "./CustomTypes";
+import { Cache, Entry, ShapeGuageToPool, ShapeBribeToPool } from './cache';
+import { CacheCategory } from './Constants';
 
 // Object to store all the pool addresses with whitelist tokens
 export let whitelistedPoolIds: string[] = [];
@@ -7,27 +9,43 @@ export let whitelistedPoolIds: string[] = [];
 export let poolRewardAddressStoreOld: poolRewardAddressMapping[] = [];
 
 export const poolRewardAddressStoreManager = () => {
-  let guageToPoolMapping: { [key: string]: string } = {};
-  let bribeVotingToPoolMapping: { [key: string]: string } = {};
+  /*
+  NOTE: here the cache is to make sure this code is restart resistant, it is not for performance optimization (actually the cache will have a negative impact on performance)
+  */
+  const cacheMap = new Map<string | number | bigint, { gaugeToPoolCache: Entry<ShapeGuageToPool>; bribeVotingToPoolCache: any }>();
 
-  let addRewardAddressDetails = (details: poolRewardAddressMapping) => {
-    guageToPoolMapping[details.gaugeAddress.toLowerCase()] = details.poolAddress;
-    bribeVotingToPoolMapping[details.bribeVotingRewardAddress.toLowerCase()] = details.poolAddress;
+  const getCache = (chainId: string | number | bigint): {
+    gaugeToPoolCache: Entry<ShapeGuageToPool>,
+    bribeVotingToPoolCache: Entry<ShapeGuageToPool>,
+  } => {
+    const cache = cacheMap.get(chainId);
+    if (!cache) {
+      const gaugeToPoolCache = Cache.init(CacheCategory.GuageToPool, chainId);
+      const bribeVotingToPoolCache = Cache.init(CacheCategory.BribeToPool, chainId);
+      cacheMap.set(chainId, { gaugeToPoolCache, bribeVotingToPoolCache });
+      return { gaugeToPoolCache, bribeVotingToPoolCache };
+    } else {
+      return cache;
+    }
+  };
+
+  let addRewardAddressDetails = (chainId: string | number | bigint, details: poolRewardAddressMapping) => {
+    const { gaugeToPoolCache, bribeVotingToPoolCache } = getCache(chainId);
+    gaugeToPoolCache.add({ [details.gaugeAddress.toLowerCase()]: { poolAddress: details.poolAddress } });
+    bribeVotingToPoolCache.add({ [details.bribeVotingRewardAddress.toLowerCase()]: { poolAddress: details.poolAddress } });
+  };
+
+  function getPoolAddressByGaugeAddress(chainId: string | number | bigint, gaugeAddress: string): string | undefined {
+    const { gaugeToPoolCache } = getCache(chainId);
+    const result = gaugeToPoolCache.read(gaugeAddress.toLowerCase());
+    return result ? result.poolAddress : undefined;
   }
 
-  // Helper function to get the pool address from the bribe voting reward address
-  function getPoolAddressByGaugeAddress(
-    gaugeAddress: string
-  ): string | undefined {
-    return guageToPoolMapping[gaugeAddress.toLowerCase()];
-  }
-
-  // Helper function to get the pool address from the gauge address
-  function getPoolAddressByBribeVotingRewardAddress(
-    bribeVotingRewardAddress: string
-  ): string | null {
-    return bribeVotingToPoolMapping[bribeVotingRewardAddress.toLowerCase()];
+  function getPoolAddressByBribeVotingRewardAddress(chainId: string | number | bigint, bribeVotingRewardAddress: string): string | null {
+    const { bribeVotingToPoolCache } = getCache(chainId);
+    const result = bribeVotingToPoolCache.read(bribeVotingRewardAddress.toLowerCase());
+    return result ? result.poolAddress : null;
   }
 
   return { getPoolAddressByGaugeAddress, getPoolAddressByBribeVotingRewardAddress, addRewardAddressDetails };
-}
+};

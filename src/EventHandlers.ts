@@ -1,3 +1,5 @@
+const isRegressionValidationMode = true
+
 import {
   PoolContract_Fees_loader,
   PoolContract_Fees_handler,
@@ -653,7 +655,7 @@ VoterContract_GaugeCreated_handler(({ event, context }) => {
     // feeVotingRewardAddress: event.params.feeVotingReward, // currently not used
   };
 
-  // poolRewardAddressStoreOld.push(currentPoolRewardAddressMapping); /// kept to manually test there are no regressions.
+  if (isRegressionValidationMode) poolRewardAddressStoreOld.push(currentPoolRewardAddressMapping); /// kept to manually test there are no regressions.
   addRewardAddressDetails(event.chainId, currentPoolRewardAddressMapping);
 });
 
@@ -661,9 +663,11 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
   // retrieve the pool address from the gauge address
   let poolAddress = getPoolAddressByGaugeAddress(event.chainId, event.params.gauge);
 
-  // //// NOTE: below code should be deleted once it is manually determined that there aren't regressions.
-  // let poolAddressOld = getPoolAddressByGaugeAddressOld(event.params.gauge);
-  // assert(poolAddress == poolAddressOld, "poolAddress and poolAddressOld should be the same");
+  if (isRegressionValidationMode) {
+    //// NOTE: below code should be deleted once it is manually determined that there aren't regressions.
+    let poolAddressOld = getPoolAddressByGaugeAddressOld(event.params.gauge);
+    if (poolAddress != poolAddressOld) console.log("poolAddress and poolAddressOld are the same:", poolAddress == poolAddressOld)
+  }
 
   // If there is a pool address with the particular gauge address, load the pool
   if (poolAddress) {
@@ -727,9 +731,12 @@ VotingRewardContract_NotifyReward_loader(({ event, context }) => {
   // retrieve the pool address from the gauge address
   let poolAddress = getPoolAddressByBribeVotingRewardAddress(event.chainId, event.srcAddress);
 
-  // //// NOTE: below code should be deleted once it is manually determined that there aren't regressions.
-  // let poolAddressOld = getPoolAddressByBribeVotingRewardAddressOld(event.params.gauge);
-  // assert(poolAddress == poolAddressOld, "poolAddress and poolAddressOld should be the same");
+  if (isRegressionValidationMode) {
+    //// NOTE: below code should be deleted once it is manually determined that there aren't regressions.
+    let poolAddressOld = getPoolAddressByBribeVotingRewardAddressOld(event.srcAddress);
+    if (poolAddress != poolAddressOld) console.log("poolAddress and poolAddressOld are the same:", poolAddress, poolAddressOld)
+    assert(poolAddress == poolAddressOld, "poolAddress and poolAddressOld should be the same");
+  }
 
   if (poolAddress) {
     // Load the LiquidityPool entity to be updated,

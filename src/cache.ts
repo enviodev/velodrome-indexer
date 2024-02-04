@@ -6,7 +6,11 @@ import { CacheCategory } from "./Constants";
 type Address = string;
 
 type Shape = Record<string, Record<string, string>>;
+
 type ShapeRoot = Shape & Record<Address, { hash: string }>;
+export type ShapeGuageToPool = Shape & Record<Address, { poolAddress: Address }>;
+export type ShapeBribeToPool = Shape & Record<Address, { poolAddress: Address }>;
+
 
 type ShapeToken = Shape &
   Record<Address, { decimals: number; name: string; symbol: string }>;
@@ -20,7 +24,10 @@ export class Cache {
       throw new Error("Unsupported cache category");
     }
 
-    type S = C extends "token" ? ShapeToken : ShapeRoot;
+    type S = C extends "token" ? ShapeToken
+      : C extends "guageToPool" ? ShapeGuageToPool
+      : C extends "bribeToPool" ? ShapeBribeToPool
+      : ShapeRoot;
     const entry = new Entry<S>(`${category}-${chainId.toString()}`);
     return entry;
   }
