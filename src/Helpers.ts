@@ -4,7 +4,6 @@ import { TEN_TO_THE_18_BI, CHAIN_CONSTANTS } from "./Constants";
 
 import { multiplyBase1e18 } from "./Maths";
 
-import { poolRewardAddressStoreOld } from "./Store";
 import { Address } from "web3";
 
 // Helper function to normalize token amounts to 1e18
@@ -217,28 +216,6 @@ export const getLiquidityPoolAndUserMappingId = (
 ): string => {
   return liquidityPoolId + "-" + userId;
 };
-
-// Helper function to get the pool address from the gauge address
-/// TODO: delete this functions once it is determined there is no regression.
-export function getPoolAddressByGaugeAddressOld(
-  gaugeAddress: string
-): string | null {
-  const mapping = poolRewardAddressStoreOld.find(
-    (mapping) => mapping.gaugeAddress.toLowerCase() === gaugeAddress.toLowerCase()
-  );
-  return mapping ? mapping.poolAddress : null;
-}
-
-// Helper function to get the pool address from the bribe voting reward address
-/// TODO: delete this functions once it is determined there is no regression.
-export function getPoolAddressByBribeVotingRewardAddressOld(
-  gaugeAddress: string
-): string | null {
-  const mapping = poolRewardAddressStoreOld.find(
-    (mapping) => mapping.bribeVotingRewardAddress.toLowerCase() === gaugeAddress.toLowerCase()
-  );
-  return mapping ? mapping.poolAddress : null;
-}
 
 // Helper function to get generate the pool name given token0 and token1 symbols and isStable boolean
 export function generatePoolName(

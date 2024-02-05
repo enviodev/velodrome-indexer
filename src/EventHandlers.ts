@@ -41,8 +41,6 @@ import {
   findPricePerETHOld,
   normalizeTokenAmountTo1e18,
   getLiquidityPoolAndUserMappingId,
-  getPoolAddressByGaugeAddressOld,
-  getPoolAddressByBribeVotingRewardAddressOld,
   generatePoolName,
   findPricePerETH,
 } from "./Helpers";
@@ -56,7 +54,7 @@ import {
 
 import { SnapshotInterval, TokenEntityMapping } from "./CustomTypes";
 
-import { poolLookupStoreManager, poolRewardAddressStoreOld, whitelistedPoolIdsManager, whitelistedPoolIdsOld } from "./Store";
+import { poolLookupStoreManager, whitelistedPoolIdsManager } from "./Store";
 
 import { getErc20TokenDetails } from "./Erc20";
 import { assert } from "console";
@@ -180,8 +178,6 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
   ) {
     // push pool address to whitelistedPoolIds
     addWhitelistedPoolId(event.chainId, event.params.token0, event.params.token1, newPool.id);
-
-    if (isRegressionValidationMode) whitelistedPoolIdsOld.push(newPool.id); /// kept to manually test there are no regressions.
   }
 });
 
@@ -393,13 +389,6 @@ PoolContract_Sync_loader(({ event, context }) => {
     context.LiquidityPool.whitelistedPools1Load([], {});
   }
 
-  /// NOTE: only for regression validation. Should be removed once code is tested.
-  if (isRegressionValidationMode) {
-    context.LiquidityPool.whitelistedPoolsLoad(whitelistedPoolIdsOld, {});
-  } else {
-    context.LiquidityPool.whitelistedPoolsLoad([], {});
-  }
-
   // Load all the whitelisted tokens to be potentially used in pricing
   context.Token.whitelistedTokensLoad(
     CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses
@@ -471,54 +460,6 @@ PoolContract_Sync_handler(({ event, context }) => {
       token0Price,
       token1Price
     )
-
-    if (isRegressionValidationMode) {
-      // filter out the pools where the token is not present
-      //// QUESTION: when is the token not present? If it isn't whitelisted? Is this just a sanity check? Should it sound an alarm is one is undefined/null
-      let relevantPoolsList = context.LiquidityPool.whitelistedPools.filter(
-        (item): item is LiquidityPoolEntity => item !== undefined
-      );
-
-      let token0PricePerETHOld = findPricePerETHOld(
-        token0Instance.id,
-        whitelistedTokensList,
-        relevantPoolsList,
-        event.chainId
-      );
-
-      let token1PricePerETHOld = findPricePerETHOld(
-        token1Instance.id,
-        whitelistedTokensList,
-        relevantPoolsList,
-        event.chainId
-      );
-
-      // If either token0PricePerETH or token1PricePerETH is 1e18, then the opposite token's pricePerETH is the relative price of the tokens in pool
-      if (token0PricePerETHOld == TEN_TO_THE_18_BI) {
-        token1PricePerETHOld = token1Price;
-      }
-      if (token1PricePerETHOld == TEN_TO_THE_18_BI) {
-        token0PricePerETHOld = token0Price;
-      }
-
-      if (token0PricePerETHOld != token0PricePerETH) {
-        throw new Error(
-          `Regression: token0PricePerETHOld: ${token0PricePerETHOld} != token0PricePerETH: ${token0PricePerETH}`
-        );
-      }
-      // else {
-      //   console.log("The token0PricePerETH is the same");
-      // }
-
-      if (token1PricePerETHOld != token1PricePerETH) {
-        throw new Error(
-          `Regression: token1PricePerETHOld: ${token1PricePerETHOld} != token1PricePerETH: ${token1PricePerETH}`
-        );
-      }
-      // else {
-      //   console.log("The token0PricePerETH is the same");
-      // }
-    }
 
     let token0PricePerUSD, token1PricePerUSD;
 
@@ -713,19 +654,12 @@ VoterContract_GaugeCreated_handler(({ event, context }) => {
     // feeVotingRewardAddress: event.params.feeVotingReward, // currently not used
   };
 
-  if (isRegressionValidationMode) poolRewardAddressStoreOld.push(currentPoolRewardAddressMapping); /// kept to manually test there are no regressions.
   addRewardAddressDetails(event.chainId, currentPoolRewardAddressMapping);
 });
 
 VoterContract_DistributeReward_loader(({ event, context }) => {
   // retrieve the pool address from the gauge address
   let poolAddress = getPoolAddressByGaugeAddress(event.chainId, event.params.gauge);
-
-  if (isRegressionValidationMode) {
-    //// NOTE: below code should be deleted once it is manually determined that there aren't regressions.
-    let poolAddressOld = getPoolAddressByGaugeAddressOld(event.params.gauge);
-    if (poolAddress != poolAddressOld) console.log("poolAddress and poolAddressOld are not the same:", poolAddress == poolAddressOld)
-  }
 
   // If there is a pool address with the particular gauge address, load the pool
   if (poolAddress) {
@@ -788,13 +722,6 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
 VotingRewardContract_NotifyReward_loader(({ event, context }) => {
   // retrieve the pool address from the gauge address
   let poolAddress = getPoolAddressByBribeVotingRewardAddress(event.chainId, event.srcAddress);
-
-  if (isRegressionValidationMode) {
-    //// NOTE: below code should be deleted once it is manually determined that there aren't regressions.
-    let poolAddressOld = getPoolAddressByBribeVotingRewardAddressOld(event.srcAddress);
-    if (poolAddress != poolAddressOld) console.log("poolAddress and poolAddressOld are not the same:", poolAddress, poolAddressOld)
-    assert(poolAddress == poolAddressOld, "poolAddress and poolAddressOld should be the same");
-  }
 
   if (poolAddress) {
     // Load the LiquidityPool entity to be updated,
