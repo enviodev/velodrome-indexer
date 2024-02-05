@@ -41,7 +41,8 @@ contracts:
               - singlePool
             arrayLabels:
               - stablecoinPools
-              - whitelistedPools
+              - whitelistedPools0
+              - whitelistedPools1
           - name: Token
             arrayLabels:
               - whitelistedTokens

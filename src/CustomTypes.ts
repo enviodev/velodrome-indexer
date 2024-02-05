@@ -30,5 +30,5 @@ export type poolRewardAddressMapping = {
   poolAddress: string;
   gaugeAddress: string;
   bribeVotingRewardAddress: string;
-  feeVotingRewardAddress: string;
+  // feeVotingRewardAddress: string; // value not used
 };
