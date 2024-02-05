@@ -1,4 +1,4 @@
-const isRegressionValidationMode = true
+const isRegressionValidationMode = false
 
 import {
   PoolContract_Fees_loader,
@@ -38,12 +38,13 @@ import {
 import {
   calculateETHPriceInUSD,
   isStablecoinPool,
-  findPricePerETH,
+  findPricePerETHOld,
   normalizeTokenAmountTo1e18,
   getLiquidityPoolAndUserMappingId,
   getPoolAddressByGaugeAddressOld,
   getPoolAddressByBribeVotingRewardAddressOld,
   generatePoolName,
+  findPricePerETH,
 } from "./Helpers";
 
 import { divideBase1e18, multiplyBase1e18 } from "./Maths";
@@ -55,13 +56,14 @@ import {
 
 import { SnapshotInterval, TokenEntityMapping } from "./CustomTypes";
 
-import { poolRewardAddressStoreManager, poolRewardAddressStoreOld, whitelistedPoolIds } from "./Store";
+import { poolLookupStoreManager, poolRewardAddressStoreOld, whitelistedPoolIdsManager, whitelistedPoolIdsOld } from "./Store";
 
 import { getErc20TokenDetails } from "./Erc20";
 import { assert } from "console";
 
 //// global state!
-const { getPoolAddressByGaugeAddress, getPoolAddressByBribeVotingRewardAddress, addRewardAddressDetails } = poolRewardAddressStoreManager();
+const { getPoolAddressByGaugeAddress, getPoolAddressByBribeVotingRewardAddress, addRewardAddressDetails } = poolLookupStoreManager();
+const { addWhitelistedPoolId, getWhitelistedPoolIds, getTokensFromWhitelistedPool } = whitelistedPoolIdsManager();
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   // // Dynamic contract registration for Pool contracts
@@ -177,7 +179,9 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
     )
   ) {
     // push pool address to whitelistedPoolIds
-    whitelistedPoolIds.push(newPool.id);
+    addWhitelistedPoolId(event.chainId, event.params.token0, event.params.token1, newPool.id);
+
+    if (isRegressionValidationMode) whitelistedPoolIdsOld.push(newPool.id); /// kept to manually test there are no regressions.
   }
 });
 
@@ -380,7 +384,21 @@ PoolContract_Sync_loader(({ event, context }) => {
   context.LiquidityPool.stablecoinPoolsLoad(stableCoinPoolAddresses, {});
 
   // Load all the whitelisted pools i.e. pools with at least one white listed tokens
-  context.LiquidityPool.whitelistedPoolsLoad(whitelistedPoolIds, {});
+  const maybeTokensWhitelisted = getTokensFromWhitelistedPool(event.chainId, event.srcAddress.toString());
+  if (maybeTokensWhitelisted) { // only load here if tokens are in whitelisted pool.
+    context.LiquidityPool.whitelistedPools0Load(getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token0), {});
+    context.LiquidityPool.whitelistedPools1Load(getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token1), {});
+  } else {
+    context.LiquidityPool.whitelistedPools0Load([], {});
+    context.LiquidityPool.whitelistedPools1Load([], {});
+  }
+
+  /// NOTE: only for regression validation. Should be removed once code is tested.
+  if (isRegressionValidationMode) {
+    context.LiquidityPool.whitelistedPoolsLoad(whitelistedPoolIdsOld, {});
+  } else {
+    context.LiquidityPool.whitelistedPoolsLoad([], {});
+  }
 
   // Load all the whitelisted tokens to be potentially used in pricing
   context.Token.whitelistedTokensLoad(
@@ -404,11 +422,6 @@ PoolContract_Sync_handler(({ event, context }) => {
   let whitelistedTokensList = context.Token.whitelistedTokens.filter(
     (item) => !!item
   ) as TokenEntity[];
-
-  // filter out the pools where the token is not present
-  let relevantPoolsList = context.LiquidityPool.whitelistedPools.filter(
-    (item): item is LiquidityPoolEntity => item !== undefined
-  );
 
   // Get the LatestETHPrice object
   let latestEthPrice = context.StateStore.getLatestEthPrice(stateStore);
@@ -440,26 +453,71 @@ PoolContract_Sync_handler(({ event, context }) => {
       token1Price = divideBase1e18(normalizedReserve0, normalizedReserve1);
     }
 
-    let token0PricePerETH = findPricePerETH(
-      token0Instance.id,
-      whitelistedTokensList,
-      relevantPoolsList,
-      event.chainId
+    let relevantPoolEntitiesToken0 = context.LiquidityPool.whitelistedPools0.filter(
+      (item): item is LiquidityPoolEntity => item !== undefined
+    );
+    let relevantPoolEntitiesToken1 = context.LiquidityPool.whitelistedPools1.filter(
+      (item): item is LiquidityPoolEntity => item !== undefined
     );
 
-    let token1PricePerETH = findPricePerETH(
-      token1Instance.id,
+    let { token0PricePerETH, token1PricePerETH } = findPricePerETH(
+      currentLiquidityPool,
+      context.LiquidityPool.getToken0,
+      context.LiquidityPool.getToken1,
       whitelistedTokensList,
-      relevantPoolsList,
-      event.chainId
-    );
+      relevantPoolEntitiesToken0,
+      relevantPoolEntitiesToken1,
+      event.chainId,
+      token0Price,
+      token1Price
+    )
 
-    // If either token0PricePerETH or token1PricePerETH is 1e18, then the opposite token's pricePerETH is the relative price of the tokens in pool
-    if (token0PricePerETH == TEN_TO_THE_18_BI) {
-      token1PricePerETH = token1Price;
-    }
-    if (token1PricePerETH == TEN_TO_THE_18_BI) {
-      token0PricePerETH = token0Price;
+    if (isRegressionValidationMode) {
+      // filter out the pools where the token is not present
+      //// QUESTION: when is the token not present? If it isn't whitelisted? Is this just a sanity check? Should it sound an alarm is one is undefined/null
+      let relevantPoolsList = context.LiquidityPool.whitelistedPools.filter(
+        (item): item is LiquidityPoolEntity => item !== undefined
+      );
+
+      let token0PricePerETHOld = findPricePerETHOld(
+        token0Instance.id,
+        whitelistedTokensList,
+        relevantPoolsList,
+        event.chainId
+      );
+
+      let token1PricePerETHOld = findPricePerETHOld(
+        token1Instance.id,
+        whitelistedTokensList,
+        relevantPoolsList,
+        event.chainId
+      );
+
+      // If either token0PricePerETH or token1PricePerETH is 1e18, then the opposite token's pricePerETH is the relative price of the tokens in pool
+      if (token0PricePerETHOld == TEN_TO_THE_18_BI) {
+        token1PricePerETHOld = token1Price;
+      }
+      if (token1PricePerETHOld == TEN_TO_THE_18_BI) {
+        token0PricePerETHOld = token0Price;
+      }
+
+      if (token0PricePerETHOld != token0PricePerETH) {
+        throw new Error(
+          `Regression: token0PricePerETHOld: ${token0PricePerETHOld} != token0PricePerETH: ${token0PricePerETH}`
+        );
+      }
+      // else {
+      //   console.log("The token0PricePerETH is the same");
+      // }
+
+      if (token1PricePerETHOld != token1PricePerETH) {
+        throw new Error(
+          `Regression: token1PricePerETHOld: ${token1PricePerETHOld} != token1PricePerETH: ${token1PricePerETH}`
+        );
+      }
+      // else {
+      //   console.log("The token0PricePerETH is the same");
+      // }
     }
 
     let token0PricePerUSD, token1PricePerUSD;
@@ -746,6 +804,8 @@ VotingRewardContract_NotifyReward_loader(({ event, context }) => {
     context.Token.bribeRewardTokenLoad(event.params.reward);
   }
   else {
+    //// QUESTION - I am running into this warning quite often. What does it mean? Why would this warning happen?
+
     // If there is no pool address with the particular gauge address, log the error
     context.log.warn(
       `No pool address found for the bribe voting address ${event.srcAddress.toString()}`
