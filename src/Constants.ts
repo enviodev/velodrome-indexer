@@ -180,6 +180,10 @@ export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
 
 export const CacheCategory = {
   Token: "token",
+  GuageToPool: "guageToPool",
+  BribeToPool: "bribeToPool",
+  WhitelistedPoolIds: "whitelistedPoolIds",
+  PoolToTokens: "poolToTokens",
 } as const;
 
 export type CacheCategory = (typeof CacheCategory)[keyof typeof CacheCategory];

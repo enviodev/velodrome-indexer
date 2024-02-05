@@ -5,8 +5,18 @@ import { CacheCategory } from "./Constants";
 
 type Address = string;
 
-type Shape = Record<string, Record<string, string>>;
+type Shape = Record<string, Record<string, any>>;
+
 type ShapeRoot = Shape & Record<Address, { hash: string }>;
+export type ShapeGuageToPool = Shape & Record<Address, { poolAddress: Address }>;
+export type ShapeBribeToPool = Shape & Record<Address, { poolAddress: Address }>;
+export type tokenToPricingPairs = {
+  // NOTE: a set would be a better datatype than an array here - but insert only happens seldomly, so not an issue.
+  poolIdsWithWhitelistedTokens: string[];
+}
+export type ShapeWhiteListedPoolIds = Shape & Record<Address, tokenToPricingPairs>;
+export type ShapePoolToTokens = Shape & Record<Address, { token0: Address, token1: Address }>;
+
 
 type ShapeToken = Shape &
   Record<Address, { decimals: number; name: string; symbol: string }>;
@@ -20,7 +30,12 @@ export class Cache {
       throw new Error("Unsupported cache category");
     }
 
-    type S = C extends "token" ? ShapeToken : ShapeRoot;
+    type S = C extends "token" ? ShapeToken
+      : C extends "guageToPool" ? ShapeGuageToPool
+      : C extends "bribeToPool" ? ShapeBribeToPool
+      : C extends "whitelistedPoolIds" ? ShapeWhiteListedPoolIds
+      : C extends "poolToTokens" ? ShapePoolToTokens
+      : ShapeRoot;
     const entry = new Entry<S>(`${category}-${chainId.toString()}`);
     return entry;
   }
