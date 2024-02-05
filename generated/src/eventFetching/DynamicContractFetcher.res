@@ -1,30 +1,22 @@
 open Belt
 type blockNumber = int
 type logIndex = int
-type dynamicContractId = {blockNumber: int, logIndex: int}
-type id = Root | DynamicContract(dynamicContractId)
+type id = Root | DynamicContract(blockNumber, logIndex)
 
-type fetchState = {
+type rec t = {
+  id: id,
   latestFetchedBlockTimestamp: int,
   latestFetchedBlockNumber: int,
   contractAddressMapping: ContractAddressingMap.mapping,
   fetchedEventQueue: list<Types.eventBatchQueueItem>,
+  nextRegistered: option<t>,
 }
 
-module DynamicContractCmpId = Id.MakeComparable({
-  type t = dynamicContractId
-  let cmp = (a: t, b: t) =>
-    Pervasives.compare((a.blockNumber, a.logIndex), (b.blockNumber, b.logIndex))
-})
+/**
+Merges two sorted/ordered lists. TCO
 
-type dynamicContractMapping = Map.t<dynamicContractId, fetchState, DynamicContractCmpId.identity>
-let emptyDynamicContractMapping = Map.make(~id=module(DynamicContractCmpId))
-
-type t = {
-  fetchState: fetchState,
-  pendingDynamicContractRegistrations: dynamicContractMapping,
-}
-
+Pass the shorter list into A for better performance
+*/
 let rec mergeSortedListInternal = (a, b, ~cmp, ~sortedRev) => {
   switch (a, b) {
   | (list{aHead, ...aTail}, list{bHead, ...bTail}) =>
@@ -40,172 +32,195 @@ let rec mergeSortedListInternal = (a, b, ~cmp, ~sortedRev) => {
 
 let mergeSortedList = mergeSortedListInternal(~sortedRev=list{})
 
+/**
+Comapritor for two events from the same chain. No need for chain id or timestamp
+*/
 let getEventCmp = (event: Types.eventBatchQueueItem) => {
-  (event.timestamp, event.blockNumber, event.logIndex)
+  (event.blockNumber, event.logIndex)
 }
 
+/**
+Returns the earliest of two events on the same chain
+*/
 let eventCmp = (a, b) => a->getEventCmp <= b->getEventCmp
 
+/**
+Merges two event queues on a single event fetcher
+
+Pass the shorter list into A for better performance
+*/
 let mergeSortedEventList = mergeSortedList(~cmp=eventCmp)
 
-let mergeFetchState = (root: fetchState, child: fetchState) => {
-  let fetchedEventQueue = mergeSortedEventList(root.fetchedEventQueue, child.fetchedEventQueue)
-  let contractAddressMapping = ContractAddressingMap.combine(
-    root.contractAddressMapping,
-    child.contractAddressMapping,
-  )
-  {
-    fetchedEventQueue,
-    contractAddressMapping,
-    latestFetchedBlockTimestamp: Pervasives.max(
-      root.latestFetchedBlockTimestamp,
-      child.latestFetchedBlockTimestamp,
-    ),
-    latestFetchedBlockNumber: Pervasives.max(
-      root.latestFetchedBlockNumber,
-      child.latestFetchedBlockNumber,
-    ),
-  }
-}
-
-let mergeDynamicContractRegistration = (self: t, dynamicContractId: dynamicContractId) => {
-  switch self.pendingDynamicContractRegistrations->Map.get(dynamicContractId) {
-  | None => self
-  | Some(d) =>
-    let fetchState = self.fetchState->mergeFetchState(d)
-    let pendingDynamicContractRegistrations =
-      self.pendingDynamicContractRegistrations->Map.remove(dynamicContractId)
-    {fetchState, pendingDynamicContractRegistrations}
-  }
-}
-
-exception UnexpectedDynamicContractExists(id)
-
-let addDynamicContractNode = (self: t, ~dynamicContractId, ~dynamicContractFetchState) => {
-  let pendingDynamicContractRegistrations =
-    self.pendingDynamicContractRegistrations->Map.set(dynamicContractId, dynamicContractFetchState)
-  {...self, pendingDynamicContractRegistrations}
-}
-
-let updateFetchState = (
-  fetchState: fetchState,
-  ~latestFetchedBlockTimestamp,
-  ~latestFetchedBlockNumber,
-  ~fetchedEvents,
-) => {
-  {
-    ...fetchState,
-    latestFetchedBlockNumber,
-    latestFetchedBlockTimestamp,
-    fetchedEventQueue: List.concat(fetchedEvents, fetchState.fetchedEventQueue),
-  }
-}
-
-let updateDynamicContractFetchState = (
-  pendingDynamicContractRegistrations: dynamicContractMapping,
-  ~dynamicContractId,
-  ~latestFetchedBlockTimestamp,
-  ~latestFetchedBlockNumber,
-  ~fetchedEvents,
-) =>
-  pendingDynamicContractRegistrations->Map.update(dynamicContractId, v =>
-    v->Option.map(
-      updateFetchState(~latestFetchedBlockTimestamp, ~latestFetchedBlockNumber, ~fetchedEvents),
+/**
+Merges a node into its next registered branch. Combines contract address mappings and queues
+*/
+let mergeIntoNextRegistered = (self: t) => {
+  switch self.nextRegistered {
+  | Some(nextRegistered) =>
+    let fetchedEventQueue = mergeSortedEventList(
+      self.fetchedEventQueue,
+      nextRegistered.fetchedEventQueue,
     )
-  )
+    let contractAddressMapping = ContractAddressingMap.combine(
+      self.contractAddressMapping,
+      nextRegistered.contractAddressMapping,
+    )
+    {
+      id: nextRegistered.id,
+      fetchedEventQueue,
+      contractAddressMapping,
+      latestFetchedBlockTimestamp: Pervasives.max(
+        self.latestFetchedBlockTimestamp,
+        nextRegistered.latestFetchedBlockTimestamp,
+      ),
+      latestFetchedBlockNumber: Pervasives.max(
+        self.latestFetchedBlockNumber,
+        nextRegistered.latestFetchedBlockNumber,
+      ),
+      nextRegistered: nextRegistered.nextRegistered,
+    }
+  | None => self //already merged
+  }
+}
 
-exception UnexpectedDynamicContractDoesNotExist(dynamicContractId)
-type updateResponse = {newState: t, nextQueryId: id}
-let makeUpdateResponse = (newState, nextQueryId) => {newState, nextQueryId}
-let update = (
+/**
+compares two node ids to see which one was regisetered earlier
+*/
+let nodeIdLte = (a, b) =>
+  switch (a, b) {
+  | (Root, _) => true
+  | (DynamicContract(_), Root) => false
+  | (
+      DynamicContract(dynABlockNumber, dynALogIndex),
+      DynamicContract(dynBBlockNumber, dynBLogIndex),
+    ) =>
+    (dynABlockNumber, dynALogIndex) <= (dynBBlockNumber, dynBLogIndex)
+  }
+
+exception UnexpectedNodeDoesNotExist(id)
+/**
+Updates node at the given id with the values passed.
+Errors if the node can't be found.
+*/
+let rec updateInternal = (
   ~id,
   ~latestFetchedBlockTimestamp,
   ~latestFetchedBlockNumber,
-  ~fetchedEvents,
+  ~newFetchedEvents,
+  ~contractAddressMapping,
   self: t,
-): updateResponse => {
-  let updateFetchState = updateFetchState(
-    ~latestFetchedBlockNumber,
-    ~latestFetchedBlockTimestamp,
-    ~fetchedEvents,
-  )
-  switch id {
-  | Root =>
-    //Updates the root an selects the same root id as next query id
-    let fetchState = self.fetchState->updateFetchState
+): result<t, exn> => {
+  if self.id == id {
     {
       ...self,
-      fetchState,
-    }->makeUpdateResponse(id)
-
-  | DynamicContract(dynamicContractId) =>
-    switch self.pendingDynamicContractRegistrations->Map.get(dynamicContractId) {
-    //Should not happen that we query for a dynamic contract that doesn't exist. For now raise an exception
-    //We can always change this to just return self with Root id
-    | None => UnexpectedDynamicContractDoesNotExist(dynamicContractId)->raise
-    | Some(d) =>
-      //Update the state of the given pending contract
-      let newState = {
+      latestFetchedBlockNumber,
+      latestFetchedBlockTimestamp,
+      fetchedEventQueue: List.concat(newFetchedEvents, self.fetchedEventQueue),
+    }->Ok
+  } else {
+    switch self.nextRegistered {
+    | Some(child) =>
+      //recurse through children to find the child with the matching id
+      child
+      ->updateInternal(
+        ~newFetchedEvents,
+        ~id,
+        ~latestFetchedBlockNumber,
+        ~latestFetchedBlockTimestamp,
+        ~contractAddressMapping,
+      )
+      ->Result.map(res => {
         ...self,
-        pendingDynamicContractRegistrations: self.pendingDynamicContractRegistrations->Map.set(
-          dynamicContractId,
-          d->updateFetchState,
-        ),
-      }
-
-      if latestFetchedBlockNumber < self.fetchState.latestFetchedBlockNumber {
-        //If the dynamic contract has not caught up to the root fetcher, return
-        //the same id as a next query id
-        newState->makeUpdateResponse(id)
-      } else {
-        //If the dynamic contract has caught up to the root fetcher, return
-        //merge it into the root and return next id as Root
-        newState->mergeDynamicContractRegistration(dynamicContractId)->makeUpdateResponse(Root)
-      }
+        nextRegistered: Some(res),
+      })
+    | None => Error(UnexpectedNodeDoesNotExist(id))
     }
   }
 }
+
+/**
+If a fethcer has caught up to its next regisered node. Merge them and recurse.
+*/
+let rec pruneAndMergeNextRegistered = (self: t) => {
+  switch self.nextRegistered {
+  | None => self
+  | Some(child) =>
+    if child.latestFetchedBlockNumber >= self.latestFetchedBlockNumber {
+      self->mergeIntoNextRegistered->pruneAndMergeNextRegistered
+    } else {
+      self
+    }
+  }
+}
+
+/**
+Updates node at given id with given values and checks to see if it can be merged into its next register.
+Returns Error if the node with given id cannot be found (unexpected)
+*/
+let update = (
+  self: t,
+  ~id,
+  ~latestFetchedBlockTimestamp,
+  ~latestFetchedBlockNumber,
+  ~contractAddressMapping,
+  ~newFetchedEvents,
+): result<t, exn> =>
+  self
+  ->updateInternal(
+    ~id,
+    ~latestFetchedBlockTimestamp,
+    ~latestFetchedBlockNumber,
+    ~newFetchedEvents,
+    ~contractAddressMapping,
+  )
+  ->Result.map(pruneAndMergeNextRegistered)
 
 type nextQuery = {
   fetcherId: id,
   fromBlock: int,
+  toBlock: int,
   contractAddressMapping: ContractAddressingMap.mapping,
   currentLatestBlockTimestamp: int,
 }
 
-let getNextQueryFromFetchState = (fetchState, ~fetcherId) => {
-  fetcherId,
-  fromBlock: fetchState.latestFetchedBlockNumber + 1,
-  contractAddressMapping: fetchState.contractAddressMapping,
-  currentLatestBlockTimestamp: fetchState.latestFetchedBlockTimestamp,
+/**
+Constructs `nextQuery` from a given node
+*/
+let getNextQueryFromNode = (
+  {id, latestFetchedBlockNumber, contractAddressMapping, latestFetchedBlockTimestamp}: t,
+  ~toBlock,
+) => {
+  fetcherId: id,
+  fromBlock: latestFetchedBlockNumber + 1,
+  toBlock,
+  contractAddressMapping,
+  currentLatestBlockTimestamp: latestFetchedBlockTimestamp,
 }
 
-let getNextQuery = (self: t, ~fetcherId) =>
-  switch fetcherId {
-  | Root =>
-    if self.pendingDynamicContractRegistrations->Map.size > 0 {
-      //If there are pending dynamic contract registrations
-      //Don't action a request until they are all merged int
-      None
-    } else {
-      //
-      self.fetchState->getNextQueryFromFetchState(~fetcherId)->Some
-    }
-  | DynamicContract(dynamicContractId) =>
-    self.pendingDynamicContractRegistrations
-    ->Map.get(dynamicContractId)
-    ->Option.map(getNextQueryFromFetchState(~fetcherId))
+/**
+Gets the next query either with a to block of the current height if it is the root node.
+Or with a toBlock of the nextRegistered latestBlockNumber to catch up and merge with the next regisetered.
+*/
+let getNextQuery = (self: t, ~currentBlockHeight) =>
+  switch self.nextRegistered {
+  | None => self->getNextQueryFromNode(~toBlock=currentBlockHeight)
+  | Some({latestFetchedBlockNumber}) =>
+    self->getNextQueryFromNode(~toBlock=latestFetchedBlockNumber)
   }
 
-type latestFetchedBlockTimestamp = int
+type latestFetchedData = {
+  timestamp: int,
+  blockNumber: int,
+}
+
 type queueItem =
   | Item(Types.eventBatchQueueItem)
-  | NoItem(latestFetchedBlockTimestamp)
+  | NoItem(latestFetchedData)
 
 let getCmp = qItem =>
   switch qItem {
-  | Item({timestamp, blockNumber, logIndex}) => (timestamp, blockNumber, logIndex)
-  | NoItem(timestamp) => (timestamp, 0, 0)
+  | Item({blockNumber, logIndex}) => (blockNumber, logIndex)
+  | NoItem({blockNumber}) => (blockNumber, 0)
   }
 
 let qItemLt = (a, b) => a->getCmp < b->getCmp
@@ -217,160 +232,99 @@ let earlierQItem = (a, b) =>
     b
   }
 
-type latestEventResponseGeneric<'a> = {
-  updatedFetcher: 'a,
+type latestEventResponse = {
+  updatedFetcher: t,
   earliestQueueItem: queueItem,
 }
 
-type latestEventResponse = latestEventResponseGeneric<t>
-
-let getNodeEarliestEvent = (fetchState: fetchState) => {
-  let (updatedFetcher, earliestQueueItem) = switch fetchState.fetchedEventQueue {
-  | list{} => (fetchState, NoItem(fetchState.latestFetchedBlockTimestamp))
-  | list{head, ...fetchedEventQueue} => ({...fetchState, fetchedEventQueue}, Item(head))
+let getNodeEarliestEvent = (self: t) => {
+  let (updatedFetcher, earliestQueueItem) = switch self.fetchedEventQueue {
+  | list{} => (
+      self,
+      NoItem({
+        timestamp: self.latestFetchedBlockTimestamp,
+        blockNumber: self.latestFetchedBlockNumber,
+      }),
+    )
+  | list{head, ...fetchedEventQueue} => ({...self, fetchedEventQueue}, Item(head))
   }
 
   {updatedFetcher, earliestQueueItem}
 }
 
-let getEarliestEvent = (self: t): latestEventResponse => {
-  let rootEarliestEvent = self.fetchState->getNodeEarliestEvent
+let getSelfWithChildResponse = (self: t, {updatedFetcher, earliestQueueItem}) => {
+  let updatedFetcher = {
+    ...self,
+    nextRegistered: Some(updatedFetcher),
+  }
+  {updatedFetcher, earliestQueueItem}
+}
 
-  let optEarliestDynamicContract =
-    self.pendingDynamicContractRegistrations
-    ->Map.toArray
-    ->Array.reduce(None, (accum, (chain, fetchState)) => {
-      let currentEarliest = fetchState->getNodeEarliestEvent
-      switch accum {
-      | None =>
-        if currentEarliest.earliestQueueItem->qItemLt(rootEarliestEvent.earliestQueueItem) {
-          Some((chain, currentEarliest))
-        } else {
-          None
-        }
-      | Some((_, prevEarliest)) =>
-        if currentEarliest.earliestQueueItem->qItemLt(prevEarliest.earliestQueueItem) {
-          Some((chain, currentEarliest))
-        } else {
-          accum
-        }
-      }
-    })
+let rec getEarliestEvent = (self: t) => {
+  let currentEarliestEvent = self->getNodeEarliestEvent
+  switch self.nextRegistered {
+  | None => currentEarliestEvent
+  | Some(child) =>
+    let childEarliestEvent = child->getNodeEarliestEvent
 
-  switch optEarliestDynamicContract {
-  | Some((chain, dynamicContractEarliest))
-    if dynamicContractEarliest.earliestQueueItem->qItemLt(rootEarliestEvent.earliestQueueItem) =>
-    let pendingDynamicContractRegistrations =
-      self.pendingDynamicContractRegistrations->Map.set(
-        chain,
-        dynamicContractEarliest.updatedFetcher,
-      )
-    let updatedFetcher = {...self, pendingDynamicContractRegistrations}
-
-    {
-      updatedFetcher,
-      earliestQueueItem: dynamicContractEarliest.earliestQueueItem,
-    }
-
-  | _ =>
-    let updatedFetcher = {...self, fetchState: rootEarliestEvent.updatedFetcher}
-    {
-      updatedFetcher,
-      earliestQueueItem: rootEarliestEvent.earliestQueueItem,
+    if currentEarliestEvent.earliestQueueItem->qItemLt(childEarliestEvent.earliestQueueItem) {
+      currentEarliestEvent
+    } else {
+      self->getSelfWithChildResponse(child->getEarliestEvent)
     }
   }
-  // switch self.pendingDynamicContractRegistrations {
-  // | None => self->getNodeEarliestEvent
-  // | Some(child) =>
-  //   let currentEarliest = child->getNodeEarliestEvent
-  //   let nextEarliest = child->getEarliestEvent
-  //
-  //   let nextChild = if currentEarliest.earliestQueueItem->qItemLt(nextEarliest.earliestQueueItem) {
-  //     currentEarliest
-  //   } else {
-  //     nextEarliest
-  //   }
-  //
-  //   self->getSelfWithChildResponse(nextChild)
-  // }
 }
 
 let makeInternal = (~id, ~contractAddressMapping): t => {
-  fetchState: {
-    latestFetchedBlockTimestamp: 0,
-    latestFetchedBlockNumber: 0,
-    contractAddressMapping,
-    fetchedEventQueue: list{},
-  },
-  pendingDynamicContractRegistrations: emptyDynamicContractMapping,
+  id,
+  latestFetchedBlockTimestamp: 0,
+  latestFetchedBlockNumber: 0,
+  contractAddressMapping,
+  fetchedEventQueue: list{},
+  nextRegistered: None,
 }
 
 let makeRoot = makeInternal(~id=Root)
 
+exception UnexpectedDynamicContractRegisterOrder(id)
+/**
+Adds a new dynamic contract registration. Returns an error in the case that there
+is already a registration that came later than the current one. This is unexpected.
+*/
 let registerDynamicContract = (
   self: t,
   ~registeringEventBlockNumber,
   ~registeringEventLogIndex,
   ~contractAddressMapping,
 ) => {
-  let dynamicContractId = {
-    blockNumber: registeringEventBlockNumber,
-    logIndex: registeringEventLogIndex,
+  let id = DynamicContract(registeringEventBlockNumber, registeringEventLogIndex)
+
+  if id->nodeIdLte(self.id) {
+    Error(UnexpectedDynamicContractRegisterOrder(id))
+  } else {
+    {
+      id,
+      latestFetchedBlockNumber: registeringEventBlockNumber - 1,
+      latestFetchedBlockTimestamp: 0,
+      contractAddressMapping,
+      fetchedEventQueue: list{},
+      nextRegistered: Some(self),
+    }->Ok
   }
-  let dynamicContractFetchState = {
-    latestFetchedBlockNumber: registeringEventBlockNumber - 1,
-    latestFetchedBlockTimestamp: 0,
-    contractAddressMapping,
-    fetchedEventQueue: list{},
-  }
-  {
-    nextQueryId: DynamicContract(dynamicContractId),
-    newState: self->addDynamicContractNode(~dynamicContractId, ~dynamicContractFetchState),
+}
+
+let rec queueSizeInternal = (self: t, ~accum) => {
+  let accum = self.fetchedEventQueue->List.size + accum
+  switch self.nextRegistered {
+  | None => accum
+  | Some(child) => child->queueSizeInternal(~accum)
   }
 }
 
-let queueSize = (self: t) => {
-  self.fetchState.fetchedEventQueue->List.size +
-    self.pendingDynamicContractRegistrations->Map.reduce(0, (accum, _chain, p) =>
-      accum + p.fetchedEventQueue->List.size
-    )
-}
+let queueSize = queueSizeInternal(~accum=0)
 
-let isReadyForNextQuery = (self: t, ~maxQueueSize, ~fetcherId, ~currentlyFetchingBatch) =>
-  switch (fetcherId, currentlyFetchingBatch) {
-  | (Root, true) => false
-  | (Root, false) if self.pendingDynamicContractRegistrations->Map.size > 0 => false
-  | (Root, false) => self.fetchState.fetchedEventQueue->List.size < maxQueueSize
-  | (DynamicContract(_), _) => true
+let isReadyForNextQuery = (self: t, ~maxQueueSize) =>
+  switch self.nextRegistered {
+  | Some(_) => true
+  | None => self.fetchedEventQueue->List.size < maxQueueSize
   }
-
-let getAllAddressesForContract = (~contractName, self: t) => {
-  self.pendingDynamicContractRegistrations
-  ->Map.valuesToArray
-  ->Array.concat([self.fetchState])
-  ->Array.reduce(Set.String.empty, (accum, fetchState) => {
-    fetchState.contractAddressMapping
-    ->ContractAddressingMap.getAddresses(contractName)
-    ->Option.mapWithDefault(accum, newAddresses => {
-      accum->Set.String.union(newAddresses)
-    })
-  })
-}
-
-let checkContainsRegisteredContractAddress = (self: t, ~contractName, ~contractAddress) => {
-  let allAddr = self->getAllAddressesForContract(~contractName)
-  allAddr->Set.String.has(contractAddress->Ethers.ethAddressToString)
-}
-
-let getQueueSizes = (self: t) => {
-  [("Root", self.fetchState.fetchedEventQueue->List.size)]
-  ->Array.concat(
-    self.pendingDynamicContractRegistrations
-    ->Map.toArray
-    ->Array.map((({blockNumber, logIndex}, fs)) => (
-      `${blockNumber->Int.toString}-${logIndex->Int.toString}`,
-      fs.fetchedEventQueue->List.size,
-    )),
-  )
-  ->Js.Dict.fromArray
-}
