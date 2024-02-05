@@ -325,7 +325,7 @@ let rec registerDynamicContract = (
       {...self, nextRegistered}
     }
   | _ =>
-  //TODO: can change structure to have nextRegistered inside id enum
+    //TODO: can change structure to have nextRegistered inside id enum
     Js.Exn.raiseError(
       "Unexpected invalid case of dynamic contract with no nextRegistration or root with registration",
     )
@@ -342,11 +342,15 @@ let rec queueSizeInternal = (self: t, ~accum) => {
 
 let queueSize = queueSizeInternal(~accum=0)
 
+/**
+Check the max queue size of the tip of the tree.
+
+Don't use the cummulative queue sizes because otherwise there
+could be a deadlock. With a very small buffer size of the actively
+fetching registration
+*/
 let isReadyForNextQuery = (self: t, ~maxQueueSize) =>
-  switch self.nextRegistered {
-  | Some(_) => true
-  | None => self.fetchedEventQueue->List.size < maxQueueSize
-  }
+  self.fetchedEventQueue->List.size < maxQueueSize
 
 let rec getAllAddressesForContract = (~addresses=Set.String.empty, ~contractName, self: t) => {
   let addresses =
