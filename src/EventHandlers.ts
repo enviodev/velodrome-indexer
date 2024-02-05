@@ -724,7 +724,7 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
   if (isRegressionValidationMode) {
     //// NOTE: below code should be deleted once it is manually determined that there aren't regressions.
     let poolAddressOld = getPoolAddressByGaugeAddressOld(event.params.gauge);
-    if (poolAddress != poolAddressOld) console.log("poolAddress and poolAddressOld are the same:", poolAddress == poolAddressOld)
+    if (poolAddress != poolAddressOld) console.log("poolAddress and poolAddressOld are not the same:", poolAddress == poolAddressOld)
   }
 
   // If there is a pool address with the particular gauge address, load the pool
@@ -792,7 +792,7 @@ VotingRewardContract_NotifyReward_loader(({ event, context }) => {
   if (isRegressionValidationMode) {
     //// NOTE: below code should be deleted once it is manually determined that there aren't regressions.
     let poolAddressOld = getPoolAddressByBribeVotingRewardAddressOld(event.srcAddress);
-    if (poolAddress != poolAddressOld) console.log("poolAddress and poolAddressOld are the same:", poolAddress, poolAddressOld)
+    if (poolAddress != poolAddressOld) console.log("poolAddress and poolAddressOld are not the same:", poolAddress, poolAddressOld)
     assert(poolAddress == poolAddressOld, "poolAddress and poolAddressOld should be the same");
   }
 
