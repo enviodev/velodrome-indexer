@@ -107,7 +107,6 @@ let rec updateInternal = (
   ~latestFetchedBlockTimestamp,
   ~latestFetchedBlockNumber,
   ~newFetchedEvents,
-  ~contractAddressMapping,
   self: t,
 ): result<t, exn> => {
   if self.id == id {
@@ -127,7 +126,6 @@ let rec updateInternal = (
         ~id,
         ~latestFetchedBlockNumber,
         ~latestFetchedBlockTimestamp,
-        ~contractAddressMapping,
       )
       ->Result.map(res => {
         ...self,
@@ -162,16 +160,14 @@ let update = (
   ~id,
   ~latestFetchedBlockTimestamp,
   ~latestFetchedBlockNumber,
-  ~contractAddressMapping,
-  ~newFetchedEvents,
+  ~fetchedEvents,
 ): result<t, exn> =>
   self
   ->updateInternal(
     ~id,
     ~latestFetchedBlockTimestamp,
     ~latestFetchedBlockNumber,
-    ~newFetchedEvents,
-    ~contractAddressMapping,
+    ~newFetchedEvents=fetchedEvents,
   )
   ->Result.map(pruneAndMergeNextRegistered)
 
@@ -328,3 +324,40 @@ let isReadyForNextQuery = (self: t, ~maxQueueSize) =>
   | Some(_) => true
   | None => self.fetchedEventQueue->List.size < maxQueueSize
   }
+
+let rec getAllAddressesForContract = (~addresses=Set.String.empty, ~contractName, self: t) => {
+  let addresses =
+    self.contractAddressMapping
+    ->ContractAddressingMap.getAddresses(contractName)
+    ->Option.mapWithDefault(addresses, newAddresses => {
+      addresses->Set.String.union(newAddresses)
+    })
+
+  switch self.nextRegistered {
+  | None => addresses
+  | Some(child) => child->getAllAddressesForContract(~addresses, ~contractName)
+  }
+}
+
+let checkContainsRegisteredContractAddress = (self: t, ~contractName, ~contractAddress) => {
+  let allAddr = self->getAllAddressesForContract(~contractName)
+  allAddr->Set.String.has(contractAddress->Ethers.ethAddressToString)
+}
+
+let idToString = id =>
+  switch id {
+  | Root => "root"
+  | DynamicContract(bn, li) => `DC-${bn->Int.toString}-${li->Int.toString}`
+  }
+
+let rec getQueueSizesInternal = (self: t, ~accum) => {
+  let next = (self.id->idToString, self.fetchedEventQueue->List.size)
+  let accum = list{next, ...accum}
+  switch self.nextRegistered {
+  | None => accum
+  | Some(child) => child->getQueueSizesInternal(~accum)
+  }
+}
+
+let getQueueSizes = (self: t) =>
+  self->getQueueSizesInternal(~accum=list{})->List.toArray->Js.Dict.fromArray

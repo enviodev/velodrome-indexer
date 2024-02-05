@@ -24,12 +24,7 @@ type multiChainEventComparitor = {
 let getQueueItemComparitor = (latestQueueItem: DynamicContractFetcher.queueItem, ~chain) => {
   switch latestQueueItem {
   | Item(i) => i->getComparitorFromItem
-  | NoItem(latestFetchedBlockTimestamp) => (
-      latestFetchedBlockTimestamp,
-      chain->ChainMap.Chain.toChainId,
-      0,
-      0,
-    )
+  | NoItem({timestamp, blockNumber}) => (timestamp, chain->ChainMap.Chain.toChainId, blockNumber, 0)
   }
 }
 
@@ -465,7 +460,7 @@ let createBatch = (self: t, ~maxBatchSize: int) => {
     "fetcher sizes after",
     response.fetchers
     ->ChainMap.values
-    ->Array.map(DynamicContractFetcher.getQueueSizes)
+    ->Array.map(DynamicContractFetcher.getQueueSizesInternal)
     ->Array.get(0),
   ))
   if response.batchSize > 0 {

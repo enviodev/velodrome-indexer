@@ -223,6 +223,7 @@ let waitForNextBlockBeforeQuery = async (
 let getNextPage = async (
   {serverUrl, chainConfig}: t,
   ~fromBlock,
+  ~toBlock,
   ~currentBlockHeight,
   ~logger,
   ~setCurrentBlockHeight,
@@ -250,13 +251,7 @@ let getNextPage = async (
 
   //fetch batch
   let pageUnsafe = await Helpers.queryLogsPageWithBackoff(
-    () =>
-      HyperSync.queryLogsPage(
-        ~serverUrl,
-        ~fromBlock,
-        ~toBlock=currentBlockHeight,
-        ~contractAddressesAndtopics,
-      ),
+    () => HyperSync.queryLogsPage(~serverUrl, ~fromBlock, ~toBlock, ~contractAddressesAndtopics),
     logger,
   )
 
@@ -273,12 +268,13 @@ let fetchBlockRange = async (
   ~setCurrentBlockHeight,
 ): blockRangeFetchResponse => {
   let {chainConfig: {chain}, serverUrl} = self
-  let {fetcherId, fromBlock, contractAddressMapping, currentLatestBlockTimestamp} = query
+  let {fetcherId, fromBlock, contractAddressMapping, currentLatestBlockTimestamp, toBlock} = query
   let startFetchingBatchTimeRef = Hrtime.makeTimer()
   //fetch batch
   let {page: pageUnsafe, contractInterfaceManager, pageFetchTime} =
     await self->getNextPage(
       ~fromBlock,
+      ~toBlock,
       ~currentBlockHeight,
       ~contractAddressMapping,
       ~logger,
@@ -515,6 +511,7 @@ let loopFetchBlockRanges = async (
         fetcherId,
         contractAddressMapping,
         currentLatestBlockTimestamp: latestFetchedBlockTimestamp,
+        toBlock: currentBlockHeight,
       }
   }
 }
@@ -538,6 +535,7 @@ let startWorker = async (
     currentLatestBlockTimestamp: self.latestFetchedBlockTimestamp,
     fetcherId: Root,
     contractAddressMapping,
+    toBlock: initialHeight,
   }
 
   await self->loopFetchBlockRanges(
