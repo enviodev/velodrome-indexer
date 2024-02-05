@@ -3,9 +3,6 @@ import { Cache, Entry, ShapeGuageToPool, ShapeBribeToPool, ShapeWhiteListedPoolI
 import { CacheCategory } from './Constants';
 import { Address } from "web3";
 
-// Object to store all the pool addresses with whitelist tokens
-export let whitelistedPoolIdsOld: string[] = [];
-
 export const whitelistedPoolIdsManager = () => {
   /*
   NOTE: here the cache is to make sure this code is restart resistant, it is not for performance optimization (actually the cache will have a negative impact on performance)
@@ -64,9 +61,6 @@ export const whitelistedPoolIdsManager = () => {
 
   return { addWhitelistedPoolId, getWhitelistedPoolIds, getTokensFromWhitelistedPool };
 };
-
-// Object to store all the pool addresses with reward contract addresses
-export let poolRewardAddressStoreOld: poolRewardAddressMapping[] = [];
 
 export const poolLookupStoreManager = () => {
   /*
