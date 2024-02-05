@@ -260,8 +260,14 @@ type dynamicContractRegistration = {
 }
 
 type dynamicContractRegistrations = {
-  registrations: array<dynamicContractRegistration>,
+  //Its better to apply these in reverse so that we register them with
+  //the fetcher from latest to earliest. That way there are less recursions
+  registrationsReversed: list<dynamicContractRegistration>,
   unprocessedBatchReversed: list<Types.eventBatchQueueItem>,
+  //Once a single registration happens, the rest of the batches
+  //loaders should be run on an isolated in memory store so that
+  //they don't affect state of the batch that will be processed
+  inMemoryStore: IO.InMemoryStore.t,
 }
 
 type loadResponse<'a> = {
@@ -284,7 +290,6 @@ let composeGetReadEntity = (
   ~asyncGetters,
   ~getLoader,
   ~item: Types.eventBatchQueueItem,
-  ~otherItems,
   ~entitiesToLoad,
   ~dynamicContractRegistrations: option<dynamicContractRegistrations>,
   ~eventWithContextAccessor,
@@ -293,6 +298,11 @@ let composeGetReadEntity = (
 ) => {
   let {chain} = item
   let chainId = chain->ChainMap.Chain.toChainId
+  //If there are dynamic contracts, context loader should use the cloned in memory store
+  //Otherwise we can use the passed in one
+  let inMemoryStore =
+    dynamicContractRegistrations->Option.mapWithDefault(inMemoryStore, d => d.inMemoryStore)
+
   let contextHelper: Context.genericContextCreatorFunctions<'a, 'b, 'c> = contextCreator(
     ~inMemoryStore,
     ~chainId,
@@ -318,7 +328,6 @@ let composeGetReadEntity = (
   let dynamicContracts = if item.hasRegisteredDynamicContracts->Option.getWithDefault(false) {
     //If an item has already been registered, it would have been
     //put back on the arbitrary events queue and is now being reprocessed
-    Logging.debug("Contract hasRegisteredDynamicContracts-")
     []
   } else {
     let fetcher = fetchers->ChainMap.get(chain)
@@ -335,8 +344,11 @@ let composeGetReadEntity = (
     })
   }
 
-  let addToDynamicContractRegistrations = (~registrations, ~unprocessedBatchReversed) => {
-    Logging.debug("dynamic contract registration time")
+  let addToDynamicContractRegistrations = (
+    ~registrationsReversed,
+    ~unprocessedBatchReversed,
+    ~inMemoryStore,
+  ) => {
     //If there are any dynamic contract registrations, put this item in the unprocessedBatch flagged
     //with "hasRegisteredDynamicContracts" and return the same list of entitiesToLoad without the
     //current item
@@ -353,7 +365,8 @@ let composeGetReadEntity = (
     }
     let dynamicContractRegistrations = {
       unprocessedBatchReversed,
-      registrations: registrations->Array.concat([dynamicContractRegistration]),
+      registrationsReversed: list{dynamicContractRegistration, ...registrationsReversed},
+      inMemoryStore,
     }->Some
     {val: entitiesToLoad, dynamicContractRegistrations}
   }
@@ -361,9 +374,15 @@ let composeGetReadEntity = (
   switch dynamicContractRegistrations {
   | None =>
     if dynamicContracts->Array.length > 0 {
-      addToDynamicContractRegistrations(~registrations=[], ~unprocessedBatchReversed=list{})
+      //Clone the inMemoryStore
+      let inMemoryStoreDeepClone = inMemoryStore->IO.InMemoryStore.clone
+
+      addToDynamicContractRegistrations(
+        ~registrationsReversed=list{},
+        ~unprocessedBatchReversed=list{},
+        ~inMemoryStore=inMemoryStoreDeepClone,
+      )
     } else {
-      Logging.debug("No dynamic contract regitration")
       //If there are no dynamic contract registrations, get the entities to load and
       //return a context with the event for the handlers
       let entitiesToLoad = entitiesToLoad->Array.concat([
@@ -380,15 +399,20 @@ let composeGetReadEntity = (
 
       {val: entitiesToLoad, dynamicContractRegistrations: None}
     }
-  | Some({unprocessedBatchReversed, registrations}) =>
+  | Some({unprocessedBatchReversed, registrationsReversed, inMemoryStore}) =>
     if dynamicContracts->Array.length > 0 {
-      addToDynamicContractRegistrations(~registrations, ~unprocessedBatchReversed)
+      addToDynamicContractRegistrations(
+        ~registrationsReversed,
+        ~unprocessedBatchReversed,
+        ~inMemoryStore,
+      )
     } else {
       let unprocessedBatchReversed = list{item, ...unprocessedBatchReversed}
 
       let dynamicContractRegistrations = {
         unprocessedBatchReversed,
-        registrations,
+        registrationsReversed,
+        inMemoryStore,
       }->Some
       {val: entitiesToLoad, dynamicContractRegistrations}
     }
@@ -408,7 +432,6 @@ let rec getReadEntitiesInternal = (
 
   | list{item, ...tail} => {
       let composer = composeGetReadEntity(
-        ~otherItems=tail,
         ~entitiesToLoad,
         ~asyncGetters,
         ~inMemoryStore,
@@ -549,19 +572,6 @@ let processEventBatch = async (
     ~fetchers,
   )
 
-  if (
-    eventBatch->List.reduce(false, (accum, item) =>
-      accum || item.hasRegisteredDynamicContracts->Option.getWithDefault(false)
-    )
-  ) {
-    Logging.debug((
-      "event batch and context",
-      eventBatchAndContext,
-      "dynamicContractRegistration",
-      dynamicContractRegistrations,
-    ))
-    // Js.Exn.raiseError("stop here")
-  }
   let elapsedAfterLoad = timeRef->Hrtime.timeSince->Hrtime.toMillis->Hrtime.intFromMillis
 
   await eventBatchAndContext->Belt.Array.reduce(Promise.resolve(), async (

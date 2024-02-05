@@ -90,16 +90,6 @@ let handleHyperSyncBlockRangeResponse = (
       ~id=fetcherId,
     )
     ->unwrapExn
-  Logging.debug((
-    "Response received. Fetcher id:",
-    "fetcher id",
-    fetcherId,
-    "heighestQueriedBlockNumber",
-    heighestQueriedBlockNumber,
-    "parsed items:",
-    parsedQueueItems->Array.length,
-    updatedFetcher->DynamicContractFetcher.queueSize,
-  ))
 
   let updatedChainFetcher = {
     ...chainFetcher->updateChainFetcherCurrentBlockHeight(~currentBlockHeight),
@@ -122,10 +112,9 @@ let actionReducer = (state: t, action: action) => {
   | SetFetcherCurrentBlockHeight(chain, currentBlockHeight) =>
     state->handleSetCurrentBlockHeight(~chain, ~currentBlockHeight)
   | HyperSyncBlockRangeResponse(chain, response) =>
-    Logging.debug("Updating fetchers with hypersync block range res action")
     state->handleHyperSyncBlockRangeResponse(~chain, ~response)
   | EventBatchProcessed({
-      dynamicContractRegistrations: Some({registrations, unprocessedBatchReversed}),
+      dynamicContractRegistrations: Some({registrationsReversed, unprocessedBatchReversed}),
     }) =>
     let updatedArbQueue =
       unprocessedBatchReversed
@@ -137,7 +126,7 @@ let actionReducer = (state: t, action: action) => {
 
     let nextTasks = [ProcessEventBatch, NextQuery(CheckAllChainsRoot)]
 
-    let nextState = registrations->Array.reduce(state, (state, registration) => {
+    let nextState = registrationsReversed->List.reduce(state, (state, registration) => {
       let {
         registeringEventBlockNumber,
         registeringEventLogIndex,
@@ -154,13 +143,11 @@ let actionReducer = (state: t, action: action) => {
         state.chainManager.chainFetchers->ChainMap.get(registeringEventChain)
 
       let updatedFetcher =
-        currentChainFetcher.fetcher
-        ->DynamicContractFetcher.registerDynamicContract(
+        currentChainFetcher.fetcher->DynamicContractFetcher.registerDynamicContract(
           ~contractAddressMapping,
           ~registeringEventBlockNumber,
           ~registeringEventLogIndex,
         )
-        ->unwrapExn
 
       let updatedChainFetcher = {...currentChainFetcher, fetcher: updatedFetcher}
 
@@ -177,6 +164,13 @@ let actionReducer = (state: t, action: action) => {
         chainManager: updatedChainManager,
         currentlyProcessingBatch: false,
       }
+    })
+
+    let cf = nextState.chainManager.chainFetchers->ChainMap.get(Chain_10)
+    Logging.debug({
+      "msg": "checking count of registrations",
+      "After registration number": cf.fetcher->DynamicContractFetcher.numberRegistered,
+      "number registered": registrationsReversed->List.length,
     })
     (nextState, nextTasks)
 
@@ -195,7 +189,6 @@ let actionReducer = (state: t, action: action) => {
 
     ({...state, chainManager: {...state.chainManager, chainFetchers}}, [])
   | UpdateQueues(fetchers, arbitraryEventPriorityQueue) =>
-    Logging.debug("Updating fetchers action")
     let chainFetchers = state.chainManager.chainFetchers->ChainMap.mapWithKey((chain, cf) => {
       {
         ...cf,
@@ -219,7 +212,6 @@ let actionReducer = (state: t, action: action) => {
 let checkAndFetchForChain = (chain, ~state, ~dispatchAction) => {
   let {fetcher, chainWorker, logger, currentBlockHeight, isFetchingBatch} =
     state.chainManager.chainFetchers->ChainMap.get(chain)
-  Logging.debug("Check and fetch for chain")
   if (
     !isFetchingBatch &&
     fetcher->DynamicContractFetcher.isReadyForNextQuery(~maxQueueSize=state.maxPerChainQueueSize)
@@ -229,7 +221,6 @@ let checkAndFetchForChain = (chain, ~state, ~dispatchAction) => {
       let query = fetcher->DynamicContractFetcher.getNextQuery(~currentBlockHeight)
 
       dispatchAction(SetCurrentlyFetchingBatch(chain, true))
-      Logging.debug(("Query:", query))
       let setCurrentBlockHeight = (~currentBlockHeight) =>
         dispatchAction(SetFetcherCurrentBlockHeight(chain, currentBlockHeight))
       worker
@@ -258,23 +249,16 @@ let taskReducer = (state: t, task: task, ~dispatchAction) => {
     }
   | ProcessEventBatch =>
     if !state.currentlyProcessingBatch {
-      Logging.debug("Start processing")
       dispatchAction(SetCurrentlyProcessing(true))
       switch state.chainManager->ChainManager.createBatch(~maxBatchSize=state.maxBatchSize) {
       | Some({batch, fetchers, arbitraryEventQueue}) =>
-        Logging.debug("got batch")
-
         dispatchAction(UpdateQueues(fetchers, arbitraryEventQueue))
         let inMemoryStore = IO.InMemoryStore.make()
         EventProcessing.processEventBatch(~eventBatch=batch, ~inMemoryStore, ~fetchers)
         ->Promise.thenResolve(res => dispatchAction(EventBatchProcessed(res)))
         ->ignore
-      | None =>
-        Logging.debug("no batch")
-        dispatchAction(SetCurrentlyProcessing(false))
+      | None => dispatchAction(SetCurrentlyProcessing(false))
       }
-    } else {
-      Logging.debug("Currently processing")
     }
   }
 }

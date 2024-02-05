@@ -83,20 +83,6 @@ let mergeIntoNextRegistered = (self: t) => {
   }
 }
 
-/**
-compares two node ids to see which one was regisetered earlier
-*/
-let nodeIdLte = (a, b) =>
-  switch (a, b) {
-  | (Root, _) => true
-  | (DynamicContract(_), Root) => false
-  | (
-      DynamicContract(dynABlockNumber, dynALogIndex),
-      DynamicContract(dynBBlockNumber, dynBLogIndex),
-    ) =>
-    (dynABlockNumber, dynALogIndex) <= (dynBBlockNumber, dynBLogIndex)
-  }
-
 exception UnexpectedNodeDoesNotExist(id)
 /**
 Updates node at the given id with the values passed.
@@ -143,10 +129,10 @@ let rec pruneAndMergeNextRegistered = (self: t) => {
   switch self.nextRegistered {
   | None => self
   | Some(child) =>
-    if child.latestFetchedBlockNumber >= self.latestFetchedBlockNumber {
-      self->mergeIntoNextRegistered->pruneAndMergeNextRegistered
-    } else {
+    if self.latestFetchedBlockNumber < child.latestFetchedBlockNumber {
       self
+    } else {
+      self->mergeIntoNextRegistered->pruneAndMergeNextRegistered
     }
   }
 }
@@ -282,12 +268,25 @@ let makeInternal = (~id, ~contractAddressMapping): t => {
 
 let makeRoot = makeInternal(~id=Root)
 
-exception UnexpectedDynamicContractRegisterOrder(id)
+/**
+compares two node ids to see which one was regisetered earlier
+*/
+let nodeIdLte = (a, b) =>
+  switch (a, b) {
+  | (Root, _) => true
+  | (DynamicContract(_), Root) => false
+  | (
+      DynamicContract(dynABlockNumber, dynALogIndex),
+      DynamicContract(dynBBlockNumber, dynBLogIndex),
+    ) =>
+    (dynABlockNumber, dynALogIndex) <= (dynBBlockNumber, dynBLogIndex)
+  }
+
 /**
 Adds a new dynamic contract registration. Returns an error in the case that there
 is already a registration that came later than the current one. This is unexpected.
 */
-let registerDynamicContract = (
+let rec registerDynamicContract = (
   self: t,
   ~registeringEventBlockNumber,
   ~registeringEventLogIndex,
@@ -295,17 +294,41 @@ let registerDynamicContract = (
 ) => {
   let id = DynamicContract(registeringEventBlockNumber, registeringEventLogIndex)
 
-  if id->nodeIdLte(self.id) {
-    Error(UnexpectedDynamicContractRegisterOrder(id))
-  } else {
-    {
-      id,
-      latestFetchedBlockNumber: registeringEventBlockNumber - 1,
-      latestFetchedBlockTimestamp: 0,
-      contractAddressMapping,
-      fetchedEventQueue: list{},
-      nextRegistered: Some(self),
-    }->Ok
+  let insertFront = {
+    id,
+    latestFetchedBlockNumber: registeringEventBlockNumber - 1,
+    latestFetchedBlockTimestamp: 0,
+    contractAddressMapping,
+    fetchedEventQueue: list{},
+    nextRegistered: Some(self),
+  }
+
+  //cases:
+  //no value and we only have root -> always insert front
+  //all other cases id is dynamic contract.
+  //registration is less than previous add to front
+  //otherwise recurse
+  switch self {
+  | {id: Root, nextRegistered: None} => insertFront
+  | {id: DynamicContract(blockNumber, logIndex), nextRegistered: Some(next)} =>
+    if (registeringEventBlockNumber, registeringEventLogIndex) <= (blockNumber, logIndex) {
+      insertFront
+    } else {
+      let nextRegistered =
+        next
+        ->registerDynamicContract(
+          ~contractAddressMapping,
+          ~registeringEventBlockNumber,
+          ~registeringEventLogIndex,
+        )
+        ->Some
+      {...self, nextRegistered}
+    }
+  | _ =>
+  //TODO: can change structure to have nextRegistered inside id enum
+    Js.Exn.raiseError(
+      "Unexpected invalid case of dynamic contract with no nextRegistration or root with registration",
+    )
   }
 }
 
@@ -361,3 +384,11 @@ let rec getQueueSizesInternal = (self: t, ~accum) => {
 
 let getQueueSizes = (self: t) =>
   self->getQueueSizesInternal(~accum=list{})->List.toArray->Js.Dict.fromArray
+
+let rec numberRegistered = (~accum=0, self: t) => {
+  let accum = accum + 1
+  switch self.nextRegistered {
+  | None => accum
+  | Some(child) => child->numberRegistered(~accum)
+  }
+}

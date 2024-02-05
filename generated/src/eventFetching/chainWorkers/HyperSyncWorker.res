@@ -213,10 +213,6 @@ let waitForNextBlockBeforeQuery = async (
 
     //Note: this side effect can be removed when this becomes immutable
     setCurrentBlockHeight(~currentBlockHeight)
-
-    currentBlockHeight
-  } else {
-    currentBlockHeight
   }
 }
 
@@ -230,7 +226,7 @@ let getNextPage = async (
   ~contractAddressMapping,
 ) => {
   //Wait for a valid range to query
-  let currentBlockHeight = await waitForNextBlockBeforeQuery(
+  await waitForNextBlockBeforeQuery(
     ~serverUrl,
     ~fromBlock,
     ~currentBlockHeight,
@@ -260,6 +256,7 @@ let getNextPage = async (
 
   {page: pageUnsafe, contractInterfaceManager, pageFetchTime}
 }
+
 let fetchBlockRange = async (
   self: t,
   ~query: blockRangeFetchArgs,
