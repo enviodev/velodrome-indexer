@@ -89,7 +89,8 @@ const calculatePrice = (relevantLiquidityPoolEntities: liquidityPoolEntity[], to
       let whitelistedTokenInstance = whitelistedTokensList.find(
         (token) => token.id === pool.token1
       );
-      if (whitelistedTokenInstance) {
+      // Second condition is to prevent relative pricing against a token that has a zero price against ETH i.e. not yet been priced
+      if (whitelistedTokenInstance && whitelistedTokenInstance.pricePerETH !== 0n) {
         return multiplyBase1e18(
           pool.token0Price,
           whitelistedTokenInstance.pricePerETH
@@ -100,7 +101,8 @@ const calculatePrice = (relevantLiquidityPoolEntities: liquidityPoolEntity[], to
       let whitelistedTokenInstance = whitelistedTokensList.find(
         (token) => token.id === pool.token0
       );
-      if (whitelistedTokenInstance) {
+      // Second condition is to prevent relative pricing against a token that has a zero price against ETH i.e. not yet been priced
+      if (whitelistedTokenInstance && whitelistedTokenInstance.pricePerETH !== 0n) {
         return multiplyBase1e18(
           pool.token1Price,
           whitelistedTokenInstance.pricePerETH

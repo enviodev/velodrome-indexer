@@ -453,7 +453,7 @@ PoolContract_Sync_handler(({ event, context }) => {
       token1Price = divideBase1e18(normalizedReserve0, normalizedReserve1);
     }
 
-    let relevantPoolEntitieToken0 = context.LiquidityPool.whitelistedPools0.filter(
+    let relevantPoolEntitiesToken0 = context.LiquidityPool.whitelistedPools0.filter(
       (item): item is LiquidityPoolEntity => item !== undefined
     );
     let relevantPoolEntitiesToken1 = context.LiquidityPool.whitelistedPools1.filter(
@@ -465,7 +465,7 @@ PoolContract_Sync_handler(({ event, context }) => {
       context.LiquidityPool.getToken0,
       context.LiquidityPool.getToken1,
       whitelistedTokensList,
-      relevantPoolEntitieToken0,
+      relevantPoolEntitiesToken0,
       relevantPoolEntitiesToken1,
       event.chainId,
       token0Price,
