@@ -1,6 +1,8 @@
 import { Token, Pool } from "./CustomTypes";
 import { LatestETHPriceEntity, StateStoreEntity } from "./src/Types.gen";
 
+export const TEN_TO_THE_3_BI = BigInt(10 ** 3);
+export const TEN_TO_THE_6_BI = BigInt(10 ** 6);
 export const TEN_TO_THE_18_BI = BigInt(10 ** 18);
 
 export const SECONDS_IN_AN_HOUR = BigInt(3600);
@@ -11,7 +13,7 @@ export const STATE_STORE_ID = "STATE";
 
 export const INITIAL_ETH_PRICE: LatestETHPriceEntity = {
   id: "INITIAL PRICE",
-  price: 0n, // should maybe hardcode this to ~1,889.79 USD since that was the price around the time of the first pool creation
+  price: 1869671494767075821464n, // Using the first calculated ETH price as initial price - an hour delay from the timestamp where ETH price was calculated
 };
 export const DEFAULT_STATE_STORE: StateStoreEntity = {
   id: STATE_STORE_ID,
@@ -19,7 +21,7 @@ export const DEFAULT_STATE_STORE: StateStoreEntity = {
 };
 
 // Hardcoded WETH, USDC and OP token addresses with decimals
-const WETH: Token = {
+export const WETH: Token = {
   address: "0x4200000000000000000000000000000000000006",
   symbol: "WETH",
 };
