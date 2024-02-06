@@ -1,4 +1,4 @@
-const isRegressionValidationMode = false
+const isRegressionValidationMode = false;
 
 import {
   PoolContract_Fees_loader,
@@ -33,6 +33,7 @@ import {
   STATE_STORE_ID,
   TEN_TO_THE_18_BI,
   CHAIN_CONSTANTS,
+  OPTIMISM_STABLECOIN_POOLS,
 } from "./Constants";
 
 import {
@@ -60,8 +61,16 @@ import { getErc20TokenDetails } from "./Erc20";
 import { assert } from "console";
 
 //// global state!
-const { getPoolAddressByGaugeAddress, getPoolAddressByBribeVotingRewardAddress, addRewardAddressDetails } = poolLookupStoreManager();
-const { addWhitelistedPoolId, getWhitelistedPoolIds, getTokensFromWhitelistedPool } = whitelistedPoolIdsManager();
+const {
+  getPoolAddressByGaugeAddress,
+  getPoolAddressByBribeVotingRewardAddress,
+  addRewardAddressDetails,
+} = poolLookupStoreManager();
+const {
+  addWhitelistedPoolId,
+  getWhitelistedPoolIds,
+  getTokensFromWhitelistedPool,
+} = whitelistedPoolIdsManager();
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   // // Dynamic contract registration for Pool contracts
@@ -177,7 +186,12 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
     )
   ) {
     // push pool address to whitelistedPoolIds
-    addWhitelistedPoolId(event.chainId, event.params.token0, event.params.token1, newPool.id);
+    addWhitelistedPoolId(
+      event.chainId,
+      event.params.token0,
+      event.params.token1,
+      newPool.id
+    );
   }
 });
 
@@ -371,19 +385,29 @@ PoolContract_Sync_loader(({ event, context }) => {
   });
 
   // Load stablecoin pools for weighted average ETH price calculation, only if pool is stablecoin pool
-  const stableCoinPoolAddresses = isStablecoinPool(
-    event.srcAddress.toString().toLowerCase(),
-    event.chainId
-  )
-    ? CHAIN_CONSTANTS[event.chainId].stablecoinPoolAddresses
-    : [];
-  context.LiquidityPool.stablecoinPoolsLoad(stableCoinPoolAddresses, {});
+  // const stableCoinPoolAddresses = isStablecoinPool(
+  //   event.srcAddress.toString().toLowerCase(),
+  //   event.chainId
+  // )
+  //   ? CHAIN_CONSTANTS[event.chainId].stablecoinPoolAddresses
+  //   : [];
+  // context.LiquidityPool.stablecoinPoolsLoad(stableCoinPoolAddresses, {});
 
   // Load all the whitelisted pools i.e. pools with at least one white listed tokens
-  const maybeTokensWhitelisted = getTokensFromWhitelistedPool(event.chainId, event.srcAddress.toString());
-  if (maybeTokensWhitelisted) { // only load here if tokens are in whitelisted pool.
-    context.LiquidityPool.whitelistedPools0Load(getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token0), {});
-    context.LiquidityPool.whitelistedPools1Load(getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token1), {});
+  const maybeTokensWhitelisted = getTokensFromWhitelistedPool(
+    event.chainId,
+    event.srcAddress.toString()
+  );
+  if (maybeTokensWhitelisted) {
+    // only load here if tokens are in whitelisted pool.
+    context.LiquidityPool.whitelistedPools0Load(
+      getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token0),
+      {}
+    );
+    context.LiquidityPool.whitelistedPools1Load(
+      getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token1),
+      {}
+    );
   } else {
     context.LiquidityPool.whitelistedPools0Load([], {});
     context.LiquidityPool.whitelistedPools1Load([], {});
@@ -442,12 +466,14 @@ PoolContract_Sync_handler(({ event, context }) => {
       token1Price = divideBase1e18(normalizedReserve0, normalizedReserve1);
     }
 
-    let relevantPoolEntitiesToken0 = context.LiquidityPool.whitelistedPools0.filter(
-      (item): item is LiquidityPoolEntity => item !== undefined
-    );
-    let relevantPoolEntitiesToken1 = context.LiquidityPool.whitelistedPools1.filter(
-      (item): item is LiquidityPoolEntity => item !== undefined
-    );
+    let relevantPoolEntitiesToken0 =
+      context.LiquidityPool.whitelistedPools0.filter(
+        (item): item is LiquidityPoolEntity => item !== undefined
+      );
+    let relevantPoolEntitiesToken1 =
+      context.LiquidityPool.whitelistedPools1.filter(
+        (item): item is LiquidityPoolEntity => item !== undefined
+      );
 
     let { token0PricePerETH, token1PricePerETH } = findPricePerETH(
       token0Instance,
@@ -578,25 +604,12 @@ PoolContract_Sync_handler(({ event, context }) => {
       context.TokenWeeklySnapshot.set(tokenWeeklySnapshotInstance);
     }
 
-    // Updating of ETH price if the pool is a stablecoin pool
     if (
-      isStablecoinPool(event.srcAddress.toString().toLowerCase(), event.chainId)
+      event.srcAddress.toString().toLowerCase() ==
+      OPTIMISM_STABLECOIN_POOLS[0].address.toLowerCase()
     ) {
-      // Filter out undefined values
-      let stablecoinPoolsList = context.LiquidityPool.stablecoinPools.filter(
-        (item): item is LiquidityPoolEntity => item !== undefined
-      );
+      let ethPriceInUSD = token0PricePerUSD;
 
-      // Overwrite stablecoin pool with latest data
-      let poolIndex = stablecoinPoolsList.findIndex(
-        (pool) => pool.id === liquidityPoolInstance.id
-      );
-      stablecoinPoolsList[poolIndex] = liquidityPoolInstance;
-
-      // Calculate weighted average ETH price using stablecoin pools
-      let ethPriceInUSD = calculateETHPriceInUSD(stablecoinPoolsList);
-
-      // Use the previous eth price if the new eth price is 0
       if (ethPriceInUSD == 0n) {
         ethPriceInUSD = latestEthPrice.price;
       }
@@ -616,6 +629,44 @@ PoolContract_Sync_handler(({ event, context }) => {
         latestEthPrice: latestEthPriceInstance.id,
       });
     }
+    // Updating of ETH price if the pool is a stablecoin pool
+    // if (
+    //   isStablecoinPool(event.srcAddress.toString().toLowerCase(), event.chainId)
+    // ) {
+    //   // Filter out undefined values
+    //   let stablecoinPoolsList = context.LiquidityPool.stablecoinPools.filter(
+    //     (item): item is LiquidityPoolEntity => item !== undefined
+    //   );
+
+    //   // Overwrite stablecoin pool with latest data
+    //   let poolIndex = stablecoinPoolsList.findIndex(
+    //     (pool) => pool.id === liquidityPoolInstance.id
+    //   );
+    //   stablecoinPoolsList[poolIndex] = liquidityPoolInstance;
+
+    //   // Calculate weighted average ETH price using stablecoin pools
+    //   let ethPriceInUSD = calculateETHPriceInUSD(stablecoinPoolsList);
+
+    //   // Use the previous eth price if the new eth price is 0
+    //   if (ethPriceInUSD == 0n) {
+    //     ethPriceInUSD = latestEthPrice.price;
+    //   }
+
+    //   // Creating LatestETHPriceEntity with the latest price
+    //   let latestEthPriceInstance: LatestETHPriceEntity = {
+    //     id: event.blockTimestamp.toString(),
+    //     price: ethPriceInUSD,
+    //   };
+
+    //   // Creating a new instance of LatestETHPriceEntity to be updated in the DB
+    //   context.LatestETHPrice.set(latestEthPriceInstance);
+
+    //   // update latestETHPriceKey value with event.blockTimestamp.toString()
+    //   context.StateStore.set({
+    //     ...stateStore,
+    //     latestEthPrice: latestEthPriceInstance.id,
+    //   });
+    // }
   }
 });
 
@@ -663,7 +714,10 @@ VoterContract_GaugeCreated_handler(({ event, context }) => {
 
 VoterContract_DistributeReward_loader(({ event, context }) => {
   // retrieve the pool address from the gauge address
-  let poolAddress = getPoolAddressByGaugeAddress(event.chainId, event.params.gauge);
+  let poolAddress = getPoolAddressByGaugeAddress(
+    event.chainId,
+    event.params.gauge
+  );
 
   // If there is a pool address with the particular gauge address, load the pool
   if (poolAddress) {
@@ -725,7 +779,10 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
 
 VotingRewardContract_NotifyReward_loader(({ event, context }) => {
   // retrieve the pool address from the gauge address
-  let poolAddress = getPoolAddressByBribeVotingRewardAddress(event.chainId, event.srcAddress);
+  let poolAddress = getPoolAddressByBribeVotingRewardAddress(
+    event.chainId,
+    event.srcAddress
+  );
 
   if (poolAddress) {
     // Load the LiquidityPool entity to be updated,
@@ -733,8 +790,7 @@ VotingRewardContract_NotifyReward_loader(({ event, context }) => {
 
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
     context.Token.bribeRewardTokenLoad(event.params.reward);
-  }
-  else {
+  } else {
     //// QUESTION - I am running into this warning quite often. What does it mean? Why would this warning happen?
 
     // If there is no pool address with the particular gauge address, log the error
