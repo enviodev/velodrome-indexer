@@ -1,6 +1,8 @@
 import { Token, Pool } from "./CustomTypes";
 import { LatestETHPriceEntity, StateStoreEntity } from "./src/Types.gen";
 
+export const TEN_TO_THE_3_BI = BigInt(10 ** 3);
+export const TEN_TO_THE_6_BI = BigInt(10 ** 6);
 export const TEN_TO_THE_18_BI = BigInt(10 ** 18);
 
 export const SECONDS_IN_AN_HOUR = BigInt(3600);
@@ -19,7 +21,7 @@ export const DEFAULT_STATE_STORE: StateStoreEntity = {
 };
 
 // Hardcoded WETH, USDC and OP token addresses with decimals
-const WETH: Token = {
+export const WETH: Token = {
   address: "0x4200000000000000000000000000000000000006",
   symbol: "WETH",
 };

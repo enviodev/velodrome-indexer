@@ -7,13 +7,14 @@ import {
   LatestETHPriceEntity,
 } from "../generated/src/Types.gen";
 import { divideBase1e18, multiplyBase1e18 } from "../src/Maths";
-import { STATE_STORE_ID, TEN_TO_THE_18_BI, USDC } from "../src/Constants";
+import { STATE_STORE_ID, TEN_TO_THE_6_BI, TEN_TO_THE_18_BI, USDC, WETH, TEN_TO_THE_3_BI } from "../src/Constants";
+import { normalizeTokenAmountTo1e18 } from "../src/Helpers";
 
 // Global mock values to be used
 const mockChainID = 10;
-const mockToken0Address = "0x4200000000000000000000000000000000000006"; // WETH
 const mockToken1Address = "0x4200000000000000000000000000000000000006"; // WETH
 const mockPoolAddress = "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b";
+const mockETHPriceUSD = 2000n;
 const token0PriceUSD = 2000n;
 const token1PriceUSD = 2000n;
 
@@ -26,7 +27,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
 
   // Creating mock PoolCreated event
   const mockPoolCreatedEvent = PoolFactory.PoolCreated.createMockEvent({
-    token0: mockToken0Address,
+    token0: WETH.address,
     token1: USDC.address, // USDC
     pool: mockPoolAddress,
     stable: false,
@@ -50,7 +51,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
       id: mockPoolAddress,
       name: "Volatile AMM - WETH/USDC",
       chainID: BigInt(mockChainID),
-      token0: mockToken0Address,
+      token0: WETH.address,
       token1: USDC.address,
       isStable: false,
       reserve0: 0n,
@@ -81,7 +82,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
   it("Token entities are created correctly", async () => {
     // Getting the entity from the mock database
     let actualToken0Entity = (await updatedMockDb).entities.Token.get(
-      mockToken0Address
+      WETH.address
     );
     let actualToken1Entity = (await updatedMockDb).entities.Token.get(
       USDC.address
@@ -89,7 +90,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
 
     // Expected Token entities
     const expectedToken0Entity: TokenEntity = {
-      id: mockToken0Address,
+      id: WETH.address,
       symbol: "WETH",
       name: "Wrapped Ether",
       decimals: 18n,
@@ -129,7 +130,7 @@ describe("Fees event correctly updates LiquidityPool", () => {
     id: mockPoolAddress,
     name: "Volatile AMM - WETH/WETH",
     chainID: BigInt(mockChainID),
-    token0: mockToken0Address,
+    token0: WETH.address,
     token1: mockToken1Address,
     isStable: false,
     reserve0: 0n,
@@ -153,7 +154,7 @@ describe("Fees event correctly updates LiquidityPool", () => {
 
   // Mock Token entities
   const mockToken0Entity: TokenEntity = {
-    id: mockToken0Address,
+    id: WETH.address,
     symbol: "WETH",
     name: "Wrapped Ether",
     decimals: 18n,
@@ -229,15 +230,15 @@ describe("Sync event correctly updates LiquidityPool entity", () => {
   const mockDbEmpty = MockDb.createMockDb();
 
   const reserveAmount0 = 10n * TEN_TO_THE_18_BI;
-  const reserveAmount1 = 10n * TEN_TO_THE_18_BI;
+  const reserveAmount1 = 10n * TEN_TO_THE_6_BI;
 
   // Create a mock LiquidityPool entity
   const mockLiquidityPoolEntity: LiquidityPoolEntity = {
     id: mockPoolAddress,
     name: "Volatile AMM - WETH/WETH",
     chainID: BigInt(mockChainID),
-    token0: mockToken0Address,
-    token1: mockToken1Address,
+    token0: WETH.address,
+    token1: USDC.address,
     isStable: false,
     reserve0: 0n,
     reserve1: 0n,
@@ -260,29 +261,29 @@ describe("Sync event correctly updates LiquidityPool entity", () => {
 
   // Mock Token entities
   const mockToken0Entity: TokenEntity = {
-    id: mockToken0Address,
+    id: WETH.address,
     symbol: "WETH",
     name: "Wrapped Ether",
     decimals: 18n,
     chainID: BigInt(mockChainID),
     pricePerETH: 1n,
-    pricePerUSD: token0PriceUSD,
+    pricePerUSD: mockETHPriceUSD,
     lastUpdatedTimestamp: 0n,
   };
   const mockToken1Entity: TokenEntity = {
-    id: mockToken1Address,
-    symbol: "WETH",
-    name: "Wrapped Ether",
-    decimals: 18n,
+    id: USDC.address,
+    symbol: "USDC",
+    name: "USD Coin",
+    decimals: 6n,
     chainID: BigInt(mockChainID),
-    pricePerETH: 1n,
-    pricePerUSD: token1PriceUSD,
+    pricePerETH: divideBase1e18(1n, mockETHPriceUSD),
+    pricePerUSD: 1n,
     lastUpdatedTimestamp: 0n,
   };
   // Mock LatestETHPrice entity
   const mockLatestETHPriceEntity: LatestETHPriceEntity = {
     id: "TIMESTAMP_PLACEHOLDER",
-    price: 2000n,
+    price: mockETHPriceUSD,
   };
   // Mock State Store entity
   const mockStateStoreEntity: StateStoreEntity = {
@@ -326,20 +327,20 @@ describe("Sync event correctly updates LiquidityPool entity", () => {
     const actualLiquidityPoolEntity =
       updatedMockDb.entities.LiquidityPool.get(mockPoolAddress);
 
+    let normalizedReserve0Amount = normalizeTokenAmountTo1e18(reserveAmount0, Number(mockToken0Entity.decimals));
+    let normalizedReserve1Amount = normalizeTokenAmountTo1e18(reserveAmount1, Number(mockToken1Entity.decimals));
+
     // Expected LiquidityPool entity
     const expectedLiquidityPoolEntity: LiquidityPoolEntity = {
       ...mockLiquidityPoolEntity,
-      reserve0: reserveAmount0,
-      reserve1: reserveAmount1,
-      token0Price: divideBase1e18(reserveAmount1, reserveAmount0),
-      token1Price: divideBase1e18(reserveAmount0, reserveAmount1),
+      reserve0: normalizedReserve0Amount,
+      reserve1: normalizedReserve1Amount,
+      token0Price: divideBase1e18(normalizedReserve1Amount, normalizedReserve0Amount),
+      token1Price: divideBase1e18(normalizedReserve0Amount, normalizedReserve1Amount),
       totalLiquidityETH:
-        (multiplyBase1e18(reserveAmount0, mockToken0Entity.pricePerETH) +
-          multiplyBase1e18(reserveAmount1, mockToken1Entity.pricePerETH)) *
-        TEN_TO_THE_18_BI,
+        (10005n * TEN_TO_THE_18_BI ) / TEN_TO_THE_3_BI,
       totalLiquidityUSD:
-        multiplyBase1e18(reserveAmount0, mockToken0Entity.pricePerUSD) +
-        multiplyBase1e18(reserveAmount1, mockToken1Entity.pricePerUSD),
+        20010n * TEN_TO_THE_18_BI,
       lastUpdatedTimestamp: BigInt(mockSyncEvent.blockTimestamp),
     };
 
