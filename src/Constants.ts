@@ -13,7 +13,7 @@ export const STATE_STORE_ID = "STATE";
 
 export const INITIAL_ETH_PRICE: LatestETHPriceEntity = {
   id: "INITIAL PRICE",
-  price: 0n, // should maybe hardcode this to ~1,889.79 USD since that was the price around the time of the first pool creation
+  price: 1869671494767075821464n, // Using the first calculated ETH price as initial price - an hour delay from the timestamp where ETH price was calculated
 };
 export const DEFAULT_STATE_STORE: StateStoreEntity = {
   id: STATE_STORE_ID,

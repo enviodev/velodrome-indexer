@@ -27,7 +27,7 @@ export const calculateETHPriceInUSD = (
 
   for (let pool of stablecoinPools) {
     // Skip pools with insufficient liquidity (i.e. 2 ETH) to avoid skewing the price
-    if (pool.reserve0 < 2n) {
+    if (pool.reserve0 < 2n * TEN_TO_THE_18_BI) {
       continue;
     }
     // Use token0 price of pool as ETH price
@@ -136,7 +136,7 @@ export const findPricePerETH = (
   ) {
     return {
       token0PricePerETH: TEN_TO_THE_18_BI,
-      token1PricePerETH: relativeTokenPrice0,
+      token1PricePerETH: relativeTokenPrice1,
     }
   } else if (
     token1Instance.id.toLowerCase() ===

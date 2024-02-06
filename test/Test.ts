@@ -14,7 +14,7 @@ import { normalizeTokenAmountTo1e18 } from "../src/Helpers";
 const mockChainID = 10;
 const mockToken1Address = "0x4200000000000000000000000000000000000006"; // WETH
 const mockPoolAddress = "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b";
-const mockETHPriceUSD = 2000n;
+const mockETHPriceUSD = 2000n * TEN_TO_THE_18_BI;
 const token0PriceUSD = 2000n;
 const token1PriceUSD = 2000n;
 
@@ -229,8 +229,8 @@ describe("Sync event correctly updates LiquidityPool entity", () => {
   // Create mock db
   const mockDbEmpty = MockDb.createMockDb();
 
-  const reserveAmount0 = 10n * TEN_TO_THE_18_BI;
-  const reserveAmount1 = 10n * TEN_TO_THE_6_BI;
+  const reserveAmount0 = 10n * TEN_TO_THE_18_BI; // 10 WETH
+  const reserveAmount1 = 20000n * TEN_TO_THE_6_BI; // 20,000 USDC
 
   // Create a mock LiquidityPool entity
   const mockLiquidityPoolEntity: LiquidityPoolEntity = {
@@ -338,9 +338,9 @@ describe("Sync event correctly updates LiquidityPool entity", () => {
       token0Price: divideBase1e18(normalizedReserve1Amount, normalizedReserve0Amount),
       token1Price: divideBase1e18(normalizedReserve0Amount, normalizedReserve1Amount),
       totalLiquidityETH:
-        (10005n * TEN_TO_THE_18_BI ) / TEN_TO_THE_3_BI,
+        (20n * TEN_TO_THE_18_BI ) , // 20 WETH
       totalLiquidityUSD:
-        20010n * TEN_TO_THE_18_BI,
+        40000n * TEN_TO_THE_18_BI, // 40000 USD
       lastUpdatedTimestamp: BigInt(mockSyncEvent.blockTimestamp),
     };
 
