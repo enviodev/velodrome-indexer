@@ -32,17 +32,13 @@ type args = {@as("sync-from-raw-events") syncFromRawEvents?: bool}
 
 type mainArgs = Yargs.parsedArgs<args>
 
-let main = () => {
+let main = async () => {
   // let mainArgs: mainArgs = Node.Process.argv->Yargs.hideBin->Yargs.yargs->Yargs.argv
   //
   // let shouldSyncFromRawEvents = mainArgs.syncFromRawEvents->Belt.Option.getWithDefault(false)
   //
   // EventSyncing.startSyncingAllEvents(~shouldSyncFromRawEvents)
-  let chainManager = ChainManager.make(
-    ~maxQueueSize=Env.maxPerChainQueueSize,
-    ~configs=Config.config,
-    ~shouldSyncFromRawEvents=false,
-  )
+  let chainManager = await ChainManager.makeFromDbState(~configs=Config.config)
 
   let globalState: GlobalState.t = {
     currentlyProcessingBatch: false,
@@ -53,8 +49,8 @@ let main = () => {
 
   let gsManager = globalState->GlobalStateManager.make
 
-  gsManager->GlobalStateManager.dispatchTask(NextQuery(CheckAllChainsRoot))
+  gsManager->GlobalStateManager.dispatchTask(NextQuery(CheckAllChains))
   gsManager->GlobalStateManager.dispatchTask(ProcessEventBatch)
 }
 
-main()
+main()->ignore

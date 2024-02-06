@@ -294,7 +294,7 @@ let composeGetReadEntity = (
   ~dynamicContractRegistrations: option<dynamicContractRegistrations>,
   ~eventWithContextAccessor,
   ~eventName,
-  ~fetchers: ChainMap.t<DynamicContractFetcher.t>,
+  ~checkContractIsRegistered,
 ) => {
   let {chain} = item
   let chainId = chain->ChainMap.Chain.toChainId
@@ -330,17 +330,11 @@ let composeGetReadEntity = (
     //put back on the arbitrary events queue and is now being reprocessed
     []
   } else {
-    let fetcher = fetchers->ChainMap.get(chain)
     contextHelper.getAddedDynamicContractRegistrations()->Array.keep(({
       contractAddress,
       contractType,
     }) => {
-      let isAlreadyRegistered =
-        fetcher->DynamicContractFetcher.checkContainsRegisteredContractAddress(
-          ~contractAddress,
-          ~contractName=contractType,
-        )
-      !isAlreadyRegistered
+      !checkContractIsRegistered(~chain, ~contractAddress, ~contractName=contractType)
     })
   }
 
@@ -423,13 +417,12 @@ let rec getReadEntitiesInternal = (
   ~inMemoryStore,
   ~logger,
   ~entitiesToLoad,
-  ~fetchers,
+  ~checkContractIsRegistered,
   ~dynamicContractRegistrations=None,
   eventBatch: list<Types.eventBatchQueueItem>,
 ): getReadEntitiesRes => {
   switch eventBatch {
   | list{} => {val: entitiesToLoad, dynamicContractRegistrations}
-
   | list{item, ...tail} => {
       let composer = composeGetReadEntity(
         ~entitiesToLoad,
@@ -437,7 +430,7 @@ let rec getReadEntitiesInternal = (
         ~inMemoryStore,
         ~logger,
         ~item,
-        ~fetchers,
+        ~checkContractIsRegistered,
         ~dynamicContractRegistrations,
       )
 
@@ -497,7 +490,7 @@ let rec getReadEntitiesInternal = (
         ~inMemoryStore,
         ~logger,
         ~entitiesToLoad=res.val,
-        ~fetchers,
+        ~checkContractIsRegistered,
         ~dynamicContractRegistrations=res.dynamicContractRegistrations,
       )
     }
@@ -509,11 +502,11 @@ let getReadEntities = getReadEntitiesInternal(~entitiesToLoad=[])
 let loadReadEntities = async (
   ~inMemoryStore,
   ~eventBatch: list<Types.eventBatchQueueItem>,
-  ~fetchers,
+  ~checkContractIsRegistered,
   ~logger: Pino.t,
 ): loadResponse<array<Context.eventRouterEventAndContext>> => {
   let {val: entitiesToLoad, dynamicContractRegistrations} =
-    eventBatch->getReadEntities(~inMemoryStore, ~logger, ~fetchers)
+    eventBatch->getReadEntities(~inMemoryStore, ~logger, ~checkContractIsRegistered)
 
   let (readEntitiesGrouped, contexts): (
     array<array<Types.entityRead>>,
@@ -555,7 +548,7 @@ let registerProcessEventBatchMetrics = (
 let processEventBatch = async (
   ~eventBatch: list<Types.eventBatchQueueItem>,
   ~inMemoryStore: IO.InMemoryStore.t,
-  ~fetchers,
+  ~checkContractIsRegistered,
 ) => {
   let logger = Logging.createChild(
     ~params={
@@ -569,7 +562,7 @@ let processEventBatch = async (
     ~inMemoryStore,
     ~eventBatch,
     ~logger,
-    ~fetchers,
+    ~checkContractIsRegistered,
   )
 
   let elapsedAfterLoad = timeRef->Hrtime.timeSince->Hrtime.toMillis->Hrtime.intFromMillis
