@@ -597,6 +597,11 @@ PoolContract_Sync_handler(({ event, context }) => {
       // Calculate weighted average ETH price using stablecoin pools
       let ethPriceInUSD = calculateETHPriceInUSD(stablecoinPoolsList);
 
+      // Use the previous eth price if the new eth price is 0
+      if (ethPriceInUSD == 0n) {
+        ethPriceInUSD = latestEthPrice.price;
+      }
+
       // Creating LatestETHPriceEntity with the latest price
       let latestEthPriceInstance: LatestETHPriceEntity = {
         id: event.blockTimestamp.toString(),
