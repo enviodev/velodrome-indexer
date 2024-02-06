@@ -76,7 +76,7 @@ const OPTIMISM_WHITELISTED_TOKENS: Token[] = [WETH, USDC, OP, LUSD];
 const BASE_WHITELISTED_TOKENS: Token[] = [WETH, USDbC, USDC_BASE, DAI, DOLA];
 
 // List of stablecoin pools with their token0, token1 and name
-const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
+export const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
   {
     address: "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b",
     token0: WETH,
@@ -98,18 +98,18 @@ const BASE_STABLECOIN_POOLS: Pool[] = [
     token1: USDbC,
     name: "vAMM-WETH/USDbC",
   },
-  {
-    address: "0x9287C921f5d920cEeE0d07d7c58d476E46aCC640",
-    token0: WETH,
-    token1: DAI,
-    name: "vAMM-WETH/DAI",
-  },
-  {
-    address: "0x0B25c51637c43decd6CC1C1e3da4518D54ddb528",
-    token0: DOLA,
-    token1: USDbC,
-    name: "vAMM-DOLA/USDbC",
-  },
+  // {
+  //   address: "0x9287C921f5d920cEeE0d07d7c58d476E46aCC640",
+  //   token0: WETH,
+  //   token1: DAI,
+  //   name: "vAMM-WETH/DAI",
+  // },
+  // {
+  //   address: "0x0B25c51637c43decd6CC1C1e3da4518D54ddb528",
+  //   token0: DOLA,
+  //   token1: USDbC,
+  //   name: "vAMM-DOLA/USDbC",
+  // },
 ];
 
 // List of pool addresses for testing
