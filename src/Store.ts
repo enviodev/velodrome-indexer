@@ -29,20 +29,31 @@ export const whitelistedPoolIdsManager = () => {
     const { whiteListedPoolIdsCache, poolToTokensCache } = getCache(chainId);
 
     // Read the existing array or initialize it as an empty array if undefined
-    const poolIdsWithWhitelistedTokens0: string[] = whiteListedPoolIdsCache.read(token0.toLowerCase())?.poolIdsWithWhitelistedTokens || [];
+    const poolIdsWithWhitelistedTokens0: string[] =
+      whiteListedPoolIdsCache.read(token0.toLowerCase())
+        ?.poolIdsWithWhitelistedTokens || [];
     // Push the poolId to the array if it isn't already present
     if (!poolIdsWithWhitelistedTokens0.includes(poolId)) {
       poolIdsWithWhitelistedTokens0.push(poolId);
       // Assuming you have a way to write/update the cache for token0
-      whiteListedPoolIdsCache.add({ [token0]: { poolIdsWithWhitelistedTokens: poolIdsWithWhitelistedTokens0 } });
+      whiteListedPoolIdsCache.add({
+        [token0.toLowerCase()]: {
+          poolIdsWithWhitelistedTokens: poolIdsWithWhitelistedTokens0,
+        },
+      });
     }
 
     // Repeat the process for token1
-    const poolIdsWithWhitelistedTokens1: string[] = whiteListedPoolIdsCache.read(token1.toLowerCase())?.poolIdsWithWhitelistedTokens || [];
+    const poolIdsWithWhitelistedTokens1: string[] =
+      whiteListedPoolIdsCache.read(token1.toLowerCase())
+        ?.poolIdsWithWhitelistedTokens || [];
     if (!poolIdsWithWhitelistedTokens1.includes(poolId)) {
       poolIdsWithWhitelistedTokens1.push(poolId);
+      if (poolId.toString() == "0x58e6433a6903886e440ddf519ecc573c4046a6b2") {
       // Assuming you have a way to write/update the cache for token1
-      whiteListedPoolIdsCache.add({ [token1]: { poolIdsWithWhitelistedTokens: poolIdsWithWhitelistedTokens1 } });
+      whiteListedPoolIdsCache.add({
+        [token1.toLowerCase()]: {
+          poolIdsWithWhitelistedTokens: poolIdsWithWhitelistedTokens1,
     }
 
     poolToTokensCache.add({ [poolId.toLowerCase()]: { token0, token1 } });
