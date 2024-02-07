@@ -716,6 +716,8 @@ describe("Unit test - findPricePerETH", () => {
     token0: WETH.address,
     token1: VELO.address,
     isStable: false,
+    token0Price: divideBase1e18(10000000000000000000n, 1000000000000000n),
+    token1Price: divideBase1e18(1000000000000000n, 10000000000000000000n),
     // these values are not used in the function being tested - they are just placeholders
     reserve0: 0n,
     reserve1: 0n,
@@ -731,16 +733,21 @@ describe("Unit test - findPricePerETH", () => {
     totalEmissionsUSD: 0n,
     totalBribesUSD: 0n,
     numberOfSwaps: 0n,
-    token0Price: 0n,
-    token1Price: 0n,
     lastUpdatedTimestamp: 0n,
   };
 
   let relevantPoolEntitiesToken0: LiquidityPoolEntity[] = [];
   let relevantPoolEntitiesToken1: LiquidityPoolEntity[] = [wethVeloPoolEntity];
 
-  let token0Price = divideBase1e18(40000000000000000000n, TEN_TO_THE_18_BI);
-  let token1Price = divideBase1e18(TEN_TO_THE_18_BI, 40000000000000000000n);
+  // These are based on USDC/VELO pool liquidity
+  let relativeToken0Price = divideBase1e18(
+    5000000000000000000n,
+    TEN_TO_THE_18_BI
+  );
+  let relativeToken1Price = divideBase1e18(
+    TEN_TO_THE_18_BI,
+    5000000000000000000n
+  );
 
   let { token0PricePerETH, token1PricePerETH } = findPricePerETH(
     usdcToken,
@@ -749,12 +756,17 @@ describe("Unit test - findPricePerETH", () => {
     relevantPoolEntitiesToken0,
     relevantPoolEntitiesToken1,
     mockChainID,
-    token0Price,
-    token1Price
+    relativeToken0Price,
+    relativeToken1Price
   );
 
-  it("findPricePerETH returns correct values", () => {
+  it("token0PricePerETH value is correct", () => {
+    // USDC
     expect(token0PricePerETH).to.equal((1n * TEN_TO_THE_18_BI) / 2000n); // 0.0005 WETH
+  });
+
+  it("token1PricePerETH value is correct", () => {
+    // VELO
     expect(token1PricePerETH).to.equal(
       (100n * TEN_TO_THE_18_BI) / TEN_TO_THE_6_BI
     ); // 0.0001 WETH

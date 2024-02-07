@@ -144,16 +144,35 @@ export const findPricePerETH = (
   }
   // Case 2: both tokens are not ETH
   else {
-    const token0PricePerETH = calculatePrice(
+    let token0PricePerETH = calculatePrice(
       liquidityPoolEntities0,
       token0Entity.id,
       whitelistedTokensList
     );
-    const token1PricePerETH = calculatePrice(
+    let token1PricePerETH = calculatePrice(
       liquidityPoolEntities1,
       token1Entity.id,
       whitelistedTokensList
     );
+
+    // if there are no relevant pools to price against, price against the other token in the pool
+    if (
+      liquidityPoolEntities0.length === 0 &&
+      liquidityPoolEntities1.length > 0
+    ) {
+      token0PricePerETH = multiplyBase1e18(
+        relativeTokenPrice0,
+        token1PricePerETH
+      );
+    } else if (
+      liquidityPoolEntities1.length === 0 &&
+      liquidityPoolEntities0.length > 0
+    ) {
+      token1PricePerETH = multiplyBase1e18(
+        relativeTokenPrice1,
+        token0PricePerETH
+      );
+    }
 
     return {
       token0PricePerETH,
