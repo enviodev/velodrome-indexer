@@ -1,4 +1,8 @@
-import { LiquidityPoolEntity, TokenEntity, liquidityPoolEntity, tokenEntity } from "./src/Types.gen";
+import {
+  LiquidityPoolEntity,
+  TokenEntity,
+  liquidityPoolEntity,
+} from "./src/Types.gen";
 
 import { TEN_TO_THE_18_BI, CHAIN_CONSTANTS } from "./Constants";
 
@@ -80,7 +84,11 @@ const extractRelevantLiquidityPoolEntities = (
   return relevantLiquidityPoolEntities;
 };
 
-const calculatePrice = (relevantLiquidityPoolEntities: liquidityPoolEntity[], tokenAddress: Address, whitelistedTokensList: TokenEntity[]) => {
+const calculatePrice = (
+  relevantLiquidityPoolEntities: liquidityPoolEntity[],
+  tokenAddress: Address,
+  whitelistedTokensList: TokenEntity[]
+) => {
   // If the token is not WETH, then run through the pricing pools to price the token
   for (let pool of relevantLiquidityPoolEntities) {
     if (pool.token0 == tokenAddress) {
@@ -89,7 +97,10 @@ const calculatePrice = (relevantLiquidityPoolEntities: liquidityPoolEntity[], to
         (token) => token.id === pool.token1
       );
       // Second condition is to prevent relative pricing against a token that has a zero price against ETH i.e. not yet been priced
-      if (whitelistedTokenInstance && whitelistedTokenInstance.pricePerETH !== 0n) {
+      if (
+        whitelistedTokenInstance &&
+        whitelistedTokenInstance.pricePerETH !== 0n
+      ) {
         return multiplyBase1e18(
           pool.token0Price,
           whitelistedTokenInstance.pricePerETH
@@ -101,18 +112,21 @@ const calculatePrice = (relevantLiquidityPoolEntities: liquidityPoolEntity[], to
         (token) => token.id === pool.token0
       );
       // Second condition is to prevent relative pricing against a token that has a zero price against ETH i.e. not yet been priced
-      if (whitelistedTokenInstance && whitelistedTokenInstance.pricePerETH !== 0n) {
+      if (
+        whitelistedTokenInstance &&
+        whitelistedTokenInstance.pricePerETH !== 0n
+      ) {
         return multiplyBase1e18(
           pool.token1Price,
           whitelistedTokenInstance.pricePerETH
         );
       }
     } else {
-      throw "Token not part of pools it is meant to be part of."
+      throw "Token not part of pools it is meant to be part of.";
     }
   }
   return 0n;
-}
+};
 
 export const findPricePerETH = (
   token0Entity: TokenEntity,

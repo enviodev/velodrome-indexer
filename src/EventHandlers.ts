@@ -1,5 +1,3 @@
-const isRegressionValidationMode = false;
-
 import {
   PoolContract_Fees_loader,
   PoolContract_Fees_handler,
@@ -31,15 +29,11 @@ import {
   DEFAULT_STATE_STORE,
   INITIAL_ETH_PRICE,
   STATE_STORE_ID,
-  TEN_TO_THE_18_BI,
   CHAIN_CONSTANTS,
   OPTIMISM_STABLECOIN_POOLS,
 } from "./Constants";
 
 import {
-  calculateETHPriceInUSD,
-  isStablecoinPool,
-  findPricePerETHOld,
   normalizeTokenAmountTo1e18,
   getLiquidityPoolAndUserMappingId,
   generatePoolName,
@@ -58,7 +52,6 @@ import { SnapshotInterval, TokenEntityMapping } from "./CustomTypes";
 import { poolLookupStoreManager, whitelistedPoolIdsManager } from "./Store";
 
 import { getErc20TokenDetails } from "./Erc20";
-import { assert } from "console";
 
 //// global state!
 const {
@@ -384,15 +377,6 @@ PoolContract_Sync_loader(({ event, context }) => {
     },
   });
 
-  // Load stablecoin pools for weighted average ETH price calculation, only if pool is stablecoin pool
-  // const stableCoinPoolAddresses = isStablecoinPool(
-  //   event.srcAddress.toString().toLowerCase(),
-  //   event.chainId
-  // )
-  //   ? CHAIN_CONSTANTS[event.chainId].stablecoinPoolAddresses
-  //   : [];
-  // context.LiquidityPool.stablecoinPoolsLoad(stableCoinPoolAddresses, {});
-
   // Load all the whitelisted pools i.e. pools with at least one white listed tokens
   const maybeTokensWhitelisted = getTokensFromWhitelistedPool(
     event.chainId,
@@ -629,44 +613,6 @@ PoolContract_Sync_handler(({ event, context }) => {
         latestEthPrice: latestEthPriceInstance.id,
       });
     }
-    // Updating of ETH price if the pool is a stablecoin pool
-    // if (
-    //   isStablecoinPool(event.srcAddress.toString().toLowerCase(), event.chainId)
-    // ) {
-    //   // Filter out undefined values
-    //   let stablecoinPoolsList = context.LiquidityPool.stablecoinPools.filter(
-    //     (item): item is LiquidityPoolEntity => item !== undefined
-    //   );
-
-    //   // Overwrite stablecoin pool with latest data
-    //   let poolIndex = stablecoinPoolsList.findIndex(
-    //     (pool) => pool.id === liquidityPoolInstance.id
-    //   );
-    //   stablecoinPoolsList[poolIndex] = liquidityPoolInstance;
-
-    //   // Calculate weighted average ETH price using stablecoin pools
-    //   let ethPriceInUSD = calculateETHPriceInUSD(stablecoinPoolsList);
-
-    //   // Use the previous eth price if the new eth price is 0
-    //   if (ethPriceInUSD == 0n) {
-    //     ethPriceInUSD = latestEthPrice.price;
-    //   }
-
-    //   // Creating LatestETHPriceEntity with the latest price
-    //   let latestEthPriceInstance: LatestETHPriceEntity = {
-    //     id: event.blockTimestamp.toString(),
-    //     price: ethPriceInUSD,
-    //   };
-
-    //   // Creating a new instance of LatestETHPriceEntity to be updated in the DB
-    //   context.LatestETHPrice.set(latestEthPriceInstance);
-
-    //   // update latestETHPriceKey value with event.blockTimestamp.toString()
-    //   context.StateStore.set({
-    //     ...stateStore,
-    //     latestEthPrice: latestEthPriceInstance.id,
-    //   });
-    // }
   }
 });
 
