@@ -17,7 +17,7 @@ import {
   VELO,
   TEN_TO_THE_3_BI,
 } from "../src/Constants";
-import { normalizeTokenAmountTo1e18 } from "../src/Helpers";
+import { normalizeTokenAmountTo1e18, findPricePerETH } from "../src/Helpers";
 
 // Global mock values to be used
 const mockChainID = 10;
@@ -28,6 +28,8 @@ const token0PriceUSD = 2000n;
 const token1PriceUSD = 2000n;
 
 const mockBlockTimestamp = 1629811200;
+
+const wethVELOPoolAddress = "0x58e6433a6903886e440ddf519ecc573c4046a6b2";
 
 // Testing PoolCreated event
 describe("PoolCreated event correctly creates LiquidityPool and Token entities", () => {
@@ -378,8 +380,6 @@ describe("Sequence of Sync events correctly updates pool and token entity", () =
   const reserveAmount0 = 1000000000000000n;
   const reserveAmount1 = 10000000000000000000n;
 
-  const wethVELOPoolAddress = "0x58e6433a6903886e440ddf519ecc573c4046a6b2";
-
   // Create a mock LiquidityPool entity
   const mockLiquidityPoolEntity: LiquidityPoolEntity = {
     id: wethVELOPoolAddress, // WETH/VELO
@@ -573,7 +573,7 @@ describe("Sequence of Sync events correctly updates pool and token entity", () =
   const usdcToken: TokenEntity = {
     id: USDC.address,
     symbol: "USDC",
-    name: "Wrapped Ether",
+    name: "USD Coin",
     decimals: 6n,
     chainID: BigInt(mockChainID),
     pricePerETH: 0n,
@@ -669,5 +669,94 @@ describe("Sequence of Sync events correctly updates pool and token entity", () =
     // Asserting that the entity in the mock database is the same as the expected entity
     expect(actualToken0Entity).to.deep.equal(expectedToken0Entity);
     expect(actualToken1Entity).to.deep.equal(expectedToken1Entity);
+  });
+});
+
+describe("Unit test - findPricePerETH", () => {
+  const usdcToken: TokenEntity = {
+    id: USDC.address,
+    symbol: "USDC",
+    name: "USD Coin",
+    decimals: 6n,
+    chainID: BigInt(mockChainID),
+    pricePerETH: 0n,
+    pricePerUSD: 0n,
+    lastUpdatedTimestamp: 0n,
+  };
+
+  const veloToken: TokenEntity = {
+    id: VELO.address,
+    symbol: "VELO",
+    name: "Velodrome",
+    decimals: 18n,
+    chainID: BigInt(mockChainID),
+    pricePerETH: (100n * TEN_TO_THE_18_BI) / TEN_TO_THE_6_BI, // 0.0001 WETH
+    pricePerUSD: (2n * TEN_TO_THE_18_BI) / 10n, // 0.2 USD
+    lastUpdatedTimestamp: 0n,
+  };
+
+  const wethToken: TokenEntity = {
+    id: WETH.address,
+    symbol: "WETH",
+    name: "Wrapped Ether",
+    decimals: 18n,
+    chainID: BigInt(mockChainID),
+    pricePerETH: TEN_TO_THE_18_BI,
+    pricePerUSD: 2000n * TEN_TO_THE_18_BI,
+    lastUpdatedTimestamp: 0n,
+  };
+
+  const whitelistedTokensList = [usdcToken, veloToken, wethToken];
+
+  // Expected LiquidityPool entity
+  const wethVeloPoolEntity: LiquidityPoolEntity = {
+    id: wethVELOPoolAddress, // WETH/VELO
+    name: "Volatile AMM - WETH/VELO",
+    chainID: BigInt(mockChainID),
+    token0: WETH.address,
+    token1: VELO.address,
+    isStable: false,
+    // these values are not used in the function being tested - they are just placeholders
+    reserve0: 0n,
+    reserve1: 0n,
+    totalLiquidityETH: 0n,
+    totalLiquidityUSD: 0n,
+    totalVolume0: 0n,
+    totalVolume1: 0n,
+    totalVolumeUSD: 0n,
+    totalFees0: 0n,
+    totalFees1: 0n,
+    totalFeesUSD: 0n,
+    totalEmissions: 0n,
+    totalEmissionsUSD: 0n,
+    totalBribesUSD: 0n,
+    numberOfSwaps: 0n,
+    token0Price: 0n,
+    token1Price: 0n,
+    lastUpdatedTimestamp: 0n,
+  };
+
+  let relevantPoolEntitiesToken0: LiquidityPoolEntity[] = [];
+  let relevantPoolEntitiesToken1: LiquidityPoolEntity[] = [wethVeloPoolEntity];
+
+  let token0Price = divideBase1e18(40000000000000000000n, TEN_TO_THE_18_BI);
+  let token1Price = divideBase1e18(TEN_TO_THE_18_BI, 40000000000000000000n);
+
+  let { token0PricePerETH, token1PricePerETH } = findPricePerETH(
+    usdcToken,
+    veloToken,
+    whitelistedTokensList,
+    relevantPoolEntitiesToken0,
+    relevantPoolEntitiesToken1,
+    mockChainID,
+    token0Price,
+    token1Price
+  );
+
+  it("findPricePerETH returns correct values", () => {
+    expect(token0PricePerETH).to.equal((1n * TEN_TO_THE_18_BI) / 2000n); // 0.0005 WETH
+    expect(token1PricePerETH).to.equal(
+      (100n * TEN_TO_THE_18_BI) / TEN_TO_THE_6_BI
+    ); // 0.0001 WETH
   });
 });
