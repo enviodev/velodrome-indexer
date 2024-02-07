@@ -71,7 +71,7 @@ const DOLA: Token = {
   symbol: "DOLA",
 };
 // list of WHITELISTED tokens with their symbol and decimals to be used in pricing
-const OPTIMISM_WHITELISTED_TOKENS: Token[] = [WETH, USDC, OP, LUSD];
+const OPTIMISM_WHITELISTED_TOKENS: Token[] = [WETH, USDC, VELO, OP, LUSD];
 
 const BASE_WHITELISTED_TOKENS: Token[] = [WETH, USDbC, USDC_BASE, DAI, DOLA];
 
