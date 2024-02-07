@@ -36,7 +36,7 @@ const USDC_BASE: Token = {
   symbol: "USDC",
 };
 
-const OP: Token = {
+export const OP: Token = {
   address: "0x4200000000000000000000000000000000000042",
   symbol: "OP",
 };
@@ -46,7 +46,7 @@ const LUSD: Token = {
   symbol: "LUSD",
 };
 
-const VELO: Token = {
+export const VELO: Token = {
   address: "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db",
   symbol: "VELO",
 };
