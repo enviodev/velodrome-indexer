@@ -1,4 +1,4 @@
-import { LiquidityPoolEntity, TokenEntity, liquidityPoolEntity, tokenEntity } from "./src/Types.gen";
+import { LiquidityPoolEntity, TokenEntity } from "./src/Types.gen";
 
 import { TEN_TO_THE_18_BI, CHAIN_CONSTANTS } from "./Constants";
 
@@ -80,7 +80,11 @@ const extractRelevantLiquidityPoolEntities = (
   return relevantLiquidityPoolEntities;
 };
 
-const calculatePrice = (relevantLiquidityPoolEntities: liquidityPoolEntity[], tokenAddress: Address, whitelistedTokensList: TokenEntity[]) => {
+const calculatePrice = (
+  relevantLiquidityPoolEntities: LiquidityPoolEntity[],
+  tokenAddress: Address,
+  whitelistedTokensList: TokenEntity[]
+) => {
   // If the token is not WETH, then run through the pricing pools to price the token
   for (let pool of relevantLiquidityPoolEntities) {
     if (pool.token0 == tokenAddress) {
@@ -89,7 +93,10 @@ const calculatePrice = (relevantLiquidityPoolEntities: liquidityPoolEntity[], to
         (token) => token.id === pool.token1
       );
       // Second condition is to prevent relative pricing against a token that has a zero price against ETH i.e. not yet been priced
-      if (whitelistedTokenInstance && whitelistedTokenInstance.pricePerETH !== 0n) {
+      if (
+        whitelistedTokenInstance &&
+        whitelistedTokenInstance.pricePerETH !== 0n
+      ) {
         return multiplyBase1e18(
           pool.token0Price,
           whitelistedTokenInstance.pricePerETH
@@ -101,18 +108,21 @@ const calculatePrice = (relevantLiquidityPoolEntities: liquidityPoolEntity[], to
         (token) => token.id === pool.token0
       );
       // Second condition is to prevent relative pricing against a token that has a zero price against ETH i.e. not yet been priced
-      if (whitelistedTokenInstance && whitelistedTokenInstance.pricePerETH !== 0n) {
+      if (
+        whitelistedTokenInstance &&
+        whitelistedTokenInstance.pricePerETH !== 0n
+      ) {
         return multiplyBase1e18(
           pool.token1Price,
           whitelistedTokenInstance.pricePerETH
         );
       }
     } else {
-      throw "Token not part of pools it is meant to be part of."
+      throw "Token not part of pools it is meant to be part of.";
     }
   }
   return 0n;
-}
+};
 
 export const findPricePerETH = (
   token0Entity: TokenEntity,
@@ -124,7 +134,7 @@ export const findPricePerETH = (
   relativeTokenPrice0: bigint,
   relativeTokenPrice1: bigint
 ): { token0PricePerETH: bigint; token1PricePerETH: bigint } => {
-  // Case 1: token is ETH
+  // Case 1: one of the tokens is ETH
   if (
     token0Entity.id.toLowerCase() ===
     CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()
@@ -142,7 +152,33 @@ export const findPricePerETH = (
       token1PricePerETH: TEN_TO_THE_18_BI,
     };
   }
-  // Case 2: both tokens are not ETH
+  // Case 2: One of the tokens is USDC and has been priced already
+  else if (
+    token0Entity.id.toLowerCase() ===
+      CHAIN_CONSTANTS[chainId].usdc.address.toLowerCase() &&
+    token0Entity.pricePerETH !== 0n
+  ) {
+    return {
+      token0PricePerETH: token0Entity.pricePerETH,
+      token1PricePerETH: multiplyBase1e18(
+        relativeTokenPrice1,
+        token0Entity.pricePerETH
+      ),
+    };
+  } else if (
+    token1Entity.id.toLowerCase() ===
+      CHAIN_CONSTANTS[chainId].usdc.address.toLowerCase() &&
+    token1Entity.pricePerETH !== 0n
+  ) {
+    return {
+      token0PricePerETH: multiplyBase1e18(
+        relativeTokenPrice0,
+        token1Entity.pricePerETH
+      ),
+      token1PricePerETH: token1Entity.pricePerETH,
+    };
+  }
+  // Case 3: both tokens are not ETH or USDC
   else {
     let token0PricePerETH = calculatePrice(
       liquidityPoolEntities0,
@@ -248,3 +284,24 @@ export function generatePoolName(
   const poolType = isStable ? "Stable" : "Volatile";
   return `${poolType} AMM - ${token0Symbol}/${token1Symbol}`;
 }
+
+// Helper function to trim relevant LiquidityPool entities for relative pricing
+export const trimRelevantLiquidityPoolEntities = (
+  poolAddress: string,
+  liquidityPoolEntities: LiquidityPoolEntity[]
+): LiquidityPoolEntity[] => {
+  // Filter out pools that do not have any liquidity yet
+  liquidityPoolEntities = liquidityPoolEntities.filter(
+    (pool) => pool.reserve0 !== 0n && pool.reserve1 !== 0n
+  );
+
+  // Filter out the poolAddress which is being priced
+  liquidityPoolEntities = liquidityPoolEntities.filter(
+    (pool) => pool.id !== poolAddress
+  );
+
+  // Order the items in liquidityPoolEntities by totalLiquidityUSD in descending order
+  return liquidityPoolEntities.sort(
+    (a, b) => Number(b.totalLiquidityUSD) - Number(a.totalLiquidityUSD)
+  );
+};
