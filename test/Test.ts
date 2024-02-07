@@ -15,6 +15,7 @@ import {
   WETH,
   OP,
   VELO,
+  TEN_TO_THE_3_BI,
 } from "../src/Constants";
 import { normalizeTokenAmountTo1e18 } from "../src/Helpers";
 
@@ -369,8 +370,8 @@ describe("Sync event correctly updates WETH/USDC pool entity", () => {
   });
 });
 
-// Testing the first ever Sync event correctly updates LiquidityPool and Token entities
-describe("First Sync event correctly updates pool entity", () => {
+// Testing the first and second Sync events correctly updates LiquidityPool and Token entities
+describe("Sequence of Sync events correctly updates pool and token entity", () => {
   // Create mock db
   const mockDbEmpty = MockDb.createMockDb();
 
@@ -469,7 +470,7 @@ describe("First Sync event correctly updates pool entity", () => {
     mockDb: mockDbWithStateStore,
   });
 
-  it("Reserve and token price values of LiquidityPool entity are updated correctly", () => {
+  it("First Sync event: Reserve and token price values of LiquidityPool entity are updated correctly", () => {
     // Getting the entity from the mock database
     const actualLiquidityPoolEntity =
       updatedMockDb.entities.LiquidityPool.get(wethVELOPoolAddress);
@@ -507,7 +508,7 @@ describe("First Sync event correctly updates pool entity", () => {
     );
   });
 
-  it("Token entities are updated correctly", () => {
+  it("First Sync event: Token entities are updated correctly", () => {
     // Getting the entity from the mock database
     const actualToken0Entity = updatedMockDb.entities.Token.get(
       mockToken0Entity.id
@@ -528,6 +529,141 @@ describe("First Sync event correctly updates pool entity", () => {
       pricePerETH: (100n * TEN_TO_THE_18_BI) / TEN_TO_THE_6_BI, // 0.0001 WETH
       pricePerUSD: (2n * TEN_TO_THE_18_BI) / 10n, // 0.2 USD
       lastUpdatedTimestamp: BigInt(mockSyncEvent.blockTimestamp),
+    };
+
+    // Asserting that the entity in the mock database is the same as the expected entity
+    expect(actualToken0Entity).to.deep.equal(expectedToken0Entity);
+    expect(actualToken1Entity).to.deep.equal(expectedToken1Entity);
+  });
+
+  // start of second sync event
+  const secondReserveAmount0 = 1000000n;
+  const secondReserveAmount1 = 40000000000000000000n;
+
+  const usdcVELOPoolAddress = "0x8134a2fdc127549480865fb8e5a9e8a8a95a54c5";
+
+  // Create a mock LiquidityPool entity
+  const secondMockLiquidityPoolEntity: LiquidityPoolEntity = {
+    id: usdcVELOPoolAddress, // USDC/VELO
+    name: "Volatile AMM - USDC/VELO",
+    chainID: BigInt(mockChainID),
+    token0: USDC.address,
+    token1: VELO.address,
+    isStable: false,
+    reserve0: 0n,
+    reserve1: 0n,
+    totalLiquidityETH: 0n,
+    totalLiquidityUSD: 0n,
+    totalVolume0: 0n,
+    totalVolume1: 0n,
+    totalVolumeUSD: 0n,
+    totalFees0: 0n,
+    totalFees1: 0n,
+    totalFeesUSD: 0n,
+    totalEmissions: 0n,
+    totalEmissionsUSD: 0n,
+    totalBribesUSD: 0n,
+    numberOfSwaps: 0n,
+    token0Price: 0n,
+    token1Price: 0n,
+    lastUpdatedTimestamp: 0n,
+  };
+
+  // Mock Token entities
+  const usdcToken: TokenEntity = {
+    id: USDC.address,
+    symbol: "USDC",
+    name: "Wrapped Ether",
+    decimals: 6n,
+    chainID: BigInt(mockChainID),
+    pricePerETH: 0n,
+    pricePerUSD: 0n,
+    lastUpdatedTimestamp: 0n,
+  };
+
+  // Updating the mock DB with the mock entities
+  const secondMockDbWithToken0 = updatedMockDb.entities.Token.set(usdcToken);
+  const secondMockDbWithLiquidityPool =
+    secondMockDbWithToken0.entities.LiquidityPool.set(
+      secondMockLiquidityPoolEntity
+    );
+
+  // Creating mock Sync event
+  const secondMockSyncEvent = Pool.Sync.createMockEvent({
+    reserve0: secondReserveAmount0,
+    reserve1: secondReserveAmount1,
+    mockEventData: {
+      blockTimestamp: mockBlockTimestamp,
+      chainId: mockChainID,
+      srcAddress: usdcVELOPoolAddress,
+    },
+  });
+
+  // Processing the event
+  const secondUpdatedMockDb = Pool.Sync.processEvent({
+    event: secondMockSyncEvent,
+    mockDb: secondMockDbWithLiquidityPool,
+  });
+
+  it("Second Sync event: Reserve and token price values of LiquidityPool entity are updated correctly", () => {
+    // Getting the entity from the mock database
+    const actualLiquidityPoolEntity =
+      secondUpdatedMockDb.entities.LiquidityPool.get(usdcVELOPoolAddress);
+
+    let normalizedReserve0Amount = normalizeTokenAmountTo1e18(
+      secondReserveAmount0,
+      Number(usdcToken.decimals)
+    );
+    let normalizedReserve1Amount = normalizeTokenAmountTo1e18(
+      secondReserveAmount1,
+      Number(mockToken1Entity.decimals)
+    );
+
+    // Expected LiquidityPool entity
+    const expectedLiquidityPoolEntity: LiquidityPoolEntity = {
+      ...secondMockLiquidityPoolEntity,
+      reserve0: normalizedReserve0Amount,
+      reserve1: normalizedReserve1Amount,
+      token0Price: divideBase1e18(
+        normalizedReserve1Amount,
+        normalizedReserve0Amount
+      ),
+      token1Price: divideBase1e18(
+        normalizedReserve0Amount,
+        normalizedReserve1Amount
+      ),
+      totalLiquidityETH: (1n * TEN_TO_THE_18_BI) / TEN_TO_THE_3_BI, // 0.001 WETH at 2000 USD/ETH
+      totalLiquidityUSD: 2n * TEN_TO_THE_18_BI, // 2 USD
+      lastUpdatedTimestamp: BigInt(mockSyncEvent.blockTimestamp),
+    };
+
+    // Asserting that the entity in the mock database is the same as the expected entity
+    expect(actualLiquidityPoolEntity).to.deep.equal(
+      expectedLiquidityPoolEntity
+    );
+  });
+
+  it("Second Sync event: Token entities are updated correctly", () => {
+    // Getting the entity from the mock database
+    const actualToken0Entity = secondUpdatedMockDb.entities.Token.get(
+      usdcToken.id
+    );
+    const actualToken1Entity = secondUpdatedMockDb.entities.Token.get(
+      mockToken1Entity.id
+    );
+
+    // Expected Token entities
+    const expectedToken0Entity: TokenEntity = {
+      ...usdcToken,
+      pricePerETH: (1n * TEN_TO_THE_18_BI) / 2000n, // 0.0005 WETH
+      pricePerUSD: 1n * TEN_TO_THE_18_BI, // 1 USD
+      lastUpdatedTimestamp: BigInt(secondMockSyncEvent.blockTimestamp),
+    };
+    const expectedToken1Entity: TokenEntity = {
+      ...mockToken1Entity,
+      pricePerETH: 20000n, // 1 WETH
+      pricePerUSD: 2000n * TEN_TO_THE_18_BI, // 2000 USD
+      lastUpdatedTimestamp: BigInt(secondMockSyncEvent.blockTimestamp),
     };
 
     // Asserting that the entity in the mock database is the same as the expected entity
