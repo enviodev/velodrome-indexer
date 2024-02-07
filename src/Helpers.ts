@@ -115,47 +115,50 @@ const calculatePrice = (relevantLiquidityPoolEntities: liquidityPoolEntity[], to
 }
 
 export const findPricePerETH = (
-  currentLiquidityPool: liquidityPoolEntity,
-  getToken0: (currentLiquidityPool: liquidityPoolEntity) => tokenEntity,
-  getToken1: (currentLiquidityPool: liquidityPoolEntity) => tokenEntity,
+  token0Entity: TokenEntity,
+  token1Entity: TokenEntity,
   whitelistedTokensList: TokenEntity[],
   liquidityPoolEntities0: LiquidityPoolEntity[],
   liquidityPoolEntities1: LiquidityPoolEntity[],
   chainId: number,
   relativeTokenPrice0: bigint,
   relativeTokenPrice1: bigint
-): { token0PricePerETH: bigint, token1PricePerETH: bigint, } => {
-  let token0Instance = getToken0(currentLiquidityPool);
-
-  let token1Instance = getToken1(currentLiquidityPool);
-
+): { token0PricePerETH: bigint; token1PricePerETH: bigint } => {
   // Case 1: token is ETH
   if (
-    token0Instance.id.toLowerCase() ===
+    token0Entity.id.toLowerCase() ===
     CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()
   ) {
     return {
       token0PricePerETH: TEN_TO_THE_18_BI,
       token1PricePerETH: relativeTokenPrice1,
-    }
+    };
   } else if (
-    token1Instance.id.toLowerCase() ===
+    token1Entity.id.toLowerCase() ===
     CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()
   ) {
     return {
       token0PricePerETH: relativeTokenPrice0,
       token1PricePerETH: TEN_TO_THE_18_BI,
-    }
+    };
   }
   // Case 2: both tokens are not ETH
   else {
-    const token0PricePerETH = calculatePrice(liquidityPoolEntities0, token0Instance.id, whitelistedTokensList);
-    const token1PricePerETH = calculatePrice(liquidityPoolEntities1, token1Instance.id, whitelistedTokensList);
+    const token0PricePerETH = calculatePrice(
+      liquidityPoolEntities0,
+      token0Entity.id,
+      whitelistedTokensList
+    );
+    const token1PricePerETH = calculatePrice(
+      liquidityPoolEntities1,
+      token1Entity.id,
+      whitelistedTokensList
+    );
 
     return {
       token0PricePerETH,
       token1PricePerETH,
-    }
+    };
   }
 };
 
