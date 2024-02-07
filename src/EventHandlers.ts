@@ -450,16 +450,15 @@ PoolContract_Sync_handler(({ event, context }) => {
     );
 
     let { token0PricePerETH, token1PricePerETH } = findPricePerETH(
-      currentLiquidityPool,
-      context.LiquidityPool.getToken0,
-      context.LiquidityPool.getToken1,
+      token0Instance,
+      token1Instance,
       whitelistedTokensList,
       relevantPoolEntitiesToken0,
       relevantPoolEntitiesToken1,
       event.chainId,
       token0Price,
       token1Price
-    )
+    );
 
     let token0PricePerUSD, token1PricePerUSD;
 
