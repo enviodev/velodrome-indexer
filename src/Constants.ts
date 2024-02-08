@@ -104,12 +104,6 @@ const BASE_STABLECOIN_POOLS: Pool[] = [
     token1: DAI,
     name: "vAMM-WETH/DAI",
   },
-  {
-    address: "0x0B25c51637c43decd6CC1C1e3da4518D54ddb528",
-    token0: DOLA,
-    token1: USDbC,
-    name: "vAMM-DOLA/USDbC",
-  },
 ];
 
 // List of pool addresses for testing
