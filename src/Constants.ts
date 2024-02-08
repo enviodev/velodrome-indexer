@@ -71,7 +71,7 @@ const DOLA: Token = {
   symbol: "DOLA",
 };
 // list of WHITELISTED tokens with their symbol and decimals to be used in pricing
-const OPTIMISM_WHITELISTED_TOKENS: Token[] = [WETH, USDC, OP, LUSD];
+const OPTIMISM_WHITELISTED_TOKENS: Token[] = [WETH, USDC, VELO, OP, LUSD];
 
 const BASE_WHITELISTED_TOKENS: Token[] = [WETH, USDbC, USDC_BASE, DAI, DOLA];
 
@@ -132,6 +132,7 @@ const BASE_TESTING_POOL_ADDRESSES: string[] = [
 // Object containing all the constants for a chain
 type chainConstants = {
   eth: Token;
+  usdc: Token;
   firstPriceFetchedBlockNumber: number;
   rewardToken: Token;
   rpcURL: string;
@@ -145,6 +146,7 @@ type chainConstants = {
 // Constants for Optimism
 const OPTIMISM_CONSTANTS: chainConstants = {
   eth: WETH,
+  usdc: USDC,
   firstPriceFetchedBlockNumber: 106247807,
   rewardToken: VELO,
   rpcURL: "https://rpc.ankr.com/optimism",
@@ -162,6 +164,7 @@ const OPTIMISM_CONSTANTS: chainConstants = {
 // Constants for Base
 const BASE_CONSTANTS: chainConstants = {
   eth: WETH,
+  usdc: USDbC,
   firstPriceFetchedBlockNumber: 3347620,
   rewardToken: AERO,
   rpcURL: "https://base.publicnode.com",

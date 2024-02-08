@@ -470,6 +470,106 @@ describe("Sequence of Sync events correctly updates pool and token entity", () =
     mockDb: mockDbWithStateStore,
   });
 
+  let normalizedReserve0Amount = normalizeTokenAmountTo1e18(
+    reserveAmount0,
+    Number(mockToken0Entity.decimals)
+  );
+  let normalizedReserve1Amount = normalizeTokenAmountTo1e18(
+    reserveAmount1,
+    Number(mockToken1Entity.decimals)
+  );
+
+  const expectedLiquidityPoolEntityAfterFirstSync: LiquidityPoolEntity = {
+    ...mockLiquidityPoolEntity,
+    reserve0: normalizedReserve0Amount,
+    reserve1: normalizedReserve1Amount,
+    token0Price: divideBase1e18(
+      normalizedReserve1Amount,
+      normalizedReserve0Amount
+    ),
+    token1Price: divideBase1e18(
+      normalizedReserve0Amount,
+      normalizedReserve1Amount
+    ),
+    totalLiquidityETH: 2000000000000000n, // 0.002 WETH
+    totalLiquidityUSD: 4n * TEN_TO_THE_18_BI, // 4 USD at 2000 USD/ETH
+    lastUpdatedTimestamp: BigInt(mockSyncEvent.blockTimestamp),
+  };
+
+  const updatedMockDbAfterFirstSync = updatedMockDb.entities.LiquidityPool.set(
+    expectedLiquidityPoolEntityAfterFirstSync
+  );
+
+  // start of second sync event
+  const secondReserveAmount0 = 1000000n;
+  const secondReserveAmount1 = 40000000000000000000n;
+
+  const usdcVELOPoolAddress = "0x8134a2fdc127549480865fb8e5a9e8a8a95a54c5";
+
+  // Create a mock LiquidityPool entity
+  const secondMockLiquidityPoolEntity: LiquidityPoolEntity = {
+    id: usdcVELOPoolAddress, // USDC/VELO
+    name: "Volatile AMM - USDC/VELO",
+    chainID: BigInt(mockChainID),
+    token0: USDC.address,
+    token1: VELO.address,
+    isStable: false,
+    reserve0: 0n,
+    reserve1: 0n,
+    totalLiquidityETH: 0n,
+    totalLiquidityUSD: 0n,
+    totalVolume0: 0n,
+    totalVolume1: 0n,
+    totalVolumeUSD: 0n,
+    totalFees0: 0n,
+    totalFees1: 0n,
+    totalFeesUSD: 0n,
+    totalEmissions: 0n,
+    totalEmissionsUSD: 0n,
+    totalBribesUSD: 0n,
+    numberOfSwaps: 0n,
+    token0Price: 0n,
+    token1Price: 0n,
+    lastUpdatedTimestamp: 0n,
+  };
+
+  // Mock Token entities
+  const usdcToken: TokenEntity = {
+    id: USDC.address,
+    symbol: "USDC",
+    name: "USD Coin",
+    decimals: 6n,
+    chainID: BigInt(mockChainID),
+    pricePerETH: 0n,
+    pricePerUSD: 0n,
+    lastUpdatedTimestamp: 0n,
+  };
+
+  // Updating the mock DB with the mock entities
+  const secondMockDbWithToken0 =
+    updatedMockDbAfterFirstSync.entities.Token.set(usdcToken);
+  const secondMockDbWithLiquidityPool =
+    secondMockDbWithToken0.entities.LiquidityPool.set(
+      secondMockLiquidityPoolEntity
+    );
+
+  // Creating mock Sync event
+  const secondMockSyncEvent = Pool.Sync.createMockEvent({
+    reserve0: secondReserveAmount0,
+    reserve1: secondReserveAmount1,
+    mockEventData: {
+      blockTimestamp: mockBlockTimestamp,
+      chainId: mockChainID,
+      srcAddress: usdcVELOPoolAddress,
+    },
+  });
+
+  // Processing the event
+  const secondUpdatedMockDb = Pool.Sync.processEvent({
+    event: secondMockSyncEvent,
+    mockDb: secondMockDbWithLiquidityPool,
+  });
+
   it("First Sync event: Reserve and token price values of LiquidityPool entity are updated correctly", () => {
     // Getting the entity from the mock database
     const actualLiquidityPoolEntity =
@@ -534,75 +634,6 @@ describe("Sequence of Sync events correctly updates pool and token entity", () =
     // Asserting that the entity in the mock database is the same as the expected entity
     expect(actualToken0Entity).to.deep.equal(expectedToken0Entity);
     expect(actualToken1Entity).to.deep.equal(expectedToken1Entity);
-  });
-
-  // start of second sync event
-  const secondReserveAmount0 = 1000000n;
-  const secondReserveAmount1 = 40000000000000000000n;
-
-  const usdcVELOPoolAddress = "0x8134a2fdc127549480865fb8e5a9e8a8a95a54c5";
-
-  // Create a mock LiquidityPool entity
-  const secondMockLiquidityPoolEntity: LiquidityPoolEntity = {
-    id: usdcVELOPoolAddress, // USDC/VELO
-    name: "Volatile AMM - USDC/VELO",
-    chainID: BigInt(mockChainID),
-    token0: USDC.address,
-    token1: VELO.address,
-    isStable: false,
-    reserve0: 0n,
-    reserve1: 0n,
-    totalLiquidityETH: 0n,
-    totalLiquidityUSD: 0n,
-    totalVolume0: 0n,
-    totalVolume1: 0n,
-    totalVolumeUSD: 0n,
-    totalFees0: 0n,
-    totalFees1: 0n,
-    totalFeesUSD: 0n,
-    totalEmissions: 0n,
-    totalEmissionsUSD: 0n,
-    totalBribesUSD: 0n,
-    numberOfSwaps: 0n,
-    token0Price: 0n,
-    token1Price: 0n,
-    lastUpdatedTimestamp: 0n,
-  };
-
-  // Mock Token entities
-  const usdcToken: TokenEntity = {
-    id: USDC.address,
-    symbol: "USDC",
-    name: "USD Coin",
-    decimals: 6n,
-    chainID: BigInt(mockChainID),
-    pricePerETH: 0n,
-    pricePerUSD: 0n,
-    lastUpdatedTimestamp: 0n,
-  };
-
-  // Updating the mock DB with the mock entities
-  const secondMockDbWithToken0 = updatedMockDb.entities.Token.set(usdcToken);
-  const secondMockDbWithLiquidityPool =
-    secondMockDbWithToken0.entities.LiquidityPool.set(
-      secondMockLiquidityPoolEntity
-    );
-
-  // Creating mock Sync event
-  const secondMockSyncEvent = Pool.Sync.createMockEvent({
-    reserve0: secondReserveAmount0,
-    reserve1: secondReserveAmount1,
-    mockEventData: {
-      blockTimestamp: mockBlockTimestamp,
-      chainId: mockChainID,
-      srcAddress: usdcVELOPoolAddress,
-    },
-  });
-
-  // Processing the event
-  const secondUpdatedMockDb = Pool.Sync.processEvent({
-    event: secondMockSyncEvent,
-    mockDb: secondMockDbWithLiquidityPool,
   });
 
   it("Second Sync event: Reserve and token price values of LiquidityPool entity are updated correctly", () => {
