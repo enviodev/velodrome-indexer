@@ -245,6 +245,10 @@ PoolContract_Fees_handler(({ event, context }) => {
     };
     // Update the LiquidityPoolEntity in the DB
     context.LiquidityPool.set(liquidityPoolInstance);
+  } else {
+    context.log.error(
+      `Fees event recieved for liquidity pool that is not registered ${event.srcAddress.toString()}`
+    );
   }
 });
 
