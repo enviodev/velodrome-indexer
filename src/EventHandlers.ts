@@ -262,16 +262,16 @@ PoolContract_Swap_loader(({ event, context }) => {
   });
 
   //Load the mapping for liquidity pool and the user
-  context.LiquidityPoolUserMapping.poolUserMappingLoad(
-    getLiquidityPoolAndUserMappingId(
-      event.srcAddress.toString(),
-      event.params.to.toString()
-    ),
-    {}
-  );
+  //   context.LiquidityPoolUserMapping.poolUserMappingLoad(
+  //     getLiquidityPoolAndUserMappingId(
+  //       event.srcAddress.toString(),
+  //       event.params.to.toString()
+  //     ),
+  //     {}
+  //   );
 
-  //Load the user entity
-  context.User.userLoad(event.params.to.toString());
+  //   //Load the user entity
+  //   context.User.userLoad(event.params.to.toString());
 });
 
 PoolContract_Swap_handler(({ event, context }) => {
@@ -281,25 +281,25 @@ PoolContract_Swap_handler(({ event, context }) => {
   );
 
   // Fetching the relevant liquidity pool user mapping
-  const liquidityPoolUserMapping =
-    context.LiquidityPoolUserMapping.poolUserMapping;
+  // const liquidityPoolUserMapping =
+  //   context.LiquidityPoolUserMapping.poolUserMapping;
 
-  // If the mapping doesn't exist yet, create the mapping and save in DB
-  if (!liquidityPoolUserMapping) {
-    let newLiquidityPoolUserMapping: LiquidityPoolUserMappingEntity = {
-      id: getLiquidityPoolAndUserMappingId(
-        event.srcAddress.toString(),
-        event.params.to.toString()
-      ),
-      liquidityPool: event.srcAddress.toString(),
-      user: event.params.sender.toString(),
-    };
+  // // If the mapping doesn't exist yet, create the mapping and save in DB
+  // if (!liquidityPoolUserMapping) {
+  //   let newLiquidityPoolUserMapping: LiquidityPoolUserMappingEntity = {
+  //     id: getLiquidityPoolAndUserMappingId(
+  //       event.srcAddress.toString(),
+  //       event.params.to.toString()
+  //     ),
+  //     liquidityPool: event.srcAddress.toString(),
+  //     user: event.params.to.toString(),
+  //   };
 
-    context.LiquidityPoolUserMapping.set(newLiquidityPoolUserMapping);
-  }
+  //   context.LiquidityPoolUserMapping.set(newLiquidityPoolUserMapping);
+  // }
 
   // Fetching the relevant user entity
-  let currentUser = context.User.user;
+  // let currentUser = context.User.user;
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   if (currentLiquidityPool) {
@@ -329,24 +329,24 @@ PoolContract_Swap_handler(({ event, context }) => {
     );
 
     // Get the user id from the loader or initialize it from the event if user doesn't exist
-    let existingUserId = currentUser
-      ? currentUser.id
-      : event.params.to.toString();
-    let existingUserVolume = currentUser ? currentUser.totalSwapVolumeUSD : 0n;
-    let existingUserNumberOfSwaps = currentUser
-      ? currentUser.numberOfSwaps
-      : 0n;
+    // let existingUserId = currentUser
+    //   ? currentUser.id
+    //   : event.params.to.toString();
+    // let existingUserVolume = currentUser ? currentUser.totalSwapVolumeUSD : 0n;
+    // let existingUserNumberOfSwaps = currentUser
+    //   ? currentUser.numberOfSwaps
+    //   : 0n;
 
-    // Create a new instance of UserEntity to be updated in the DB
-    const userInstance: UserEntity = {
-      id: existingUserId,
-      totalSwapVolumeUSD:
-        existingUserVolume +
-        normalizedAmount0TotalUsd +
-        normalizedAmount1TotalUsd,
-      numberOfSwaps: existingUserNumberOfSwaps + 1n,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
+    // // Create a new instance of UserEntity to be updated in the DB
+    // const userInstance: UserEntity = {
+    //   id: existingUserId,
+    //   totalSwapVolumeUSD:
+    //     existingUserVolume +
+    //     normalizedAmount0TotalUsd +
+    //     normalizedAmount1TotalUsd,
+    //   numberOfSwaps: existingUserNumberOfSwaps + 1n,
+    //   lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    // };
 
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
     const liquidityPoolInstance: LiquidityPoolEntity = {
@@ -365,7 +365,7 @@ PoolContract_Swap_handler(({ event, context }) => {
     context.LiquidityPool.set(liquidityPoolInstance);
 
     // Update the UserEntity in the DB
-    context.User.set(userInstance);
+    // context.User.set(userInstance);
   }
 });
 
