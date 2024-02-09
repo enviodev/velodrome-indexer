@@ -37,8 +37,8 @@ type LiquidityPool {
   totalEmissionsUSD: BigInt! # total emissions for the pool in USD
   totalBribesUSD: BigInt! # total bribes for the pool in USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
-  userMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this pool
-    @derivedFrom(field: "liquidityPool")
+  # userMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this pool
+  #   @derivedFrom(field: "liquidityPool")
   liquidityPoolHourlySnapshots: [LiquidityPoolHourlySnapshot!]!  # hourly snapshots of the pool
     @derivedFrom(field: "pool")
   liquidityPoolDailySnapshots: [LiquidityPoolDailySnapshot!]!  # daily snapshots of the pool
@@ -70,8 +70,8 @@ type LiquidityPoolHourlySnapshot {
   totalEmissionsUSD: BigInt! # total emissions for the pool in USD
   totalBribesUSD: BigInt! # total bribes for the pool in USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
-  userMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this pool
-    @derivedFrom(field: "liquidityPool")
+  # userMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this pool
+  #   @derivedFrom(field: "liquidityPool")
 }
 
 # Daily snapshot of the LiquidityPool entity
@@ -97,8 +97,8 @@ type LiquidityPoolDailySnapshot {
   totalEmissionsUSD: BigInt! # total emissions for the pool in USD
   totalBribesUSD: BigInt! # total bribes for the pool in USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
-  userMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this pool
-    @derivedFrom(field: "liquidityPool")
+  # userMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this pool
+  #   @derivedFrom(field: "liquidityPool")
 }
 
 # Weekly snapshot of the LiquidityPool entity
@@ -124,8 +124,8 @@ type LiquidityPoolWeeklySnapshot {
   totalEmissionsUSD: BigInt! # total emissions for the pool in USD
   totalBribesUSD: BigInt! # total bribes for the pool in USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
-  userMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this pool
-    @derivedFrom(field: "liquidityPool")
+  # userMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this pool
+  #   @derivedFrom(field: "liquidityPool")
 }
 
 # Entity that tracks the latest state of the token entity
@@ -181,21 +181,21 @@ type TokenWeeklySnapshot {
 }
 
 # Entity that tracks the latest state of the user entity
-type User {
-  id: ID! # user address
-  numberOfSwaps: BigInt!
-  totalSwapVolumeUSD: BigInt! # total swap volume of the user in USD
-  lastUpdatedTimestamp: BigInt! # timestamp of last update
-  liquidityPoolMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this user
-    @derivedFrom(field: "user")
-}
+# type User {
+#   id: ID! # user address
+#   numberOfSwaps: BigInt!
+#   totalSwapVolumeUSD: BigInt! # total swap volume of the user in USD
+#   lastUpdatedTimestamp: BigInt! # timestamp of last update
+#   liquidityPoolMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this user
+#     @derivedFrom(field: "user")
+# }
 
 # Entity that is used to signify a relationship between a user and a pool
-type LiquidityPoolUserMapping {
-  id: ID! # concatenation of liquidityPool and user id
-  liquidityPool: LiquidityPool! # liquidity pool entity
-  user: User! # user entity
-}
+# type LiquidityPoolUserMapping {
+#   id: ID! # concatenation of liquidityPool and user id
+#   liquidityPool: LiquidityPool! # liquidity pool entity
+#   user: User! # user entity
+# }
 
 # Entity that tracks the latest state of the reward token entity
 type RewardToken {
