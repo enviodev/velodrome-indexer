@@ -268,12 +268,12 @@ export const findPricePerETHOld = (
 };
 
 // Function to return the liquidityPool and User mapping id
-export const getLiquidityPoolAndUserMappingId = (
-  liquidityPoolId: string,
-  userId: string
-): string => {
-  return liquidityPoolId + "-" + userId;
-};
+// export const getLiquidityPoolAndUserMappingId = (
+//   liquidityPoolId: string,
+//   userId: string
+// ): string => {
+//   return liquidityPoolId + "-" + userId;
+// };
 
 // Helper function to get generate the pool name given token0 and token1 symbols and isStable boolean
 export function generatePoolName(
