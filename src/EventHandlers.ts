@@ -21,8 +21,6 @@ import {
   LatestETHPriceEntity,
   LiquidityPoolEntity,
   TokenEntity,
-  UserEntity,
-  LiquidityPoolUserMappingEntity,
 } from "./src/Types.gen";
 
 import {
@@ -36,7 +34,7 @@ import {
   calculateETHPriceInUSD,
   isStablecoinPool,
   normalizeTokenAmountTo1e18,
-  getLiquidityPoolAndUserMappingId,
+  // getLiquidityPoolAndUserMappingId,
   generatePoolName,
   findPricePerETH,
   trimRelevantLiquidityPoolEntities,
@@ -262,16 +260,16 @@ PoolContract_Swap_loader(({ event, context }) => {
   });
 
   //Load the mapping for liquidity pool and the user
-  context.LiquidityPoolUserMapping.poolUserMappingLoad(
-    getLiquidityPoolAndUserMappingId(
-      event.srcAddress.toString(),
-      event.params.to.toString()
-    ),
-    {}
-  );
+  //   context.LiquidityPoolUserMapping.poolUserMappingLoad(
+  //     getLiquidityPoolAndUserMappingId(
+  //       event.srcAddress.toString(),
+  //       event.params.to.toString()
+  //     ),
+  //     {}
+  //   );
 
-  //Load the user entity
-  context.User.userLoad(event.params.to.toString());
+  //   //Load the user entity
+  //   context.User.userLoad(event.params.to.toString());
 });
 
 PoolContract_Swap_handler(({ event, context }) => {
@@ -281,25 +279,25 @@ PoolContract_Swap_handler(({ event, context }) => {
   );
 
   // Fetching the relevant liquidity pool user mapping
-  const liquidityPoolUserMapping =
-    context.LiquidityPoolUserMapping.poolUserMapping;
+  // const liquidityPoolUserMapping =
+  //   context.LiquidityPoolUserMapping.poolUserMapping;
 
-  // If the mapping doesn't exist yet, create the mapping and save in DB
-  if (!liquidityPoolUserMapping) {
-    let newLiquidityPoolUserMapping: LiquidityPoolUserMappingEntity = {
-      id: getLiquidityPoolAndUserMappingId(
-        event.srcAddress.toString(),
-        event.params.to.toString()
-      ),
-      liquidityPool: event.srcAddress.toString(),
-      user: event.params.sender.toString(),
-    };
+  // // If the mapping doesn't exist yet, create the mapping and save in DB
+  // if (!liquidityPoolUserMapping) {
+  //   let newLiquidityPoolUserMapping: LiquidityPoolUserMappingEntity = {
+  //     id: getLiquidityPoolAndUserMappingId(
+  //       event.srcAddress.toString(),
+  //       event.params.to.toString()
+  //     ),
+  //     liquidityPool: event.srcAddress.toString(),
+  //     user: event.params.to.toString(),
+  //   };
 
-    context.LiquidityPoolUserMapping.set(newLiquidityPoolUserMapping);
-  }
+  //   context.LiquidityPoolUserMapping.set(newLiquidityPoolUserMapping);
+  // }
 
   // Fetching the relevant user entity
-  let currentUser = context.User.user;
+  // let currentUser = context.User.user;
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   if (currentLiquidityPool) {
@@ -329,24 +327,24 @@ PoolContract_Swap_handler(({ event, context }) => {
     );
 
     // Get the user id from the loader or initialize it from the event if user doesn't exist
-    let existingUserId = currentUser
-      ? currentUser.id
-      : event.params.to.toString();
-    let existingUserVolume = currentUser ? currentUser.totalSwapVolumeUSD : 0n;
-    let existingUserNumberOfSwaps = currentUser
-      ? currentUser.numberOfSwaps
-      : 0n;
+    // let existingUserId = currentUser
+    //   ? currentUser.id
+    //   : event.params.to.toString();
+    // let existingUserVolume = currentUser ? currentUser.totalSwapVolumeUSD : 0n;
+    // let existingUserNumberOfSwaps = currentUser
+    //   ? currentUser.numberOfSwaps
+    //   : 0n;
 
-    // Create a new instance of UserEntity to be updated in the DB
-    const userInstance: UserEntity = {
-      id: existingUserId,
-      totalSwapVolumeUSD:
-        existingUserVolume +
-        normalizedAmount0TotalUsd +
-        normalizedAmount1TotalUsd,
-      numberOfSwaps: existingUserNumberOfSwaps + 1n,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
+    // // Create a new instance of UserEntity to be updated in the DB
+    // const userInstance: UserEntity = {
+    //   id: existingUserId,
+    //   totalSwapVolumeUSD:
+    //     existingUserVolume +
+    //     normalizedAmount0TotalUsd +
+    //     normalizedAmount1TotalUsd,
+    //   numberOfSwaps: existingUserNumberOfSwaps + 1n,
+    //   lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    // };
 
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
     const liquidityPoolInstance: LiquidityPoolEntity = {
@@ -365,7 +363,7 @@ PoolContract_Swap_handler(({ event, context }) => {
     context.LiquidityPool.set(liquidityPoolInstance);
 
     // Update the UserEntity in the DB
-    context.User.set(userInstance);
+    // context.User.set(userInstance);
   }
 });
 
@@ -384,13 +382,13 @@ PoolContract_Sync_loader(({ event, context }) => {
   });
 
   // Load stablecoin pools for weighted average ETH price calculation, only if pool is stablecoin pool
-  const stableCoinPoolAddresses = isStablecoinPool(
-    event.srcAddress.toString().toLowerCase(),
-    event.chainId
-  )
-    ? CHAIN_CONSTANTS[event.chainId].stablecoinPoolAddresses
-    : [];
-  context.LiquidityPool.stablecoinPoolsLoad(stableCoinPoolAddresses, {});
+  // const stableCoinPoolAddresses = isStablecoinPool(
+  //   event.srcAddress.toString().toLowerCase(),
+  //   event.chainId
+  // )
+  //   ? CHAIN_CONSTANTS[event.chainId].stablecoinPoolAddresses
+  //   : [];
+  // context.LiquidityPool.stablecoinPoolsLoad(stableCoinPoolAddresses, {});
 
   // Load all the whitelisted pools i.e. pools with at least one white listed tokens
   const maybeTokensWhitelisted = getTokensFromWhitelistedPool(
@@ -610,23 +608,12 @@ PoolContract_Sync_handler(({ event, context }) => {
       context.TokenWeeklySnapshot.set(tokenWeeklySnapshotInstance);
     }
 
-    // Updating of ETH price if the pool is a stablecoin pool
+    // we only use the WETH/USDC pool to update the ETH price
     if (
-      isStablecoinPool(event.srcAddress.toString().toLowerCase(), event.chainId)
+      event.srcAddress.toString().toLowerCase() ==
+      CHAIN_CONSTANTS[10].stablecoinPoolAddresses[0].toLowerCase()
     ) {
-      // Filter out undefined values
-      let stablecoinPoolsList = context.LiquidityPool.stablecoinPools.filter(
-        (item): item is LiquidityPoolEntity => item !== undefined
-      );
-
-      // Overwrite stablecoin pool with latest data
-      let poolIndex = stablecoinPoolsList.findIndex(
-        (pool) => pool.id === liquidityPoolInstance.id
-      );
-      stablecoinPoolsList[poolIndex] = liquidityPoolInstance;
-
-      // Calculate weighted average ETH price using stablecoin pools
-      let ethPriceInUSD = calculateETHPriceInUSD(stablecoinPoolsList);
+      let ethPriceInUSD = token0PricePerUSD;
 
       // Use the previous eth price if the new eth price is 0
       if (ethPriceInUSD == 0n) {
@@ -648,6 +635,45 @@ PoolContract_Sync_handler(({ event, context }) => {
         latestEthPrice: latestEthPriceInstance.id,
       });
     }
+
+    // Updating of ETH price if the pool is a stablecoin pool
+    // if (
+    //   isStablecoinPool(event.srcAddress.toString().toLowerCase(), event.chainId)
+    // ) {
+    //   // Filter out undefined values
+    //   let stablecoinPoolsList = context.LiquidityPool.stablecoinPools.filter(
+    //     (item): item is LiquidityPoolEntity => item !== undefined
+    //   );
+
+    //   // Overwrite stablecoin pool with latest data
+    //   let poolIndex = stablecoinPoolsList.findIndex(
+    //     (pool) => pool.id === liquidityPoolInstance.id
+    //   );
+    //   stablecoinPoolsList[poolIndex] = liquidityPoolInstance;
+
+    //   // Calculate weighted average ETH price using stablecoin pools
+    //   let ethPriceInUSD = calculateETHPriceInUSD(stablecoinPoolsList);
+
+    //   // Use the previous eth price if the new eth price is 0
+    //   if (ethPriceInUSD == 0n) {
+    //     ethPriceInUSD = latestEthPrice.price;
+    //   }
+
+    //   // Creating LatestETHPriceEntity with the latest price
+    //   let latestEthPriceInstance: LatestETHPriceEntity = {
+    //     id: event.blockTimestamp.toString(),
+    //     price: ethPriceInUSD,
+    //   };
+
+    //   // Creating a new instance of LatestETHPriceEntity to be updated in the DB
+    //   context.LatestETHPrice.set(latestEthPriceInstance);
+
+    //   // update latestETHPriceKey value with event.blockTimestamp.toString()
+    //   context.StateStore.set({
+    //     ...stateStore,
+    //     latestEthPrice: latestEthPriceInstance.id,
+    //   });
+    // }
   }
 });
 

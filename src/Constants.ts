@@ -12,7 +12,7 @@ export const SECONDS_IN_A_WEEK = BigInt(604800);
 export const STATE_STORE_ID = "STATE";
 
 export const INITIAL_ETH_PRICE: LatestETHPriceEntity = {
-  id: "INITIAL PRICE",
+  id: "1687468854", // Using Timestamp of first price minus 1 second
   price: 1869671494767075821464n, // Using the first calculated ETH price as initial price - an hour delay from the timestamp where ETH price was calculated
 };
 export const DEFAULT_STATE_STORE: StateStoreEntity = {

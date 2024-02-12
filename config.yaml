@@ -27,10 +27,10 @@ contracts:
       - event: Swap(address indexed sender, address indexed to, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out)
         requiredEntities:
           - name: LiquidityPool
-          - name: LiquidityPoolUserMapping
-            labels: ["poolUserMapping"]
-          - name: User
-            labels: ["user"]
+          # - name: LiquidityPoolUserMapping
+          #   labels: ["poolUserMapping"]
+          # - name: User
+          #   labels: ["user"]
       # Used to update the liquidity values of a particular pool
       - event: Sync(uint256 reserve0, uint256 reserve1)
         requiredEntities:
@@ -40,7 +40,7 @@ contracts:
             labels:
               - singlePool
             arrayLabels:
-              - stablecoinPools
+              # - stablecoinPools
               - whitelistedPools0
               - whitelistedPools1
           - name: Token
