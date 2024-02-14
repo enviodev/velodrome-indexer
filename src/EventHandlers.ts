@@ -31,8 +31,8 @@ import {
 } from "./Constants";
 
 import {
-  calculateETHPriceInUSD,
-  isStablecoinPool,
+  // calculateETHPriceInUSD,
+  // isStablecoinPool,
   normalizeTokenAmountTo1e18,
   // getLiquidityPoolAndUserMappingId,
   generatePoolName,
@@ -75,7 +75,10 @@ PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   });
 
   // load the token entities
-  context.Token.poolTokensLoad([event.params.token0, event.params.token1]);
+  context.Token.poolTokensLoad([
+    event.params.token0 + "-" + event.chainId.toString(),
+    event.params.token1 + "-" + event.chainId.toString(),
+  ]);
 });
 
 PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
@@ -114,7 +117,7 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
 
       // Create new instances of TokenEntity to be updated in the DB
       const tokenInstance: TokenEntity = {
-        id: poolTokenAddressMapping.address,
+        id: poolTokenAddressMapping.address + "-" + event.chainId.toString(),
         symbol: tokenSymbol,
         name: tokenName,
         decimals: BigInt(tokenDecimals),
@@ -144,8 +147,8 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
       poolTokenSymbols[1],
       event.params.stable
     ),
-    token0: event.params.token0,
-    token1: event.params.token1,
+    token0: event.params.token0 + "-" + event.chainId.toString(),
+    token1: event.params.token1 + "-" + event.chainId.toString(),
     isStable: event.params.stable,
     reserve0: 0n,
     reserve1: 0n,
@@ -390,18 +393,24 @@ PoolContract_Sync_loader(({ event, context }) => {
   //   : [];
   // context.LiquidityPool.stablecoinPoolsLoad(stableCoinPoolAddresses, {});
 
-  // Load all the whitelisted pools i.e. pools with at least one white listed tokens
+  // if the pool is whitelisted, which means at least of the tokens are whitelisted, it loads both tokens, token 0 an token 1
+  // token 0 and token 1 could either be whitelisted or not but at least one of them is whitelisted.
   const maybeTokensWhitelisted = getTokensFromWhitelistedPool(
     event.chainId,
     event.srcAddress.toString()
   );
 
+  // Load all the whitelisted pools i.e. pools with at least one white listed tokens
   if (maybeTokensWhitelisted) {
     // only load here if tokens are in whitelisted pool.
+    // i.e. if VELO is whitelisted token, then all pools with VELO are whitelisted pools and loaded here.
+    // Even something like RED/VELO with 0 liquidity
+    // i.e. all the pools containing token0 (if token 0 is whitelisted)
     context.LiquidityPool.whitelistedPools0Load(
       getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token0),
       {}
     );
+    // i.e. all the pools containing token1 (if token 1 is whitelisted)
     context.LiquidityPool.whitelistedPools1Load(
       getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token1),
       {}
@@ -619,6 +628,7 @@ PoolContract_Sync_handler(({ event, context }) => {
       if (ethPriceInUSD == 0n) {
         ethPriceInUSD = latestEthPrice.price;
       }
+      // todo: investigate why eth price seems like its constant for 1 day then changes (likely price fetcher contract)
 
       // Creating LatestETHPriceEntity with the latest price
       let latestEthPriceInstance: LatestETHPriceEntity = {
@@ -679,12 +689,16 @@ PoolContract_Sync_handler(({ event, context }) => {
 
 PriceFetcherContract_PriceFetched_loader(({ event, context }) => {
   // Load the single token from the loader to be updated
-  context.Token.load(event.params.token.toString());
+  context.Token.load(
+    event.params.token.toString() + "-" + event.chainId.toString()
+  );
 });
 
 PriceFetcherContract_PriceFetched_handler(({ event, context }) => {
   // Fetch the current token from the loader
-  let currentToken = context.Token.get(event.params.token.toString());
+  let currentToken = context.Token.get(
+    event.params.token.toString() + "-" + event.chainId.toString()
+  );
 
   // The token entity should be created via PoolCreated event from the PoolFactory contract
   if (currentToken) {

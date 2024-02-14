@@ -19,66 +19,66 @@ export const normalizeTokenAmountTo1e18 = (
 };
 
 // Function to calculate the price of ETH as the weighted average of ETH price from the stablecoin vs ETH pools
-export const calculateETHPriceInUSD = (
-  stablecoinPools: LiquidityPoolEntity[]
-): bigint => {
-  let totalWeight = 0n;
-  let weightedPriceSum = 0n;
+// export const calculateETHPriceInUSD = (
+//   stablecoinPools: LiquidityPoolEntity[]
+// ): bigint => {
+//   let totalWeight = 0n;
+//   let weightedPriceSum = 0n;
 
-  for (let pool of stablecoinPools) {
-    // Skip pools with insufficient liquidity (i.e. 2 ETH) to avoid skewing the price
-    if (pool.reserve0 < 2n * TEN_TO_THE_18_BI) {
-      continue;
-    }
-    // Use token0 price of pool as ETH price
-    // assumption is that all stablecoin pools are token0 = ETH, token1 = stablecoin
-    const ethPrice = pool.token0Price;
+//   for (let pool of stablecoinPools) {
+//     // Skip pools with insufficient liquidity (i.e. 2 ETH) to avoid skewing the price
+//     if (pool.reserve0 < 2n * TEN_TO_THE_18_BI) {
+//       continue;
+//     }
+//     // Use token0 price of pool as ETH price
+//     // assumption is that all stablecoin pools are token0 = ETH, token1 = stablecoin
+//     const ethPrice = pool.token0Price;
 
-    // Use reserve0 as weight numerator
-    const weight = pool.reserve0;
+//     // Use reserve0 as weight numerator
+//     const weight = pool.reserve0;
 
-    // Calculate weighted average of ETH price
-    weightedPriceSum += ethPrice * weight;
+//     // Calculate weighted average of ETH price
+//     weightedPriceSum += ethPrice * weight;
 
-    // Sum weight denominator
-    totalWeight += weight;
-  }
+//     // Sum weight denominator
+//     totalWeight += weight;
+//   }
 
-  let ethPriceInUSD = totalWeight > 0n ? weightedPriceSum / totalWeight : 0n;
+//   let ethPriceInUSD = totalWeight > 0n ? weightedPriceSum / totalWeight : 0n;
 
-  return ethPriceInUSD;
-};
+//   return ethPriceInUSD;
+// };
 
 // Helper function to check if a pool is a stablecoin pool
-export const isStablecoinPool = (
-  poolAddress: string,
-  chainId: number
-): boolean => {
-  return CHAIN_CONSTANTS[chainId].stablecoinPoolAddresses.some(
-    (address) => address.toLowerCase() === poolAddress
-  );
-};
+// export const isStablecoinPool = (
+//   poolAddress: string,
+//   chainId: number
+// ): boolean => {
+//   return CHAIN_CONSTANTS[chainId].stablecoinPoolAddresses.some(
+//     (address) => address.toLowerCase() === poolAddress
+//   );
+// };
 
 // Helper function to extract a subset of LiquidityPool entities from a list of LiquidityPool entities with whitelisted tokens
-const extractRelevantLiquidityPoolEntities = (
-  tokenAddress: string,
-  liquidityPoolEntities: LiquidityPoolEntity[]
-): LiquidityPoolEntity[] => {
-  // Create a list to store the relevant liquidity pool entities
-  let relevantLiquidityPoolEntities: LiquidityPoolEntity[] = [];
+// const extractRelevantLiquidityPoolEntities = (
+//   tokenAddress: string,
+//   liquidityPoolEntities: LiquidityPoolEntity[]
+// ): LiquidityPoolEntity[] => {
+//   // Create a list to store the relevant liquidity pool entities
+//   let relevantLiquidityPoolEntities: LiquidityPoolEntity[] = [];
 
-  // Search through the liquidity pool entities and add the relevant ones to the list
-  for (let pool of liquidityPoolEntities) {
-    if (
-      pool.token0.toLowerCase() === tokenAddress.toLowerCase() ||
-      pool.token1.toLowerCase() === tokenAddress.toLowerCase()
-    ) {
-      relevantLiquidityPoolEntities.push(pool);
-    }
-  }
+//   // Search through the liquidity pool entities and add the relevant ones to the list
+//   for (let pool of liquidityPoolEntities) {
+//     if (
+//       pool.token0.toLowerCase() === tokenAddress.toLowerCase() ||
+//       pool.token1.toLowerCase() === tokenAddress.toLowerCase()
+//     ) {
+//       relevantLiquidityPoolEntities.push(pool);
+//     }
+//   }
 
-  return relevantLiquidityPoolEntities;
-};
+//   return relevantLiquidityPoolEntities;
+// };
 
 const calculatePrice = (
   relevantLiquidityPoolEntities: LiquidityPoolEntity[],
@@ -87,10 +87,12 @@ const calculatePrice = (
 ) => {
   // If the token is not WETH, then run through the pricing pools to price the token
   for (let pool of relevantLiquidityPoolEntities) {
-    if (pool.token0 == tokenAddress) {
+    let token0Address = trimAfterDashAndLowercase(pool.token0);
+    let token1Address = trimAfterDashAndLowercase(pool.token1);
+    if (token0Address == tokenAddress) {
       // load whitelist token
       let whitelistedTokenInstance = whitelistedTokensList.find(
-        (token) => token.id === pool.token1
+        (token) => token.id === token1Address
       );
       // Second condition is to prevent relative pricing against a token that has a zero price against ETH i.e. not yet been priced
       if (
@@ -102,10 +104,10 @@ const calculatePrice = (
           whitelistedTokenInstance.pricePerETH
         );
       }
-    } else if (pool.token1 == tokenAddress) {
+    } else if (token1Address == tokenAddress) {
       // load whitelist token
       let whitelistedTokenInstance = whitelistedTokensList.find(
-        (token) => token.id === pool.token0
+        (token) => token.id === token0Address
       );
       // Second condition is to prevent relative pricing against a token that has a zero price against ETH i.e. not yet been priced
       if (
@@ -124,6 +126,10 @@ const calculatePrice = (
   return 0n;
 };
 
+const trimAfterDashAndLowercase = (input: string): string => {
+  return input.split("-")[0].toLowerCase();
+};
+
 export const findPricePerETH = (
   token0Entity: TokenEntity,
   token1Entity: TokenEntity,
@@ -134,18 +140,18 @@ export const findPricePerETH = (
   relativeTokenPrice0: bigint,
   relativeTokenPrice1: bigint
 ): { token0PricePerETH: bigint; token1PricePerETH: bigint } => {
+  // Extract token addresses in lowercase (removes appened chain id)
+  let token0Address = trimAfterDashAndLowercase(token0Entity.id);
+  let token1Address = trimAfterDashAndLowercase(token1Entity.id);
+
   // Case 1: one of the tokens is ETH
-  if (
-    token0Entity.id.toLowerCase() ===
-    CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()
-  ) {
+  if (token0Address === CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()) {
     return {
       token0PricePerETH: TEN_TO_THE_18_BI,
       token1PricePerETH: relativeTokenPrice1,
     };
   } else if (
-    token1Entity.id.toLowerCase() ===
-    CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()
+    token1Address === CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()
   ) {
     return {
       token0PricePerETH: relativeTokenPrice0,
@@ -154,8 +160,7 @@ export const findPricePerETH = (
   }
   // Case 2: One of the tokens is USDC and has been priced already
   else if (
-    token0Entity.id.toLowerCase() ===
-      CHAIN_CONSTANTS[chainId].usdc.address.toLowerCase() &&
+    token0Address === CHAIN_CONSTANTS[chainId].usdc.address.toLowerCase() &&
     token0Entity.pricePerETH !== 0n
   ) {
     return {
@@ -166,8 +171,7 @@ export const findPricePerETH = (
       ),
     };
   } else if (
-    token1Entity.id.toLowerCase() ===
-      CHAIN_CONSTANTS[chainId].usdc.address.toLowerCase() &&
+    token1Address === CHAIN_CONSTANTS[chainId].usdc.address.toLowerCase() &&
     token1Entity.pricePerETH !== 0n
   ) {
     return {
@@ -182,12 +186,12 @@ export const findPricePerETH = (
   else {
     let token0PricePerETH = calculatePrice(
       liquidityPoolEntities0,
-      token0Entity.id,
+      token0Address,
       whitelistedTokensList
     );
     let token1PricePerETH = calculatePrice(
       liquidityPoolEntities1,
-      token1Entity.id,
+      token1Address,
       whitelistedTokensList
     );
 
@@ -218,54 +222,54 @@ export const findPricePerETH = (
 };
 
 // Helper function to return pricePerETH given token address and LiquidityPool entities
-export const findPricePerETHOld = (
-  tokenAddress: string,
-  whitelistedTokensList: TokenEntity[],
-  liquidityPoolEntities: LiquidityPoolEntity[],
-  chainId: number
-): bigint => {
-  // Case 1: token is ETH
-  if (
-    tokenAddress.toLowerCase() ===
-    CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()
-  ) {
-    return TEN_TO_THE_18_BI;
-  }
-  // Case 2: token is not ETH
-  else {
-    let relevantLiquidityPoolEntities = extractRelevantLiquidityPoolEntities(
-      tokenAddress,
-      liquidityPoolEntities
-    );
-    // If the token is not WETH, then run through the pricing pools to price the token, use the first price that matches
-    for (let pool of relevantLiquidityPoolEntities) {
-      if (pool.token0 == tokenAddress) {
-        // load whitelist token
-        let whitelistedTokenInstance = whitelistedTokensList.find(
-          (token) => token.id === pool.token1
-        );
-        if (whitelistedTokenInstance) {
-          return multiplyBase1e18(
-            pool.token0Price,
-            whitelistedTokenInstance.pricePerETH
-          );
-        }
-      } else if (pool.token1 == tokenAddress) {
-        // load whitelist token
-        let whitelistedTokenInstance = whitelistedTokensList.find(
-          (token) => token.id === pool.token0
-        );
-        if (whitelistedTokenInstance) {
-          return multiplyBase1e18(
-            pool.token1Price,
-            whitelistedTokenInstance.pricePerETH
-          );
-        }
-      }
-    }
-    return 0n;
-  }
-};
+// export const findPricePerETHOld = (
+//   tokenAddress: string,
+//   whitelistedTokensList: TokenEntity[],
+//   liquidityPoolEntities: LiquidityPoolEntity[],
+//   chainId: number
+// ): bigint => {
+//   // Case 1: token is ETH
+//   if (
+//     tokenAddress.toLowerCase() ===
+//     CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()
+//   ) {
+//     return TEN_TO_THE_18_BI;
+//   }
+//   // Case 2: token is not ETH
+//   else {
+//     let relevantLiquidityPoolEntities = extractRelevantLiquidityPoolEntities(
+//       tokenAddress,
+//       liquidityPoolEntities
+//     );
+//     // If the token is not WETH, then run through the pricing pools to price the token, use the first price that matches
+//     for (let pool of relevantLiquidityPoolEntities) {
+//       if (pool.token0 == tokenAddress) {
+//         // load whitelist token
+//         let whitelistedTokenInstance = whitelistedTokensList.find(
+//           (token) => token.id === pool.token1
+//         );
+//         if (whitelistedTokenInstance) {
+//           return multiplyBase1e18(
+//             pool.token0Price,
+//             whitelistedTokenInstance.pricePerETH
+//           );
+//         }
+//       } else if (pool.token1 == tokenAddress) {
+//         // load whitelist token
+//         let whitelistedTokenInstance = whitelistedTokensList.find(
+//           (token) => token.id === pool.token0
+//         );
+//         if (whitelistedTokenInstance) {
+//           return multiplyBase1e18(
+//             pool.token1Price,
+//             whitelistedTokenInstance.pricePerETH
+//           );
+//         }
+//       }
+//     }
+//     return 0n;
+//   }
+// };
 
 // Function to return the liquidityPool and User mapping id
 // export const getLiquidityPoolAndUserMappingId = (
