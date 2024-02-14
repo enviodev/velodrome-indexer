@@ -7,8 +7,6 @@ import {
   PoolContract_Swap_handler,
   PoolFactoryContract_PoolCreated_loader,
   PoolFactoryContract_PoolCreated_handlerAsync,
-  PriceFetcherContract_PriceFetched_loader,
-  PriceFetcherContract_PriceFetched_handler,
   VoterContract_DistributeReward_loader,
   VoterContract_DistributeReward_handler,
   VoterContract_GaugeCreated_loader,
@@ -500,27 +498,17 @@ PoolContract_Sync_handler(({ event, context }) => {
       token1Price
     );
 
-    let token0PricePerUSD, token1PricePerUSD;
+    // Use relative pricing method
+    // check this pricing and how accurate it is.
+    let token0PricePerUSD = multiplyBase1e18(
+      token0PricePerETH,
+      latestEthPrice.price
+    );
+    let token1PricePerUSD = multiplyBase1e18(
+      token1PricePerETH,
+      latestEthPrice.price
+    );
 
-    // Logic to either use relative pricing method of ETH price to price in USD or use PriceFetcher price
-    if (
-      event.blockNumber >=
-      CHAIN_CONSTANTS[event.chainId].firstPriceFetchedBlockNumber
-    ) {
-      // Use price fetcher price
-      token0PricePerUSD = token0Instance.pricePerUSD;
-      token1PricePerUSD = token1Instance.pricePerUSD;
-    } else {
-      // Use relative pricing method
-      token0PricePerUSD = multiplyBase1e18(
-        token0PricePerETH,
-        latestEthPrice.price
-      );
-      token1PricePerUSD = multiplyBase1e18(
-        token1PricePerETH,
-        latestEthPrice.price
-      );
-    }
     // Create a new instance of TokenEntity to be updated in the DB
     const newToken0Instance: TokenEntity = {
       ...token0Instance,
@@ -618,11 +606,12 @@ PoolContract_Sync_handler(({ event, context }) => {
     }
 
     // we only use the WETH/USDC pool to update the ETH price
+    // TODO: potentially do this calculation at the top if we want fresh eth price. Figure this out.
     if (
       event.srcAddress.toString().toLowerCase() ==
       CHAIN_CONSTANTS[10].stablecoinPoolAddresses[0].toLowerCase()
     ) {
-      let ethPriceInUSD = token0PricePerUSD;
+      let ethPriceInUSD = token0Price; // given this is the weth/usdc pool, token0price is the eth price
 
       // Use the previous eth price if the new eth price is 0
       if (ethPriceInUSD == 0n) {
@@ -684,33 +673,6 @@ PoolContract_Sync_handler(({ event, context }) => {
     //     latestEthPrice: latestEthPriceInstance.id,
     //   });
     // }
-  }
-});
-
-PriceFetcherContract_PriceFetched_loader(({ event, context }) => {
-  // Load the single token from the loader to be updated
-  context.Token.load(
-    event.params.token.toString() + "-" + event.chainId.toString()
-  );
-});
-
-PriceFetcherContract_PriceFetched_handler(({ event, context }) => {
-  // Fetch the current token from the loader
-  let currentToken = context.Token.get(
-    event.params.token.toString() + "-" + event.chainId.toString()
-  );
-
-  // The token entity should be created via PoolCreated event from the PoolFactory contract
-  if (currentToken) {
-    // Create a new instance of TokenEntity to be updated in the DB
-    const newTokenInstance: TokenEntity = {
-      ...currentToken,
-      pricePerUSD: event.params.price,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
-
-    // Update the TokenEntity in the DB
-    context.Token.set(newTokenInstance);
   }
 });
 
