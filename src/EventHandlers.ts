@@ -747,7 +747,9 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
 
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
     context.Token.emissionRewardTokenLoad(
-      CHAIN_CONSTANTS[event.chainId].rewardToken.address
+      CHAIN_CONSTANTS[event.chainId].rewardToken.address +
+        "-" +
+        event.chainId.toString()
     );
   } else {
     // If there is no pool address with the particular gauge address, log the error
@@ -774,7 +776,7 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
     // If the reward token does not have a price in USD, log
     if (rewardToken.pricePerUSD == 0n) {
       context.log.warn(
-        `Reward token with address ${rewardToken.id.toString()} does not have a USD price yet.`
+        `Reward token with ID ${rewardToken.id.toString()} does not have a USD price yet.`
       );
     }
 
@@ -817,7 +819,9 @@ VotingRewardContract_NotifyReward_loader(({ event, context }) => {
     context.LiquidityPool.bribeSinglePoolLoad(poolAddress, {});
 
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
-    context.Token.bribeRewardTokenLoad(event.params.reward);
+    context.Token.bribeRewardTokenLoad(
+      event.params.reward + "-" + event.chainId.toString()
+    );
   } else {
     //// QUESTION - I am running into this warning quite often. What does it mean? Why would this warning happen?
 
@@ -845,7 +849,7 @@ VotingRewardContract_NotifyReward_handler(({ event, context }) => {
     // If the reward token does not have a price in USD, log
     if (rewardToken.pricePerUSD == 0n) {
       context.log.warn(
-        `Reward token with address ${event.params.reward.toString()} does not have a USD price yet.`
+        `Reward token with ID ${event.params.reward.toString()} does not have a USD price yet.`
       );
     }
 
