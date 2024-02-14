@@ -37,6 +37,8 @@ export const whitelistedPoolIdsManager = () => {
     }
   };
 
+  // TODO: change so whitelistedpoolsids cache only stores releveant pool ids.
+  // It will only price against whitelisted tokens so only those are relevant to add.
   const addWhitelistedPoolId = (
     chainId: string | number | bigint,
     token0: Address,

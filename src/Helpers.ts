@@ -80,6 +80,22 @@ export const normalizeTokenAmountTo1e18 = (
 //   return relevantLiquidityPoolEntities;
 // };
 
+// OP/VELO
+// All pools with OP as part of the pair.
+// All pools with VELO as part of the pair.
+// Getting OP price per eth.
+// All pools with OP as part of the pair.
+// OP address
+// All whitelisted tokens.
+// Load OP/WETH
+
+// TUX/OP
+// TUX token 0
+// OP token 1.
+// pool 0x5155dc2f73e43569198e29b77b8819dd16eb5f45
+// OP/WETH OP/USDC OP/THISorThat.
+// Find first OP/Whitelisted token pair to get ETH price of OP.
+
 const calculatePrice = (
   relevantLiquidityPoolEntities: LiquidityPoolEntity[],
   tokenAddress: Address,
@@ -126,7 +142,7 @@ const calculatePrice = (
   return 0n;
 };
 
-const trimAfterDashAndLowercase = (input: string): string => {
+export const trimAfterDashAndLowercase = (input: string): string => {
   return input.split("-")[0].toLowerCase();
 };
 

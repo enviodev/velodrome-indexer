@@ -36,6 +36,7 @@ import {
   generatePoolName,
   findPricePerETH,
   trimRelevantLiquidityPoolEntities,
+  trimAfterDashAndLowercase,
 } from "./Helpers";
 
 import { divideBase1e18, multiplyBase1e18 } from "./Maths";
@@ -382,37 +383,42 @@ PoolContract_Sync_loader(({ event, context }) => {
     },
   });
 
-  // Load stablecoin pools for weighted average ETH price calculation, only if pool is stablecoin pool
-  // const stableCoinPoolAddresses = isStablecoinPool(
-  //   event.srcAddress.toString().toLowerCase(),
-  //   event.chainId
-  // )
-  //   ? CHAIN_CONSTANTS[event.chainId].stablecoinPoolAddresses
-  //   : [];
-  // context.LiquidityPool.stablecoinPoolsLoad(stableCoinPoolAddresses, {});
-
   // if the pool is whitelisted, which means at least of the tokens are whitelisted, it loads both tokens, token 0 an token 1
   // token 0 and token 1 could either be whitelisted or not but at least one of them is whitelisted.
   const maybeTokensWhitelisted = getTokensFromWhitelistedPool(
     event.chainId,
     event.srcAddress.toString()
   );
-
-  // Load all the whitelisted pools i.e. pools with at least one white listed tokens
+  // temp optimization, if a token is WETH or USDC, skip loading all whitelisted pools as its not used in very expensive findPricePerETH function.
   if (maybeTokensWhitelisted) {
-    // only load here if tokens are in whitelisted pool.
-    // i.e. if VELO is whitelisted token, then all pools with VELO are whitelisted pools and loaded here.
-    // Even something like RED/VELO with 0 liquidity
-    // i.e. all the pools containing token0 (if token 0 is whitelisted)
-    context.LiquidityPool.whitelistedPools0Load(
-      getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token0),
-      {}
-    );
-    // i.e. all the pools containing token1 (if token 1 is whitelisted)
-    context.LiquidityPool.whitelistedPools1Load(
-      getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token1),
-      {}
-    );
+    let wethAddress = CHAIN_CONSTANTS[event.chainId].eth.address.toLowerCase();
+    let usdcAddress = CHAIN_CONSTANTS[event.chainId].usdc.address.toLowerCase();
+    if (
+      maybeTokensWhitelisted.token0.toLowerCase() == wethAddress ||
+      maybeTokensWhitelisted.token1.toLowerCase() == wethAddress ||
+      maybeTokensWhitelisted.token0.toLowerCase() == usdcAddress ||
+      maybeTokensWhitelisted.token1.toLowerCase() == usdcAddress
+    ) {
+      context.LiquidityPool.whitelistedPools0Load([], {});
+      context.LiquidityPool.whitelistedPools1Load([], {});
+    } else {
+      // only do all this crazy loading if necessary!!
+
+      // Load all the whitelisted pools i.e. pools with at least one white listed tokens
+      // only load here if tokens are in whitelisted pool.
+      // i.e. if VELO is whitelisted token, then all pools with VELO are whitelisted pools and loaded here.
+      // Even something like RED/VELO with 0 liquidity
+      // i.e. all the pools containing token0 (if token 0 is whitelisted)
+      context.LiquidityPool.whitelistedPools0Load(
+        getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token0),
+        {}
+      );
+      // i.e. all the pools containing token1 (if token 1 is whitelisted)
+      context.LiquidityPool.whitelistedPools1Load(
+        getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token1),
+        {}
+      );
+    }
   } else {
     context.LiquidityPool.whitelistedPools0Load([], {});
     context.LiquidityPool.whitelistedPools1Load([], {});
@@ -634,45 +640,6 @@ PoolContract_Sync_handler(({ event, context }) => {
         latestEthPrice: latestEthPriceInstance.id,
       });
     }
-
-    // Updating of ETH price if the pool is a stablecoin pool
-    // if (
-    //   isStablecoinPool(event.srcAddress.toString().toLowerCase(), event.chainId)
-    // ) {
-    //   // Filter out undefined values
-    //   let stablecoinPoolsList = context.LiquidityPool.stablecoinPools.filter(
-    //     (item): item is LiquidityPoolEntity => item !== undefined
-    //   );
-
-    //   // Overwrite stablecoin pool with latest data
-    //   let poolIndex = stablecoinPoolsList.findIndex(
-    //     (pool) => pool.id === liquidityPoolInstance.id
-    //   );
-    //   stablecoinPoolsList[poolIndex] = liquidityPoolInstance;
-
-    //   // Calculate weighted average ETH price using stablecoin pools
-    //   let ethPriceInUSD = calculateETHPriceInUSD(stablecoinPoolsList);
-
-    //   // Use the previous eth price if the new eth price is 0
-    //   if (ethPriceInUSD == 0n) {
-    //     ethPriceInUSD = latestEthPrice.price;
-    //   }
-
-    //   // Creating LatestETHPriceEntity with the latest price
-    //   let latestEthPriceInstance: LatestETHPriceEntity = {
-    //     id: event.blockTimestamp.toString(),
-    //     price: ethPriceInUSD,
-    //   };
-
-    //   // Creating a new instance of LatestETHPriceEntity to be updated in the DB
-    //   context.LatestETHPrice.set(latestEthPriceInstance);
-
-    //   // update latestETHPriceKey value with event.blockTimestamp.toString()
-    //   context.StateStore.set({
-    //     ...stateStore,
-    //     latestEthPrice: latestEthPriceInstance.id,
-    //   });
-    // }
   }
 });
 
