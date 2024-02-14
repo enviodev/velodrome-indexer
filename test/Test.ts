@@ -62,8 +62,8 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
       id: mockPoolAddress,
       name: "Volatile AMM - WETH/USDC",
       chainID: BigInt(mockChainID),
-      token0: WETH.address,
-      token1: USDC.address,
+      token0: WETH.address + "-" + mockChainID.toString(),
+      token1: USDC.address + "-" + mockChainID.toString(),
       isStable: false,
       reserve0: 0n,
       reserve1: 0n,
@@ -93,15 +93,15 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
   it("Token entities are created correctly", async () => {
     // Getting the entity from the mock database
     let actualToken0Entity = (await updatedMockDb).entities.Token.get(
-      WETH.address
+      WETH.address + "-" + mockChainID.toString()
     );
     let actualToken1Entity = (await updatedMockDb).entities.Token.get(
-      USDC.address
+      USDC.address + "-" + mockChainID.toString()
     );
 
     // Expected Token entities
     const expectedToken0Entity: TokenEntity = {
-      id: WETH.address,
+      id: WETH.address + "-" + mockChainID.toString(),
       symbol: "WETH",
       name: "Wrapped Ether",
       decimals: 18n,
@@ -112,7 +112,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
     };
     // Expected Token entities
     const expectedToken1Entity: TokenEntity = {
-      id: USDC.address,
+      id: USDC.address + "-" + mockChainID.toString(),
       symbol: "USDC",
       name: "USD Coin",
       decimals: 6n,
