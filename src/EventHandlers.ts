@@ -409,11 +409,12 @@ PoolContract_Sync_loader(({ event, context }) => {
       // i.e. if VELO is whitelisted token, then all pools with VELO are whitelisted pools and loaded here.
       // Even something like RED/VELO with 0 liquidity
       // i.e. all the pools containing token0 (if token 0 is whitelisted)
+
       context.LiquidityPool.whitelistedPools0Load(
         getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token0),
         {}
       );
-      // i.e. all the pools containing token1 (if token 1 is whitelisted)
+
       context.LiquidityPool.whitelistedPools1Load(
         getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token1),
         {}
@@ -425,6 +426,7 @@ PoolContract_Sync_loader(({ event, context }) => {
   }
 
   // Load all the whitelisted tokens to be potentially used in pricing
+  // shift this to only load if token0 or token1 is whitelisted
   context.Token.whitelistedTokensLoad(
     CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses
   );

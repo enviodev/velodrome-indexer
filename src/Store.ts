@@ -7,7 +7,7 @@ import {
   ShapeWhiteListedPoolIds,
   ShapePoolToTokens,
 } from "./cache";
-import { CacheCategory } from "./Constants";
+import { CacheCategory, CHAIN_CONSTANTS } from "./Constants";
 import { Address } from "web3";
 
 export const whitelistedPoolIdsManager = () => {
@@ -53,13 +53,28 @@ export const whitelistedPoolIdsManager = () => {
         ?.poolIdsWithWhitelistedTokens || [];
     // Push the poolId to the array if it isn't already present
     if (!poolIdsWithWhitelistedTokens0.includes(poolId)) {
-      poolIdsWithWhitelistedTokens0.push(poolId);
-      // Assuming you have a way to write/update the cache for token0
-      whiteListedPoolIdsCache.add({
-        [token0.toLowerCase()]: {
-          poolIdsWithWhitelistedTokens: poolIdsWithWhitelistedTokens0,
-        },
-      });
+      // if the token is whitelisted, only add to array if other token also whitelisted.
+      if (
+        CHAIN_CONSTANTS[Number(chainId)].whitelistedTokenAddresses.includes(
+          token0
+        ) &&
+        !CHAIN_CONSTANTS[Number(chainId)].whitelistedTokenAddresses.includes(
+          token1
+        )
+      ) {
+        // Note if the token is whitelisted, we would only price it against
+        // another whitelisted token in the findEthPrice function.
+        // This reduces the list of pools to load and increases indexer speed.
+        // Pricing is still to be reviewed.
+      } else {
+        poolIdsWithWhitelistedTokens0.push(poolId);
+        // Assuming you have a way to write/update the cache for token0
+        whiteListedPoolIdsCache.add({
+          [token0.toLowerCase()]: {
+            poolIdsWithWhitelistedTokens: poolIdsWithWhitelistedTokens0,
+          },
+        });
+      }
     }
 
     // Repeat the process for token1
@@ -67,13 +82,24 @@ export const whitelistedPoolIdsManager = () => {
       whiteListedPoolIdsCache.read(token1.toLowerCase())
         ?.poolIdsWithWhitelistedTokens || [];
     if (!poolIdsWithWhitelistedTokens1.includes(poolId)) {
-      poolIdsWithWhitelistedTokens1.push(poolId);
-      // Assuming you have a way to write/update the cache for token1
-      whiteListedPoolIdsCache.add({
-        [token1.toLowerCase()]: {
-          poolIdsWithWhitelistedTokens: poolIdsWithWhitelistedTokens1,
-        },
-      });
+      if (
+        CHAIN_CONSTANTS[Number(chainId)].whitelistedTokenAddresses.includes(
+          token1
+        ) &&
+        !CHAIN_CONSTANTS[Number(chainId)].whitelistedTokenAddresses.includes(
+          token0
+        )
+      ) {
+        //nothing
+      } else {
+        poolIdsWithWhitelistedTokens1.push(poolId);
+        // Assuming you have a way to write/update the cache for token1
+        whiteListedPoolIdsCache.add({
+          [token1.toLowerCase()]: {
+            poolIdsWithWhitelistedTokens: poolIdsWithWhitelistedTokens1,
+          },
+        });
+      }
     }
 
     poolToTokensCache.add({ [poolId.toLowerCase()]: { token0, token1 } });
