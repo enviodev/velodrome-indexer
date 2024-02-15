@@ -34,6 +34,8 @@ contracts:
       # Used to update the liquidity values of a particular pool
       - event: Sync(uint256 reserve0, uint256 reserve1)
         requiredEntities:
+          - name: LatestPrice
+          - name: LiquidityPoolNew
           - name: StateStore
             labels: ["stateStore"]
           - name: LiquidityPool

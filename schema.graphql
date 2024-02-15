@@ -11,6 +11,37 @@ type StateStore {
   latestEthPrice: LatestETHPrice! # latest ETH price in USD
 }
 
+type LatestPrice {
+  id: ID! # ID will be the pool that is used to keep this price fresh.
+  price: BigInt! # In base 1e18
+}
+
+type LiquidityPoolNew {
+  id: ID! # pool address
+  chainID: BigInt! # chain id of the pool
+  name: String! # name of the pool
+  token0: Token! # token0 entity
+  token1: Token! # token1 entity
+  isStable: Boolean! # whether the pool is a stable AMM or a volatile AMM
+  reserve0: BigInt! # reserve of token0 in token units
+  reserve1: BigInt! # reserve of token1 in token units
+  totalLiquidityETH: BigInt! # total liquidity of the swap pool in ETH
+  totalLiquidityUSD: BigInt! # total liquidity of the swap pool in USD
+  totalVolume0: BigInt! # total swap volume of token0 in token units
+  totalVolume1: BigInt! # total swap volume of token1 in token units
+  totalVolumeUSD: BigInt! # total swap volume of the pool in USD
+  totalFees0: BigInt! # total fees collected in token0 units
+  totalFees1: BigInt! # total fees collected in token1 units
+  totalFeesUSD: BigInt! # total fees collected in USD
+  numberOfSwaps: BigInt! # total number of swaps in the pool
+  token0Price: BigInt! # price of token0 relative to token1
+  token1Price: BigInt! # price of token1 relative to token0
+  totalEmissions: BigInt! # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
+  totalEmissionsUSD: BigInt! # total emissions for the pool in USD
+  totalBribesUSD: BigInt! # total bribes for the pool in USD
+  lastUpdatedTimestamp: BigInt! # timestamp of last update
+}
+
 # Entity per pool that tracks all the necessary details for the pool
 # By nature this entity saves the latest state of the pool, and its state at different times should be attained from the snapshot entities
 type LiquidityPool {

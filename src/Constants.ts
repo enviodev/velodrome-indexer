@@ -26,9 +26,15 @@ export const WETH: Token = {
   symbol: "WETH",
 };
 
+// TODO change this name to usdc.e and import native usdc from base
 export const USDC: Token = {
   address: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
   symbol: "USDC.e",
+};
+
+export const NATIVE_USDC: Token = {
+  address: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+  symbol: "USDC",
 };
 
 const USDC_BASE: Token = {
@@ -74,6 +80,39 @@ const DOLA: Token = {
 const OPTIMISM_WHITELISTED_TOKENS: Token[] = [WETH, USDC, VELO, OP, LUSD];
 
 const BASE_WHITELISTED_TOKENS: Token[] = [WETH, USDbC, USDC_BASE, DAI, DOLA];
+
+// List of stablecoin pools with their token0, token1 and name
+export const PRICING_POOLS: Pool[] = [
+  {
+    address: "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b",
+    token0: WETH,
+    token1: USDC,
+    name: "vAMM-WETH/USDC.e",
+  },
+  {
+    address: "0x8134A2fDC127549480865fB8E5A9E8A8a95a54c5",
+    token0: USDC,
+    token1: VELO,
+    name: "Volatile AMM - USDC.e/VELO",
+  },
+  {
+    address: "0x0df083de449F75691fc5A36477a6f3284C269108",
+    token0: OP, // these fields aren't being used currently.
+    token1: USDC,
+    name: "Volatile AMM - OP/USDC.e",
+  },
+];
+
+export const PRICING_POOLS_ADDRESSES: string[] = PRICING_POOLS.map(
+  (pool) => pool.address
+);
+
+const USD_TOKENS: Token[] = [USDC, USDbC, USDC_BASE, DAI, NATIVE_USDC];
+
+// update list.
+export const USD_TOKENS_ADDRESSES: string[] = USD_TOKENS.map(
+  (token) => token.address
+);
 
 // List of stablecoin pools with their token0, token1 and name
 const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
