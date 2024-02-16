@@ -114,6 +114,9 @@ export const USD_TOKENS_ADDRESSES: string[] = USD_TOKENS.map(
   (token) => token.address
 );
 
+// Need to create a list of whitelisted tokens and all their known addresses.
+// I.e. WETH is a token for pricing, the WETH token across both base and optimism.
+
 // List of stablecoin pools with their token0, token1 and name
 const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
   {

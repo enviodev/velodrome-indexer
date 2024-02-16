@@ -169,6 +169,7 @@ type Token {
   decimals: BigInt! # number of decimals
   pricePerETH: BigInt! # price of token per ETH
   pricePerUSD: BigInt! # price of token per USD
+  pricePerUSDNew: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
   tokenHourlySnapshots: [TokenHourlySnapshot!]! @derivedFrom(field: "token") # hourly snapshots of the token
   tokenDailySnapshots: [TokenDailySnapshot!]! @derivedFrom(field: "token") # daily snapshots of the token

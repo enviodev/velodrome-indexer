@@ -18,6 +18,9 @@ export const normalizeTokenAmountTo1e18 = (
   }
 };
 
+export const absBigInt = (value: bigint): bigint =>
+  value < 0n ? value * -1n : value;
+
 // Function to calculate the price of ETH as the weighted average of ETH price from the stablecoin vs ETH pools
 // export const calculateETHPriceInUSD = (
 //   stablecoinPools: LiquidityPoolEntity[]
