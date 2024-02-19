@@ -92,6 +92,7 @@ export function getTokenSnapshotByInterval(
     token: tokenEntity.id,
     pricePerETH: tokenEntity.pricePerETH,
     pricePerUSD: tokenEntity.pricePerUSD,
+    pricePerUSDNew: tokenEntity.pricePerUSDNew,
     lastUpdatedTimestamp: tokenEntity.lastUpdatedTimestamp,
   };
 

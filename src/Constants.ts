@@ -114,6 +114,11 @@ export const USD_TOKENS_ADDRESSES: string[] = USD_TOKENS.map(
   (token) => token.address
 );
 
+const TOKENS_PRICED_IN_USD: Token[] = [WETH, OP, VELO];
+
+// update list.
+export const TOKENS_PRICED_IN_USD_ADDRESSES: string[] =
+  TOKENS_PRICED_IN_USD.map((token) => token.address);
 // Need to create a list of whitelisted tokens and all their known addresses.
 // I.e. WETH is a token for pricing, the WETH token across both base and optimism.
 
