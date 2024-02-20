@@ -18,8 +18,8 @@ import {
 import { TokenEntity, LiquidityPoolNewEntity } from "./src/Types.gen";
 
 import {
-  DEFAULT_STATE_STORE,
-  INITIAL_ETH_PRICE,
+  // DEFAULT_STATE_STORE,
+  // INITIAL_ETH_PRICE,
   STATE_STORE_ID,
   CHAIN_CONSTANTS,
   PRICING_POOLS,
@@ -101,8 +101,6 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
         name: tokenName,
         decimals: BigInt(tokenDecimals),
         chainID: BigInt(event.chainId),
-        pricePerETH: 0n,
-        pricePerUSD: 0n,
         pricePerUSDNew: 0n,
         lastUpdatedTimestamp: BigInt(event.blockTimestamp),
       };
@@ -132,7 +130,7 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
     isStable: event.params.stable,
     reserve0: 0n,
     reserve1: 0n,
-    totalLiquidityETH: 0n,
+    // totalLiquidityETH: 0n,
     totalLiquidityUSD: 0n,
     totalVolume0: 0n,
     totalVolume1: 0n,
@@ -496,16 +494,12 @@ PoolContract_Sync_handler(({ event, context }) => {
     const newToken0Instance: TokenEntity = {
       ...token0Instance,
       chainID: BigInt(event.chainId),
-      pricePerETH: 0n,
-      pricePerUSD: 0n,
       pricePerUSDNew: token0PricePerUSDNew,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     const newToken1Instance: TokenEntity = {
       ...token1Instance,
       chainID: BigInt(event.chainId),
-      pricePerETH: 0n,
-      pricePerUSD: 0n,
       pricePerUSDNew: token1PricePerUSDNew,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };

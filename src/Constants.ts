@@ -1,5 +1,5 @@
 import { Token, Pool } from "./CustomTypes";
-import { LatestETHPriceEntity, StateStoreEntity } from "./src/Types.gen";
+// import { LatestETHPriceEntity, StateStoreEntity } from "./src/Types.gen";
 
 export const TEN_TO_THE_3_BI = BigInt(10 ** 3);
 export const TEN_TO_THE_6_BI = BigInt(10 ** 6);
@@ -11,14 +11,14 @@ export const SECONDS_IN_A_WEEK = BigInt(604800);
 
 export const STATE_STORE_ID = "STATE";
 
-export const INITIAL_ETH_PRICE: LatestETHPriceEntity = {
-  id: "1687468854", // Using Timestamp of first price minus 1 second
-  price: 1869671494767075821464n, // Using the first calculated ETH price as initial price - an hour delay from the timestamp where ETH price was calculated
-};
-export const DEFAULT_STATE_STORE: StateStoreEntity = {
-  id: STATE_STORE_ID,
-  latestEthPrice: INITIAL_ETH_PRICE.id,
-};
+// export const INITIAL_ETH_PRICE: LatestETHPriceEntity = {
+//   id: "1687468854", // Using Timestamp of first price minus 1 second
+//   price: 1869671494767075821464n, // Using the first calculated ETH price as initial price - an hour delay from the timestamp where ETH price was calculated
+// };
+// export const DEFAULT_STATE_STORE: StateStoreEntity = {
+//   id: STATE_STORE_ID,
+//   latestEthPrice: INITIAL_ETH_PRICE.id,
+// };
 
 // Hardcoded WETH, USDC and OP token addresses with decimals
 export const WETH: Token = {
