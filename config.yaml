@@ -35,20 +35,20 @@ contracts:
       # Used to update the liquidity values of a particular pool
       - event: Sync(uint256 reserve0, uint256 reserve1)
         requiredEntities:
-          - name: LatestPrice
+          # - name: LatestPrice
           - name: LiquidityPoolNew
-          - name: StateStore
-            labels: ["stateStore"]
+          # - name: StateStore
+          #   labels: ["stateStore"]
           - name: LiquidityPool
             labels:
               - singlePool
-            arrayLabels:
-              # - stablecoinPools
-              - whitelistedPools0
-              - whitelistedPools1
+            # arrayLabels:
+            #   # - stablecoinPools
+            #   - whitelistedPools0
+            #   - whitelistedPools1
           - name: Token
-            arrayLabels:
-              - whitelistedTokens
+            # arrayLabels:
+            #   - whitelistedTokens
   # Voter contract is responsible for creating reward contracts and distributing rewards to the liquidity pools
   - name: Voter
     handler: src/EventHandlers.ts

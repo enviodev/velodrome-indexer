@@ -62,6 +62,7 @@ const USDbC: Token = {
   symbol: "USCbC",
 };
 
+// NB issue!! DAI address on base, Lyra address on optimism!!
 const DAI: Token = {
   address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
   symbol: "DAI",
@@ -107,7 +108,9 @@ export const PRICING_POOLS_ADDRESSES: string[] = PRICING_POOLS.map(
   (pool) => pool.address
 );
 
-const USD_TOKENS: Token[] = [USDC, USDbC, USDC_BASE, DAI, NATIVE_USDC];
+// Very carefully check these addresses don't get created cross chain.
+// Or add more defenses.
+const USD_TOKENS: Token[] = [USDC, USDbC, USDC_BASE, NATIVE_USDC];
 
 // update list.
 export const USD_TOKENS_ADDRESSES: string[] = USD_TOKENS.map(
