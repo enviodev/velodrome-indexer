@@ -15,13 +15,7 @@ import {
   VotingRewardContract_NotifyReward_handler,
 } from "../generated/src/Handlers.gen";
 
-import {
-  LatestETHPriceEntity,
-  LiquidityPoolEntity,
-  TokenEntity,
-  LiquidityPoolNewEntity,
-  LatestPriceEntity,
-} from "./src/Types.gen";
+import { TokenEntity, LiquidityPoolNewEntity } from "./src/Types.gen";
 
 import {
   DEFAULT_STATE_STORE,
@@ -52,7 +46,7 @@ import {
 
 import { SnapshotInterval, TokenEntityMapping } from "./CustomTypes";
 
-import { poolLookupStoreManager, whitelistedPoolIdsManager } from "./Store";
+import { poolLookupStoreManager } from "./Store";
 
 import { getErc20TokenDetails } from "./Erc20";
 
