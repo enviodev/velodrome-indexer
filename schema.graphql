@@ -40,6 +40,12 @@ type LiquidityPoolNew {
   totalEmissionsUSD: BigInt! # total emissions for the pool in USD
   totalBribesUSD: BigInt! # total bribes for the pool in USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
+  liquidityPoolHourlySnapshots: [LiquidityPoolHourlySnapshot!]!  # hourly snapshots of the pool
+    @derivedFrom(field: "pool")
+  liquidityPoolDailySnapshots: [LiquidityPoolDailySnapshot!]!  # daily snapshots of the pool
+    @derivedFrom(field: "pool")
+  liquidityPoolWeeklySnapshots: [LiquidityPoolWeeklySnapshot!]!  # weekly snapshots of the pool
+    @derivedFrom(field: "pool")
 }
 
 # Entity per pool that tracks all the necessary details for the pool

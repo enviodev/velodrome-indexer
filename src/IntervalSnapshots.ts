@@ -1,5 +1,6 @@
 import {
   LiquidityPoolEntity,
+  LiquidityPoolNewEntity,
   LiquidityPoolHourlySnapshotEntity,
   LiquidityPoolDailySnapshotEntity,
   LiquidityPoolWeeklySnapshotEntity,
@@ -19,7 +20,7 @@ import { SnapshotInterval } from "./CustomTypes";
 
 // Generic function to return a snapshot of entity of type LiquidityPool given a specific snapshot interval
 export function getLiquidityPoolSnapshotByInterval(
-  liquidityPoolEntity: LiquidityPoolEntity,
+  liquidityPoolEntity: LiquidityPoolNewEntity,
   interval: SnapshotInterval
 ):
   | LiquidityPoolHourlySnapshotEntity

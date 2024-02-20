@@ -99,146 +99,146 @@ export const absBigInt = (value: bigint): bigint =>
 // OP/WETH OP/USDC OP/THISorThat.
 // Find first OP/Whitelisted token pair to get ETH price of OP.
 
-const calculatePrice = (
-  relevantLiquidityPoolEntities: LiquidityPoolEntity[],
-  tokenAddress: Address,
-  whitelistedTokensList: TokenEntity[]
-) => {
-  // If the token is not WETH, then run through the pricing pools to price the token
-  for (let pool of relevantLiquidityPoolEntities) {
-    let token0Address = trimAfterDashAndLowercase(pool.token0);
-    let token1Address = trimAfterDashAndLowercase(pool.token1);
-    if (token0Address == tokenAddress) {
-      // load whitelist token
-      let whitelistedTokenInstance = whitelistedTokensList.find(
-        (token) => token.id === token1Address
-      );
-      // Second condition is to prevent relative pricing against a token that has a zero price against ETH i.e. not yet been priced
-      if (
-        whitelistedTokenInstance &&
-        whitelistedTokenInstance.pricePerETH !== 0n
-      ) {
-        return multiplyBase1e18(
-          pool.token0Price,
-          whitelistedTokenInstance.pricePerETH
-        );
-      }
-    } else if (token1Address == tokenAddress) {
-      // load whitelist token
-      let whitelistedTokenInstance = whitelistedTokensList.find(
-        (token) => token.id === token0Address
-      );
-      // Second condition is to prevent relative pricing against a token that has a zero price against ETH i.e. not yet been priced
-      if (
-        whitelistedTokenInstance &&
-        whitelistedTokenInstance.pricePerETH !== 0n
-      ) {
-        return multiplyBase1e18(
-          pool.token1Price,
-          whitelistedTokenInstance.pricePerETH
-        );
-      }
-    } else {
-      throw "Token not part of pools it is meant to be part of.";
-    }
-  }
-  return 0n;
-};
+// const calculatePrice = (
+//   relevantLiquidityPoolEntities: LiquidityPoolEntity[],
+//   tokenAddress: Address,
+//   whitelistedTokensList: TokenEntity[]
+// ) => {
+//   // If the token is not WETH, then run through the pricing pools to price the token
+//   for (let pool of relevantLiquidityPoolEntities) {
+//     let token0Address = trimAfterDashAndLowercase(pool.token0);
+//     let token1Address = trimAfterDashAndLowercase(pool.token1);
+//     if (token0Address == tokenAddress) {
+//       // load whitelist token
+//       let whitelistedTokenInstance = whitelistedTokensList.find(
+//         (token) => token.id === token1Address
+//       );
+//       // Second condition is to prevent relative pricing against a token that has a zero price against ETH i.e. not yet been priced
+//       if (
+//         whitelistedTokenInstance &&
+//         whitelistedTokenInstance.pricePerETH !== 0n
+//       ) {
+//         return multiplyBase1e18(
+//           pool.token0Price,
+//           whitelistedTokenInstance.pricePerETH
+//         );
+//       }
+//     } else if (token1Address == tokenAddress) {
+//       // load whitelist token
+//       let whitelistedTokenInstance = whitelistedTokensList.find(
+//         (token) => token.id === token0Address
+//       );
+//       // Second condition is to prevent relative pricing against a token that has a zero price against ETH i.e. not yet been priced
+//       if (
+//         whitelistedTokenInstance &&
+//         whitelistedTokenInstance.pricePerETH !== 0n
+//       ) {
+//         return multiplyBase1e18(
+//           pool.token1Price,
+//           whitelistedTokenInstance.pricePerETH
+//         );
+//       }
+//     } else {
+//       throw "Token not part of pools it is meant to be part of.";
+//     }
+//   }
+//   return 0n;
+// };
 
 export const trimAfterDashAndLowercase = (input: string): string => {
   return input.split("-")[0].toLowerCase();
 };
 
-export const findPricePerETH = (
-  token0Entity: TokenEntity,
-  token1Entity: TokenEntity,
-  whitelistedTokensList: TokenEntity[],
-  liquidityPoolEntities0: LiquidityPoolEntity[],
-  liquidityPoolEntities1: LiquidityPoolEntity[],
-  chainId: number,
-  relativeTokenPrice0: bigint,
-  relativeTokenPrice1: bigint
-): { token0PricePerETH: bigint; token1PricePerETH: bigint } => {
-  // Extract token addresses in lowercase (removes appened chain id)
-  let token0Address = trimAfterDashAndLowercase(token0Entity.id);
-  let token1Address = trimAfterDashAndLowercase(token1Entity.id);
+// export const findPricePerETH = (
+//   token0Entity: TokenEntity,
+//   token1Entity: TokenEntity,
+//   whitelistedTokensList: TokenEntity[],
+//   liquidityPoolEntities0: LiquidityPoolEntity[],
+//   liquidityPoolEntities1: LiquidityPoolEntity[],
+//   chainId: number,
+//   relativeTokenPrice0: bigint,
+//   relativeTokenPrice1: bigint
+// ): { token0PricePerETH: bigint; token1PricePerETH: bigint } => {
+//   // Extract token addresses in lowercase (removes appened chain id)
+//   let token0Address = trimAfterDashAndLowercase(token0Entity.id);
+//   let token1Address = trimAfterDashAndLowercase(token1Entity.id);
 
-  // Case 1: one of the tokens is ETH
-  if (token0Address === CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()) {
-    return {
-      token0PricePerETH: TEN_TO_THE_18_BI,
-      token1PricePerETH: relativeTokenPrice1,
-    };
-  } else if (
-    token1Address === CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()
-  ) {
-    return {
-      token0PricePerETH: relativeTokenPrice0,
-      token1PricePerETH: TEN_TO_THE_18_BI,
-    };
-  }
-  // Case 2: One of the tokens is USDC and has been priced already
-  else if (
-    token0Address === CHAIN_CONSTANTS[chainId].usdc.address.toLowerCase() &&
-    token0Entity.pricePerETH !== 0n
-  ) {
-    return {
-      token0PricePerETH: token0Entity.pricePerETH,
-      token1PricePerETH: multiplyBase1e18(
-        relativeTokenPrice1,
-        token0Entity.pricePerETH
-      ),
-    };
-  } else if (
-    token1Address === CHAIN_CONSTANTS[chainId].usdc.address.toLowerCase() &&
-    token1Entity.pricePerETH !== 0n
-  ) {
-    return {
-      token0PricePerETH: multiplyBase1e18(
-        relativeTokenPrice0,
-        token1Entity.pricePerETH
-      ),
-      token1PricePerETH: token1Entity.pricePerETH,
-    };
-  }
-  // Case 3: both tokens are not ETH or USDC
-  else {
-    let token0PricePerETH = calculatePrice(
-      liquidityPoolEntities0,
-      token0Address,
-      whitelistedTokensList
-    );
-    let token1PricePerETH = calculatePrice(
-      liquidityPoolEntities1,
-      token1Address,
-      whitelistedTokensList
-    );
+//   // Case 1: one of the tokens is ETH
+//   if (token0Address === CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()) {
+//     return {
+//       token0PricePerETH: TEN_TO_THE_18_BI,
+//       token1PricePerETH: relativeTokenPrice1,
+//     };
+//   } else if (
+//     token1Address === CHAIN_CONSTANTS[chainId].eth.address.toLowerCase()
+//   ) {
+//     return {
+//       token0PricePerETH: relativeTokenPrice0,
+//       token1PricePerETH: TEN_TO_THE_18_BI,
+//     };
+//   }
+//   // Case 2: One of the tokens is USDC and has been priced already
+//   else if (
+//     token0Address === CHAIN_CONSTANTS[chainId].usdc.address.toLowerCase() &&
+//     token0Entity.pricePerETH !== 0n
+//   ) {
+//     return {
+//       token0PricePerETH: token0Entity.pricePerETH,
+//       token1PricePerETH: multiplyBase1e18(
+//         relativeTokenPrice1,
+//         token0Entity.pricePerETH
+//       ),
+//     };
+//   } else if (
+//     token1Address === CHAIN_CONSTANTS[chainId].usdc.address.toLowerCase() &&
+//     token1Entity.pricePerETH !== 0n
+//   ) {
+//     return {
+//       token0PricePerETH: multiplyBase1e18(
+//         relativeTokenPrice0,
+//         token1Entity.pricePerETH
+//       ),
+//       token1PricePerETH: token1Entity.pricePerETH,
+//     };
+//   }
+//   // Case 3: both tokens are not ETH or USDC
+//   else {
+//     let token0PricePerETH = calculatePrice(
+//       liquidityPoolEntities0,
+//       token0Address,
+//       whitelistedTokensList
+//     );
+//     let token1PricePerETH = calculatePrice(
+//       liquidityPoolEntities1,
+//       token1Address,
+//       whitelistedTokensList
+//     );
 
-    // if there are no relevant pools to price against, price against the other token in the pool
-    if (
-      liquidityPoolEntities0.length === 0 &&
-      liquidityPoolEntities1.length > 0
-    ) {
-      token0PricePerETH = multiplyBase1e18(
-        relativeTokenPrice0,
-        token1PricePerETH
-      );
-    } else if (
-      liquidityPoolEntities1.length === 0 &&
-      liquidityPoolEntities0.length > 0
-    ) {
-      token1PricePerETH = multiplyBase1e18(
-        relativeTokenPrice1,
-        token0PricePerETH
-      );
-    }
+//     // if there are no relevant pools to price against, price against the other token in the pool
+//     if (
+//       liquidityPoolEntities0.length === 0 &&
+//       liquidityPoolEntities1.length > 0
+//     ) {
+//       token0PricePerETH = multiplyBase1e18(
+//         relativeTokenPrice0,
+//         token1PricePerETH
+//       );
+//     } else if (
+//       liquidityPoolEntities1.length === 0 &&
+//       liquidityPoolEntities0.length > 0
+//     ) {
+//       token1PricePerETH = multiplyBase1e18(
+//         relativeTokenPrice1,
+//         token0PricePerETH
+//       );
+//     }
 
-    return {
-      token0PricePerETH,
-      token1PricePerETH,
-    };
-  }
-};
+//     return {
+//       token0PricePerETH,
+//       token1PricePerETH,
+//     };
+//   }
+// };
 
 // Helper function to return pricePerETH given token address and LiquidityPool entities
 // export const findPricePerETHOld = (
@@ -309,22 +309,22 @@ export function generatePoolName(
 }
 
 // Helper function to trim relevant LiquidityPool entities for relative pricing
-export const trimRelevantLiquidityPoolEntities = (
-  poolAddress: string,
-  liquidityPoolEntities: LiquidityPoolEntity[]
-): LiquidityPoolEntity[] => {
-  // Filter out pools that do not have any liquidity yet
-  liquidityPoolEntities = liquidityPoolEntities.filter(
-    (pool) => pool.reserve0 !== 0n && pool.reserve1 !== 0n
-  );
+// export const trimRelevantLiquidityPoolEntities = (
+//   poolAddress: string,
+//   liquidityPoolEntities: LiquidityPoolEntity[]
+// ): LiquidityPoolEntity[] => {
+//   // Filter out pools that do not have any liquidity yet
+//   liquidityPoolEntities = liquidityPoolEntities.filter(
+//     (pool) => pool.reserve0 !== 0n && pool.reserve1 !== 0n
+//   );
 
-  // Filter out the poolAddress which is being priced
-  liquidityPoolEntities = liquidityPoolEntities.filter(
-    (pool) => pool.id !== poolAddress
-  );
+//   // Filter out the poolAddress which is being priced
+//   liquidityPoolEntities = liquidityPoolEntities.filter(
+//     (pool) => pool.id !== poolAddress
+//   );
 
-  // Order the items in liquidityPoolEntities by totalLiquidityUSD in descending order
-  return liquidityPoolEntities.sort(
-    (a, b) => Number(b.totalLiquidityUSD) - Number(a.totalLiquidityUSD)
-  );
-};
+//   // Order the items in liquidityPoolEntities by totalLiquidityUSD in descending order
+//   return liquidityPoolEntities.sort(
+//     (a, b) => Number(b.totalLiquidityUSD) - Number(a.totalLiquidityUSD)
+//   );
+// };

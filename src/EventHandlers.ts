@@ -36,13 +36,9 @@ import {
 } from "./Constants";
 
 import {
-  // calculateETHPriceInUSD,
-  // isStablecoinPool,
   normalizeTokenAmountTo1e18,
   // getLiquidityPoolAndUserMappingId,
   generatePoolName,
-  findPricePerETH,
-  trimRelevantLiquidityPoolEntities,
   trimAfterDashAndLowercase,
   absBigInt,
 } from "./Helpers";
@@ -234,8 +230,7 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
 });
 
 PoolContract_Fees_loader(({ event, context }) => {
-  //Load the single liquidity pool from the loader to be updated
-  context.LiquidityPool.load(event.srcAddress.toString(), {
+  context.LiquidityPoolNew.load(event.srcAddress.toString(), {
     loaders: {
       loadToken0: true,
       loadToken1: true,
@@ -245,16 +240,18 @@ PoolContract_Fees_loader(({ event, context }) => {
 
 PoolContract_Fees_handler(({ event, context }) => {
   // Fetch the current liquidity pool from the loader
-  let currentLiquidityPool = context.LiquidityPool.get(
+  let currentLiquidityPool = context.LiquidityPoolNew.get(
     event.srcAddress.toString()
   );
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   if (currentLiquidityPool) {
     // Get the tokens from the loader and update their pricing
-    let token0Instance = context.LiquidityPool.getToken0(currentLiquidityPool);
+    let token0Instance =
+      context.LiquidityPoolNew.getToken0(currentLiquidityPool);
 
-    let token1Instance = context.LiquidityPool.getToken1(currentLiquidityPool);
+    let token1Instance =
+      context.LiquidityPoolNew.getToken1(currentLiquidityPool);
 
     // Normalize swap amounts to 1e18
     let normalizedFeeAmount0Total = normalizeTokenAmountTo1e18(
@@ -269,14 +266,14 @@ PoolContract_Fees_handler(({ event, context }) => {
     // Calculate amounts in USD
     let normalizedFeeAmount0TotalUsd = multiplyBase1e18(
       normalizedFeeAmount0Total,
-      token0Instance.pricePerUSD
+      token0Instance.pricePerUSDNew
     );
     let normalizedFeeAmount1TotalUsd = multiplyBase1e18(
       normalizedFeeAmount1Total,
-      token1Instance.pricePerUSD
+      token1Instance.pricePerUSDNew
     );
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
-    const liquidityPoolInstance: LiquidityPoolEntity = {
+    const liquidityPoolInstance: LiquidityPoolNewEntity = {
       ...currentLiquidityPool,
       totalFees0: currentLiquidityPool.totalFees0 + normalizedFeeAmount0Total,
       totalFees1: currentLiquidityPool.totalFees1 + normalizedFeeAmount1Total,
@@ -287,43 +284,24 @@ PoolContract_Fees_handler(({ event, context }) => {
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     // Update the LiquidityPoolEntity in the DB
-    context.LiquidityPool.set(liquidityPoolInstance);
-  } else {
-    context.log.error(
-      `Fees event recieved for liquidity pool that is not registered ${event.srcAddress.toString()}`
-    );
+    context.LiquidityPoolNew.set(liquidityPoolInstance);
   }
 });
 
 PoolContract_Swap_loader(({ event, context }) => {
-  //Load the single liquidity pool from the loader to be updated
-  context.LiquidityPool.load(event.srcAddress.toString(), {
+  context.LiquidityPoolNew.load(event.srcAddress.toString(), {
     loaders: {
       loadToken0: true,
       loadToken1: true,
     },
   });
-
-  context.LiquidityPoolNew.load(event.srcAddress.toString(), {});
-
-  //Load the mapping for liquidity pool and the user
-  //   context.LiquidityPoolUserMapping.poolUserMappingLoad(
-  //     getLiquidityPoolAndUserMappingId(
-  //       event.srcAddress.toString(),
-  //       event.params.to.toString()
-  //     ),
-  //     {}
-  //   );
-
-  //   //Load the user entity
-  //   context.User.userLoad(event.params.to.toString());
 });
 
 PoolContract_Swap_handler(({ event, context }) => {
   // Fetch the current liquidity pool from the loader
-  let currentLiquidityPool = context.LiquidityPool.get(
-    event.srcAddress.toString()
-  );
+  // let currentLiquidityPool = context.LiquidityPool.get(
+  //   event.srcAddress.toString()
+  // );
 
   let liquidityPoolNew = context.LiquidityPoolNew.get(
     event.srcAddress.toString()
@@ -351,21 +329,21 @@ PoolContract_Swap_handler(({ event, context }) => {
   // let currentUser = context.User.user;
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
-  if (currentLiquidityPool) {
+  if (liquidityPoolNew) {
     // Get the tokens from the loader and update their pricing
-    let token0Instance = context.LiquidityPool.getToken0(currentLiquidityPool);
+    let token0Instance = context.LiquidityPoolNew.getToken0(liquidityPoolNew);
 
-    let token1Instance = context.LiquidityPool.getToken1(currentLiquidityPool);
+    let token1Instance = context.LiquidityPoolNew.getToken1(liquidityPoolNew);
 
     // Normalize swap amounts to 1e18
-    let normalizedAmount0Total = normalizeTokenAmountTo1e18(
-      event.params.amount0In + event.params.amount0Out,
-      Number(token0Instance.decimals)
-    );
-    let normalizedAmount1Total = normalizeTokenAmountTo1e18(
-      event.params.amount1In + event.params.amount1Out,
-      Number(token1Instance.decimals)
-    );
+    // let normalizedAmount0Total = normalizeTokenAmountTo1e18(
+    //   event.params.amount0In + event.params.amount0Out,
+    //   Number(token0Instance.decimals)
+    // );
+    // let normalizedAmount1Total = normalizeTokenAmountTo1e18(
+    //   event.params.amount1In + event.params.amount1Out,
+    //   Number(token1Instance.decimals)
+    // );
 
     // Same as above.
     // Important assume if amount0In is >0 then amount0Out =0 etc
@@ -385,32 +363,41 @@ PoolContract_Swap_handler(({ event, context }) => {
       token1Price = divideBase1e18(netAmount0, netAmount1);
     }
 
-    if (liquidityPoolNew) {
-      // Work out relative token pricing base on swaps above.
-      const liquidityPoolInstanceNew: LiquidityPoolNewEntity = {
-        ...liquidityPoolNew,
-        token0Price: liquidityPoolNew.isStable
-          ? token0Price
-          : liquidityPoolNew.token0Price,
-        token1Price: liquidityPoolNew.isStable
-          ? token1Price
-          : liquidityPoolNew.token1Price,
-        numberOfSwaps: currentLiquidityPool.numberOfSwaps + 1n,
-        lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-      };
-
-      context.LiquidityPoolNew.set(liquidityPoolInstanceNew);
-    }
-
     // Calculate amounts in USD
-    let normalizedAmount0TotalUsd = multiplyBase1e18(
-      normalizedAmount0Total,
-      token0Instance.pricePerUSD
+    // We don't double count volume, we use USD of first token if possible to
+    // Calculate volume in USD.
+    let netVolumeToken0USD = multiplyBase1e18(
+      netAmount0,
+      token0Instance.pricePerUSDNew
     );
-    let normalizedAmount1TotalUsd = multiplyBase1e18(
-      normalizedAmount1Total,
-      token1Instance.pricePerUSD
+    let netVolumeToken1USD = multiplyBase1e18(
+      netAmount1,
+      token1Instance.pricePerUSDNew
     );
+
+    // Try use volume from token 0 if its priced, otherwise use token 1.
+    let volumeInUSD =
+      netVolumeToken0USD != 0n ? netVolumeToken0USD : netVolumeToken1USD;
+
+    // if (liquidityPoolNew) {
+    // Work out relative token pricing base on swaps above.
+    const liquidityPoolInstanceNew: LiquidityPoolNewEntity = {
+      ...liquidityPoolNew,
+      totalVolume0: liquidityPoolNew.totalVolume0 + netAmount0,
+      totalVolume1: liquidityPoolNew.totalVolume1 + netAmount1,
+      totalVolumeUSD: liquidityPoolNew.totalVolumeUSD + volumeInUSD,
+      token0Price: liquidityPoolNew.isStable
+        ? token0Price
+        : liquidityPoolNew.token0Price,
+      token1Price: liquidityPoolNew.isStable
+        ? token1Price
+        : liquidityPoolNew.token1Price,
+      numberOfSwaps: liquidityPoolNew.numberOfSwaps + 1n,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+
+    context.LiquidityPoolNew.set(liquidityPoolInstanceNew);
+    // }
 
     // Get the user id from the loader or initialize it from the event if user doesn't exist
     // let existingUserId = currentUser
@@ -433,20 +420,17 @@ PoolContract_Swap_handler(({ event, context }) => {
     // };
 
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
-    const liquidityPoolInstance: LiquidityPoolEntity = {
-      ...currentLiquidityPool,
-      totalVolume0: currentLiquidityPool.totalVolume0 + normalizedAmount0Total,
-      totalVolume1: currentLiquidityPool.totalVolume1 + normalizedAmount1Total,
-      totalVolumeUSD:
-        currentLiquidityPool.totalVolumeUSD +
-        normalizedAmount0TotalUsd +
-        normalizedAmount1TotalUsd,
-      numberOfSwaps: currentLiquidityPool.numberOfSwaps + 1n,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
+    // const liquidityPoolInstance: LiquidityPoolEntity = {
+    //   ...currentLiquidityPool,
+    //   totalVolume0: currentLiquidityPool.totalVolume0 + normalizedAmount0Total,
+    //   totalVolume1: currentLiquidityPool.totalVolume1 + normalizedAmount1Total,
+    //   totalVolumeUSD: currentLiquidityPool.totalVolumeUSD + 0n + 0n,
+    //   numberOfSwaps: currentLiquidityPool.numberOfSwaps + 1n,
+    //   lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    // };
 
-    // Update the LiquidityPoolEntity in the DB
-    context.LiquidityPool.set(liquidityPoolInstance);
+    // // Update the LiquidityPoolEntity in the DB
+    // context.LiquidityPool.set(liquidityPoolInstance);
 
     // Update the UserEntity in the DB
     // context.User.set(userInstance);
@@ -454,104 +438,25 @@ PoolContract_Swap_handler(({ event, context }) => {
 });
 
 PoolContract_Sync_loader(({ event, context }) => {
-  // if (PRICING_POOLS_ADDRESSES.includes(event.srcAddress.toString())) {
-  //   // push pool address to whitelistedPoolIds
-  //   context.LatestPrice.load(event.srcAddress.toString());
-  // }
-  // only need to load if its a price related update.
-  context.LiquidityPoolNew.load(event.srcAddress.toString(), {});
-
-  // load the global state store
-  // context.StateStore.stateStoreLoad(STATE_STORE_ID, {
-  //   loaders: { loadLatestEthPrice: true },
-  // });
-
-  // Load the single liquidity pool from the loader to be updated
-  context.LiquidityPool.singlePoolLoad(event.srcAddress.toString(), {
+  context.LiquidityPoolNew.load(event.srcAddress.toString(), {
     loaders: {
       loadToken0: true,
       loadToken1: true,
     },
   });
-
-  // if the pool is whitelisted, which means at least of the tokens are whitelisted, it loads both tokens, token 0 an token 1
-  // token 0 and token 1 could either be whitelisted or not but at least one of them is whitelisted.
-  // const maybeTokensWhitelisted = getTokensFromWhitelistedPool(
-  //   event.chainId,
-  //   event.srcAddress.toString()
-  // );
-  // // temp optimization, if a token is WETH or USDC, skip loading all whitelisted pools as its not used in very expensive findPricePerETH function.
-  // if (maybeTokensWhitelisted) {
-  //   let wethAddress = CHAIN_CONSTANTS[event.chainId].eth.address.toLowerCase();
-  //   let usdcAddress = CHAIN_CONSTANTS[event.chainId].usdc.address.toLowerCase();
-  //   if (
-  //     maybeTokensWhitelisted.token0.toLowerCase() == wethAddress ||
-  //     maybeTokensWhitelisted.token1.toLowerCase() == wethAddress ||
-  //     maybeTokensWhitelisted.token0.toLowerCase() == usdcAddress ||
-  //     maybeTokensWhitelisted.token1.toLowerCase() == usdcAddress
-  //   ) {
-  //     context.LiquidityPool.whitelistedPools0Load([], {});
-  //     context.LiquidityPool.whitelistedPools1Load([], {});
-  //   } else {
-  //     // only do all this crazy loading if necessary!!
-
-  //     // Load all the whitelisted pools i.e. pools with at least one white listed tokens
-  //     // only load here if tokens are in whitelisted pool.
-  //     // i.e. if VELO is whitelisted token, then all pools with VELO are whitelisted pools and loaded here.
-  //     // Even something like RED/VELO with 0 liquidity
-  //     // i.e. all the pools containing token0 (if token 0 is whitelisted)
-
-  //     context.LiquidityPool.whitelistedPools0Load(
-  //       getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token0),
-  //       {}
-  //     );
-
-  //     context.LiquidityPool.whitelistedPools1Load(
-  //       getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token1),
-  //       {}
-  //     );
-  //   }
-  // } else {
-  //   context.LiquidityPool.whitelistedPools0Load([], {});
-  //   context.LiquidityPool.whitelistedPools1Load([], {});
-  // }
-
-  // // Load all the whitelisted tokens to be potentially used in pricing
-  // // shift this to only load if token0 or token1 is whitelisted
-  // context.Token.whitelistedTokensLoad(
-  //   CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses
-  // );
 });
 
 PoolContract_Sync_handler(({ event, context }) => {
-  // Fetch the state store from the loader
-  // const { stateStore } = context.StateStore;
-  // if (!stateStore) {
-  //   throw new Error(
-  //     "Critical bug: stateStore is undefined. Make sure it is defined on pool creation."
-  //   );
-  // }
-
-  // Fetch the current liquidity pool from the loader
-  let currentLiquidityPool = context.LiquidityPool.singlePool;
-
-  // Get a list of all the whitelisted token entities
-  // let whitelistedTokensList = context.Token.whitelistedTokens.filter(
-  //   (item) => !!item
-  // ) as TokenEntity[];
-
-  // Get the LatestETHPrice object
-  // let latestEthPrice = context.StateStore.getLatestEthPrice(stateStore);
+  let liquidityPoolNew = context.LiquidityPoolNew.get(
+    event.srcAddress.toString()
+  );
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
-  if (currentLiquidityPool) {
+  if (liquidityPoolNew) {
     // Get the tokens from the loader and update their pricing
-    let token0Instance = context.LiquidityPool.getToken0(currentLiquidityPool);
+    let token0Instance = context.LiquidityPoolNew.getToken0(liquidityPoolNew);
 
-    let token1Instance = context.LiquidityPool.getToken1(currentLiquidityPool);
-
-    let token0Price = currentLiquidityPool.token0Price;
-    let token1Price = currentLiquidityPool.token1Price;
+    let token1Instance = context.LiquidityPoolNew.getToken1(liquidityPoolNew);
 
     // Normalize reserve amounts to 1e18
     let normalizedReserve0 = normalizeTokenAmountTo1e18(
@@ -563,290 +468,178 @@ PoolContract_Sync_handler(({ event, context }) => {
       Number(token1Instance.decimals)
     );
 
-    // Calculate relative token prices
-    // THIS IS WRONG depending on the pool, if its a stable pool, different formula!
-    // We should only do this for volatile pools, where the calculation is true.
-    // For stable pools we need to derive a price instead from the 'swap' event.
-    if (normalizedReserve0 != 0n && normalizedReserve1 != 0n) {
+    let token0Price = liquidityPoolNew.token0Price;
+    let token1Price = liquidityPoolNew.token1Price;
+    // Only if the pool is not stable does this token price hold, otherwise uses previous price
+    if (
+      normalizedReserve0 != 0n &&
+      normalizedReserve1 != 0n &&
+      !liquidityPoolNew.isStable
+    ) {
       token0Price = divideBase1e18(normalizedReserve1, normalizedReserve0);
-
       token1Price = divideBase1e18(normalizedReserve0, normalizedReserve1);
     }
 
     ////////////////////////// New code for pricing liquidity pools.
 
-    let liquidityPoolNew = context.LiquidityPoolNew.get(
-      event.srcAddress.toString()
-    );
-
     let token0Address = token0Instance.id.split("-")[0];
     let token1Address = token1Instance.id.split("-")[0];
 
-    if (PRICING_POOLS_ADDRESSES.includes(event.srcAddress.toString())) {
-      // push pool address to whitelistedPoolIds
-      // let latestPrice = context.LatestPrice.get(event.srcAddress.toString());
-      let priceInUSD;
-      // Note pools need to be volatile for this to work!!
-      if (USD_TOKENS_ADDRESSES.includes(token1Address)) {
-        priceInUSD = token0Price;
-      } else {
-        priceInUSD = token1Price;
-      }
+    // if (PRICING_POOLS_ADDRESSES.includes(event.srcAddress.toString())) {
+    //   // push pool address to whitelistedPoolIds
+    //   // let latestPrice = context.LatestPrice.get(event.srcAddress.toString());
+    //   let priceInUSD;
+    //   // Note pools need to be volatile for this to work!!
+    //   if (USD_TOKENS_ADDRESSES.includes(token1Address)) {
+    //     priceInUSD = token0Price;
+    //   } else {
+    //     priceInUSD = token1Price;
+    //   }
 
-      const newLatestPriceInstance: LatestPriceEntity = {
-        id: event.srcAddress.toString(),
-        price: priceInUSD,
-      };
-      context.LatestPrice.set(newLatestPriceInstance);
-    }
+    //   const newLatestPriceInstance: LatestPriceEntity = {
+    //     id: event.srcAddress.toString(),
+    //     price: priceInUSD,
+    //   };
+    //   context.LatestPrice.set(newLatestPriceInstance);
+    // }
     let token0PricePerUSDNew = 0n;
     let token1PricePerUSDNew = 0n;
-    // update the price of tokens and use this to calculate the total liquidity in USD among other things ...
-    if (liquidityPoolNew) {
-      // Case 0: Also need to determine if stable or volatile pool.
-      // Case 1: One or more of the tokens are USD stablecoins.
-      // Case 2: One or more of the tokens have been priced against USD stablecoins (WETH,OP,VELO)
-      // Case 3: Both tokens are random, will have 0 total liquidity in USD.
 
-      // Use updated price if volatile AMM otherwise use swap based price for stable pool.
-      let token0PriceNew = liquidityPoolNew.isStable
-        ? liquidityPoolNew.token0Price
-        : token0Price;
-      let token1PriceNew = liquidityPoolNew.isStable
-        ? liquidityPoolNew.token1Price
-        : token1Price;
+    // caution, every pool can adjust prices here. Sync catiously, review!
+    // Check at least x amount of stable coin reserves exist before pricing.
+    // Review stability of pricing alogrithm here.
+    // Assuming stability of these stable coins.
+    // Don't use sync to set prices unless a critical amount of normalised reserves exist.
 
-      // update the price of tokens and use this to calculate the total liquidity in USD among other things ...
-
-      // caution, every pool can adjust prices here. Sync catiously, review!
-      // Check at least x amount of stable coin reserves exist before pricing.
-      // Review stability of pricing alogrithm here.
-      // Assuming stability of these stable coins.
-      // Don't use sync to set prices unless a critical amount of normalised reserves exist.
-
-      // We could add some logic that if the change is more than 20% in a single shot, its likely
-      // a thinly traded liquidity pool and we shouldn't use it for pricing? Price of token for normal
-      // coins should never drop that much that quick. Even 50%.
-      if (
-        USD_TOKENS_ADDRESSES.includes(token0Address) &&
-        normalizedReserve0 > BigInt(5 * 10 ** 22) // require $50k USD before using pricing.
-      ) {
-        token0PricePerUSDNew = TEN_TO_THE_18_BI;
-        token1PricePerUSDNew = token1PriceNew;
-      } else if (
-        USD_TOKENS_ADDRESSES.includes(token1Address) &&
-        normalizedReserve1 > BigInt(5 * 10 ** 22)
-      ) {
-        token0PricePerUSDNew = token0PriceNew;
-        token1PricePerUSDNew = TEN_TO_THE_18_BI;
-      } else if (
-        // We potentially don't even need this to be a whitelist ...
-        // So as long as the token had suffcient liquidity against a USD pair, its fairly priced.
-        // and could be used here.
-        TOKENS_PRICED_IN_USD_ADDRESSES.includes(token0Address) &&
-        multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) >
-          BigInt(10 * 10 ** 22)
-      ) {
-        // Other token can be accurately priced
-        token1PricePerUSDNew = multiplyBase1e18(
-          token0PricePerUSDNew,
-          token1PriceNew
-        );
-        token0PricePerUSDNew = token0Instance.pricePerUSDNew;
-      } else if (
-        TOKENS_PRICED_IN_USD_ADDRESSES.includes(token1Address) &&
-        multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew) >
-          BigInt(10 * 10 ** 22)
-      ) {
-        // Other token can be accurately priced
-        token0PricePerUSDNew = multiplyBase1e18(
-          token1PricePerUSDNew,
-          token0PriceNew
-        );
-        token1PricePerUSDNew = token1Instance.pricePerUSDNew;
-      } else if (
-        multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) >
-        BigInt(20 * 10 ** 22) // if more than 200k liquidity for random token, then we can use the price.
-      ) {
-        // Other token can be accurately priced
-        token1PricePerUSDNew = multiplyBase1e18(
-          token0PricePerUSDNew,
-          token1PriceNew
-        );
-        token0PricePerUSDNew = token0Instance.pricePerUSDNew;
-      } else if (
-        multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew) >
-        BigInt(20 * 10 ** 22)
-      ) {
-        // Other token can be accurately priced
-        token0PricePerUSDNew = multiplyBase1e18(
-          token1PricePerUSDNew,
-          token0PriceNew
-        );
-        token1PricePerUSDNew = token1Instance.pricePerUSDNew;
-      } else {
-        // critical, if one of the cases aren't matched, it should keep
-        // what price it already has for that token and not update it.
-        token0PricePerUSDNew = token0Instance.pricePerUSDNew;
-        token1PricePerUSDNew = token1Instance.pricePerUSDNew;
-      }
-      // Think about case where a token was priced because it had suffcient liquidity,
-      // but its price stays constant as it never achieves suffcient liquidity again to
-      // update the price. Ideally we'd want to zero price this token again at somepoint.
-
-      let totalLiquidityUSD = 0n;
-      // Only non-zero this figure if we don't have a price for both tokens(?)
-      totalLiquidityUSD =
-        multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) +
-        multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew);
-      // Start with USD pools...
-      // if (USD_TOKENS_ADDRESSES.includes(token0Address)) {
-      //   totalLiquidityUSD =
-      //     multiplyBase1e18(normalizedReserve0, TEN_TO_THE_18_BI) +
-      //     multiplyBase1e18(normalizedReserve1, token1PriceNew);
-      // } else if (USD_TOKENS_ADDRESSES.includes(token1Address)) {
-      //   totalLiquidityUSD =
-      //     multiplyBase1e18(normalizedReserve0, token0PriceNew) +
-      //     multiplyBase1e18(normalizedReserve1, TEN_TO_THE_18_BI);
-      // } else if (TOKENS_PRICED_IN_USD_ADDRESSES.includes(token0Address)) {
-      //   // WETH, OP, VELO  etc
-      //   // LOAD USD PRICE. Multiply it
-      //   // totalLiquidityUSD =
-      //   //   multiplyBase1e18(normalizedReserve0, token0PriceNew) +
-      //   //   multiplyBase1e18(normalizedReserve1, token1PriceNew);
-      // } else if (TOKENS_PRICED_IN_USD_ADDRESSES.includes(token1Address)) {
-      //   // WETH, OP, VELO  etc
-      //   // totalLiquidityUSD =
-      //   //   multiplyBase1e18(normalizedReserve0, token0PriceNew) +
-      //   //   multiplyBase1e18(normalizedReserve1, token1PriceNew);
-      // }
-
-      // Create a new instance of LiquidityPoolEntity to be updated in the DB
-      const liquidityPoolInstanceNew: LiquidityPoolNewEntity = {
-        ...liquidityPoolNew,
-        reserve0: normalizedReserve0,
-        reserve1: normalizedReserve1,
-        totalLiquidityUSD: totalLiquidityUSD,
-        // totalLiquidityUSD:
-        //   multiplyBase1e18(normalizedReserve0, newToken0Instance.pricePerUSD) +
-        //   multiplyBase1e18(normalizedReserve1, newToken1Instance.pricePerUSD),
-        // The essence here is to only update relative token pricing IF its a volatile pool,
-        // Which means we can reliably use the ratio of reserves to derive a "price"
-        token0Price: token0PriceNew,
-        token1Price: token1PriceNew,
-        lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-      };
-
-      context.LiquidityPoolNew.set(liquidityPoolInstanceNew);
+    // We could add some logic that if the change is more than 20% in a single shot, its likely
+    // a thinly traded liquidity pool and we shouldn't use it for pricing? Price of token for normal
+    // coins should never drop that much that quick. Even 50%.
+    if (
+      USD_TOKENS_ADDRESSES.includes(token0Address) &&
+      normalizedReserve0 > BigInt(5 * 10 ** 22) // require $50k USD before using pricing.
+    ) {
+      token0PricePerUSDNew = TEN_TO_THE_18_BI;
+      token1PricePerUSDNew = token1Price;
+    } else if (
+      USD_TOKENS_ADDRESSES.includes(token1Address) &&
+      normalizedReserve1 > BigInt(5 * 10 ** 22)
+    ) {
+      token0PricePerUSDNew = token0Price;
+      token1PricePerUSDNew = TEN_TO_THE_18_BI;
+    } else if (
+      // We potentially don't even need this to be a whitelist ...
+      // So as long as the token had suffcient liquidity against a USD pair, its fairly priced.
+      // and could be used here.
+      TOKENS_PRICED_IN_USD_ADDRESSES.includes(token0Address) &&
+      multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) >
+        BigInt(10 * 10 ** 22)
+    ) {
+      // Other token can be accurately priced
+      token1PricePerUSDNew = multiplyBase1e18(
+        token0PricePerUSDNew,
+        token1Price
+      );
+      token0PricePerUSDNew = token0Instance.pricePerUSDNew;
+    } else if (
+      TOKENS_PRICED_IN_USD_ADDRESSES.includes(token1Address) &&
+      multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew) >
+        BigInt(10 * 10 ** 22)
+    ) {
+      // Other token can be accurately priced
+      token0PricePerUSDNew = multiplyBase1e18(
+        token1PricePerUSDNew,
+        token0Price
+      );
+      token1PricePerUSDNew = token1Instance.pricePerUSDNew;
+    } else if (
+      multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) >
+      BigInt(20 * 10 ** 22) // if more than 200k liquidity for random token, then we can use the price.
+    ) {
+      // Other token can be accurately priced
+      token1PricePerUSDNew = multiplyBase1e18(
+        token0PricePerUSDNew,
+        token1Price
+      );
+      token0PricePerUSDNew = token0Instance.pricePerUSDNew;
+    } else if (
+      multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew) >
+      BigInt(20 * 10 ** 22)
+    ) {
+      // Other token can be accurately priced
+      token0PricePerUSDNew = multiplyBase1e18(
+        token1PricePerUSDNew,
+        token0Price
+      );
+      token1PricePerUSDNew = token1Instance.pricePerUSDNew;
+    } else {
+      // critical, if one of the cases aren't matched, it should keep
+      // what price it already has for that token and not update it.
+      token0PricePerUSDNew = token0Instance.pricePerUSDNew;
+      token1PricePerUSDNew = token1Instance.pricePerUSDNew;
     }
+    // Think about case where a token was priced because it had suffcient liquidity,
+    // but its price stays constant as it never achieves suffcient liquidity again to
+    // update the price. Ideally we'd want to zero price this token again at somepoint.
 
-    ///////////////////////////////////////////////////
+    let totalLiquidityUSD = 0n;
+    // Only non-zero this figure if we don't have a price for both tokens(?)
+    totalLiquidityUSD =
+      multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) +
+      multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew);
 
-    // Retrieve the relevant liquidity pool entities for relative pricing for each of the tokens in the pool
-    // let relevantPoolEntitiesToken0 =
-    //   context.LiquidityPool.whitelistedPools0.filter(
-    //     (item): item is LiquidityPoolEntity => item !== undefined
-    //   );
-    // let relevantPoolEntitiesToken1 =
-    //   context.LiquidityPool.whitelistedPools1.filter(
-    //     (item): item is LiquidityPoolEntity => item !== undefined
-    //   );
-    let token0PricePerETH = 0n;
-    let token1PricePerETH = 0n;
-    // let { token0PricePerETH, token1PricePerETH } = findPricePerETH(
-    //   token0Instance,
-    //   token1Instance,
-    //   whitelistedTokensList,
-    //   trimRelevantLiquidityPoolEntities(
-    //     event.srcAddress.toString(),
-    //     relevantPoolEntitiesToken0
-    //   ),
-    //   trimRelevantLiquidityPoolEntities(
-    //     event.srcAddress.toString(),
-    //     relevantPoolEntitiesToken1
-    //   ),
-    //   event.chainId,
-    //   token0Price,
-    //   token1Price
-    // );
-
-    // Use relative pricing method
-    // check this pricing and how accurate it is.
-    // let token0PricePerUSD = multiplyBase1e18(
-    //   token0PricePerETH,
-    //   latestEthPrice.price
-    // );
-    // let token1PricePerUSD = multiplyBase1e18(
-    //   token1PricePerETH,
-    //   latestEthPrice.price
-    // );
-    let token0PricePerUSD = 0n;
-    let token1PricePerUSD = 0n;
+    // Create a new instance of LiquidityPoolEntity to be updated in the DB
+    const liquidityPoolInstanceNew: LiquidityPoolNewEntity = {
+      ...liquidityPoolNew,
+      reserve0: normalizedReserve0,
+      reserve1: normalizedReserve1,
+      totalLiquidityUSD: totalLiquidityUSD,
+      token0Price: token0Price,
+      token1Price: token1Price,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
 
     // Create a new instance of TokenEntity to be updated in the DB
     const newToken0Instance: TokenEntity = {
       ...token0Instance,
       chainID: BigInt(event.chainId),
-      pricePerETH: token0PricePerETH,
-      pricePerUSD: token0PricePerUSD,
+      pricePerETH: 0n,
+      pricePerUSD: 0n,
       pricePerUSDNew: token0PricePerUSDNew,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     const newToken1Instance: TokenEntity = {
       ...token1Instance,
       chainID: BigInt(event.chainId),
-      pricePerETH: token1PricePerETH,
-      pricePerUSD: token1PricePerUSD,
+      pricePerETH: 0n,
+      pricePerUSD: 0n,
       pricePerUSDNew: token1PricePerUSDNew,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
-    // Create a new instance of LiquidityPoolEntity to be updated in the DB
-    const liquidityPoolInstance: LiquidityPoolEntity = {
-      ...currentLiquidityPool,
-      reserve0: normalizedReserve0,
-      reserve1: normalizedReserve1,
-      totalLiquidityETH:
-        multiplyBase1e18(normalizedReserve0, newToken0Instance.pricePerETH) +
-        multiplyBase1e18(normalizedReserve1, newToken1Instance.pricePerETH),
-      totalLiquidityUSD:
-        multiplyBase1e18(normalizedReserve0, newToken0Instance.pricePerUSD) +
-        multiplyBase1e18(normalizedReserve1, newToken1Instance.pricePerUSD),
-      token0Price,
-      token1Price,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
-
-    // Create a new instance of LiquidityPoolHourlySnapshotEntity to be updated in the DB
     const liquidityPoolHourlySnapshotInstance =
       getLiquidityPoolSnapshotByInterval(
-        liquidityPoolInstance,
+        liquidityPoolInstanceNew,
         SnapshotInterval.Hourly
       );
 
-    // Create a new instance of LiquidityPoolDailySnapshotEntity to be updated in the DB
     const liquidityPoolDailySnapshotInstance =
       getLiquidityPoolSnapshotByInterval(
-        liquidityPoolInstance,
+        liquidityPoolInstanceNew,
         SnapshotInterval.Daily
       );
 
-    // Create a new instance of LiquidityPoolWeeklySnapshotEntity to be updated in the DB
     const liquidityPoolWeeklySnapshotInstance =
       getLiquidityPoolSnapshotByInterval(
-        liquidityPoolInstance,
+        liquidityPoolInstanceNew,
         SnapshotInterval.Weekly
       );
 
-    // Update the LiquidityPoolEntity in the DB
-    context.LiquidityPool.set(liquidityPoolInstance);
-    // Update the LiquidityPoolDailySnapshotEntity in the DB
+    context.LiquidityPoolNew.set(liquidityPoolInstanceNew);
+
     context.LiquidityPoolHourlySnapshot.set(
       liquidityPoolHourlySnapshotInstance
     );
-    // Update the LiquidityPoolDailySnapshotEntity in the DB
     context.LiquidityPoolDailySnapshot.set(liquidityPoolDailySnapshotInstance);
-    // Update the LiquidityPoolWeeklySnapshotEntity in the DB
     context.LiquidityPoolWeeklySnapshot.set(
       liquidityPoolWeeklySnapshotInstance
     );
@@ -880,36 +673,6 @@ PoolContract_Sync_handler(({ event, context }) => {
       // Update the TokenWeeklySnapshotEntity in the DB
       context.TokenWeeklySnapshot.set(tokenWeeklySnapshotInstance);
     }
-
-    // we only use the WETH/USDC pool to update the ETH price
-    // TODO: potentially do this calculation at the top if we want fresh eth price. Figure this out.
-    // if (
-    //   event.srcAddress.toString().toLowerCase() ==
-    //   CHAIN_CONSTANTS[10].stablecoinPoolAddresses[0].toLowerCase()
-    // ) {
-    //   let ethPriceInUSD = token0Price; // given this is the weth/usdc pool, token0price is the eth price
-
-    //   // Use the previous eth price if the new eth price is 0
-    //   if (ethPriceInUSD == 0n) {
-    //     ethPriceInUSD = latestEthPrice.price;
-    //   }
-    //   // todo: investigate why eth price seems like its constant for 1 day then changes (likely price fetcher contract)
-
-    //   // Creating LatestETHPriceEntity with the latest price
-    //   let latestEthPriceInstance: LatestETHPriceEntity = {
-    //     id: event.blockTimestamp.toString(),
-    //     price: ethPriceInUSD,
-    //   };
-
-    //   // Creating a new instance of LatestETHPriceEntity to be updated in the DB
-    //   context.LatestETHPrice.set(latestEthPriceInstance);
-
-    //   // update latestETHPriceKey value with event.blockTimestamp.toString()
-    //   context.StateStore.set({
-    //     ...stateStore,
-    //     latestEthPrice: latestEthPriceInstance.id,
-    //   });
-    // }
   }
 });
 

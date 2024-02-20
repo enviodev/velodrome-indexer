@@ -22,11 +22,11 @@ contracts:
       # Used to update the total fees earned by a swap pool
       - event: Fees(address indexed sender, uint256 amount0, uint256 amount1)
         requiredEntities:
-          - name: LiquidityPool
+          - name: LiquidityPoolNew
       # Used to update the swap and volume metrics of a particular pool and user
       - event: Swap(address indexed sender, address indexed to, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out)
         requiredEntities:
-          - name: LiquidityPool
+          # - name: LiquidityPool
           - name: LiquidityPoolNew
           # - name: LiquidityPoolUserMapping
           #   labels: ["poolUserMapping"]
@@ -39,13 +39,13 @@ contracts:
           - name: LiquidityPoolNew
           # - name: StateStore
           #   labels: ["stateStore"]
-          - name: LiquidityPool
-            labels:
-              - singlePool
-            # arrayLabels:
-            #   # - stablecoinPools
-            #   - whitelistedPools0
-            #   - whitelistedPools1
+          # - name: LiquidityPool
+          #   labels:
+          #     - singlePool
+          # arrayLabels:
+          #   # - stablecoinPools
+          #   - whitelistedPools0
+          #   - whitelistedPools1
           - name: Token
             # arrayLabels:
             #   - whitelistedTokens
