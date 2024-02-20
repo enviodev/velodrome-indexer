@@ -9,8 +9,6 @@ contracts:
     events:
       - event: PoolCreated(address indexed token0, address indexed token1, bool indexed stable, address pool, uint256 unnamed)
         requiredEntities:
-          - name: StateStore
-            labels: ["stateStore"]
           - name: Token
             arrayLabels:
               - poolTokens
@@ -26,7 +24,6 @@ contracts:
       # Used to update the swap and volume metrics of a particular pool and user
       - event: Swap(address indexed sender, address indexed to, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out)
         requiredEntities:
-          # - name: LiquidityPool
           - name: LiquidityPoolNew
           # - name: LiquidityPoolUserMapping
           #   labels: ["poolUserMapping"]
@@ -37,15 +34,6 @@ contracts:
         requiredEntities:
           # - name: LatestPrice
           - name: LiquidityPoolNew
-          # - name: StateStore
-          #   labels: ["stateStore"]
-          # - name: LiquidityPool
-          #   labels:
-          #     - singlePool
-          # arrayLabels:
-          #   # - stablecoinPools
-          #   - whitelistedPools0
-          #   - whitelistedPools1
           - name: Token
             # arrayLabels:
             #   - whitelistedTokens
@@ -56,7 +44,7 @@ contracts:
       # Used to update the reward emission metrics of a particular pool
       - event: DistributeReward(address indexed sender, address indexed gauge, uint256 amount)
         requiredEntities:
-          - name: LiquidityPool
+          - name: LiquidityPoolNew
             labels:
               - emissionSinglePool
           - name: Token
@@ -71,7 +59,7 @@ contracts:
       # Used to update the bribe reward metrics of a particular pool
       - event: NotifyReward(address indexed from, address indexed reward, uint256 indexed epoch, uint256 amount)
         requiredEntities:
-          - name: LiquidityPool
+          - name: LiquidityPoolNew
             labels:
               - bribeSinglePool
           - name: Token
