@@ -175,6 +175,7 @@ type Token {
   decimals: BigInt! # number of decimals
   # pricePerETH: BigInt! # price of token per ETH
   # pricePerUSD: BigInt! # price of token per USD
+  poolUsedForPricing: String! # pool address used for pricing
   pricePerUSDNew: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
   tokenHourlySnapshots: [TokenHourlySnapshot!]! @derivedFrom(field: "token") # hourly snapshots of the token
@@ -191,6 +192,7 @@ type TokenHourlySnapshot {
   token: String! # token address
   # pricePerETH: BigInt! # price of token per ETH
   # pricePerUSD: BigInt! # price of token per USD
+  poolUsedForPricing: String! # pool address used for pricing
   pricePerUSDNew: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
 }
@@ -204,6 +206,7 @@ type TokenDailySnapshot {
   token: String! # token address
   # pricePerETH: BigInt! # price of token per ETH
   # pricePerUSD: BigInt! # price of token per USD
+  poolUsedForPricing: String! # pool address used for pricing
   pricePerUSDNew: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
 }
@@ -217,6 +220,7 @@ type TokenWeeklySnapshot {
   token: String! # token address
   # pricePerETH: BigInt! # price of token per ETH
   # pricePerUSD: BigInt! # price of token per USD
+  poolUsedForPricing: String! # pool address used for pricing
   pricePerUSDNew: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
 }

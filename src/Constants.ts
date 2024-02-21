@@ -38,7 +38,7 @@ export const NATIVE_USDC: Token = {
 };
 
 const USDC_BASE: Token = {
-  address: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+  address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   symbol: "USDC",
 };
 
@@ -47,6 +47,7 @@ export const OP: Token = {
   symbol: "OP",
 };
 
+// beware not checksummed.
 const LUSD: Token = {
   address: "0xc40f949f8a4e094d1b49a23ea9241d289b7b2819",
   symbol: "LUSD",

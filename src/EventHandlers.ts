@@ -101,6 +101,7 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
         name: tokenName,
         decimals: BigInt(tokenDecimals),
         chainID: BigInt(event.chainId),
+        poolUsedForPricing: "Nothing",
         pricePerUSDNew: 0n,
         lastUpdatedTimestamp: BigInt(event.blockTimestamp),
       };
@@ -495,12 +496,20 @@ PoolContract_Sync_handler(({ event, context }) => {
       ...token0Instance,
       chainID: BigInt(event.chainId),
       pricePerUSDNew: token0PricePerUSDNew,
+      poolUsedForPricing:
+        token0Instance.pricePerUSDNew == token0PricePerUSDNew
+          ? token0Instance.poolUsedForPricing
+          : event.srcAddress.toString(),
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     const newToken1Instance: TokenEntity = {
       ...token1Instance,
       chainID: BigInt(event.chainId),
       pricePerUSDNew: token1PricePerUSDNew,
+      poolUsedForPricing:
+        token1Instance.pricePerUSDNew == token1PricePerUSDNew
+          ? token1Instance.poolUsedForPricing
+          : event.srcAddress.toString(),
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
