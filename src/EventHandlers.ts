@@ -15,7 +15,7 @@ import {
   VotingRewardContract_NotifyReward_handler,
 } from "../generated/src/Handlers.gen";
 
-import { TokenEntity, LiquidityPoolNewEntity, UserLiquidityPoolMappingEntity } from "./src/Types.gen";
+import { TokenEntity, LiquidityPoolNewEntity, UserEntity } from "./src/Types.gen";
 
 import {
   // DEFAULT_STATE_STORE,
@@ -140,7 +140,6 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
     totalFees1: 0n,
     totalFeesUSD: 0n,
     numberOfSwaps: 0n,
-    numberOfUniqueUsers: 0n,
     token0Price: 0n,
     token1Price: 0n,
     totalEmissions: 0n,
@@ -213,12 +212,14 @@ PoolContract_Fees_handler(({ event, context }) => {
 });
 
 PoolContract_Swap_loader(({ event, context }) => {
+
   context.LiquidityPoolNew.load(event.srcAddress.toString(), {
     loaders: {
       loadToken0: true,
       loadToken1: true,
     },
   });
+
   // if the swap `sender` is a liquidityPool, then we won't count
   // it as a unique user.
   context.LiquidityPoolNew.load(event.params.sender.toString(), {
@@ -228,16 +229,23 @@ PoolContract_Swap_loader(({ event, context }) => {
     },
   });
 
-  let user_to_pool_mapping_id = event.params.sender.toString() + event.srcAddress.toString();
-  context.UserLiquidityPoolMapping.load(user_to_pool_mapping_id);
+  // if the swap `to` is a liquidityPool, then we won't count
+  // it as a unique user.
+  context.LiquidityPoolNew.load(event.params.to.toString(), {
+    loaders: {
+      loadToken0: false,
+      loadToken1: false,
+    },
+  });
+
+  context.User.load(event.params.sender.toString());
+  context.User.load(event.params.to.toString());
 });
 
 PoolContract_Swap_handler(({ event, context }) => {
   let liquidityPoolNew = context.LiquidityPoolNew.get(
     event.srcAddress.toString()
   );
-
-
 
   // Fetching the relevant liquidity pool user mapping
   // const liquidityPoolUserMapping =
@@ -301,36 +309,30 @@ PoolContract_Swap_handler(({ event, context }) => {
     let volumeInUSD =
       netVolumeToken0USD != 0n ? netVolumeToken0USD : netVolumeToken1USD;
 
-
-    // Often swaps will make multiple hops through liquidity pools so 
-    // the 'sender' can be another liquidity pool.  We only want to 
-    // count an address as a unique user if it isn't another liquidity pool.  
-    let sender = event.params.sender.toString();
-
-    // unique combination of user address + liquidity pool address
-    let user_to_pool_mapping_id = event.params.sender.toString() + event.srcAddress.toString();
-
-    let numberOfUniqueUsers = liquidityPoolNew.numberOfUniqueUsers;
-
-    // try to get a liquidity pool at the address of the sender.
-    // also try to get a UserLiquidityPoolMapping entity at with
-    // the id (user address + liquidity pool address)
-    // if no liquidity pool exists && no (user address + liquidity pool address) exists, 
-    // then we count it as a new unique user.
-    if (
-      context.LiquidityPoolNew.get(sender) == undefined
-      &&
-      context.UserLiquidityPoolMapping.get(user_to_pool_mapping_id) == undefined
-    ) {
-      // count this address as a unique user
-      numberOfUniqueUsers += 1n;
-
-      // make sure we don't count this user again
-      let unique_user_accounted_for: UserLiquidityPoolMappingEntity = {
-        id: user_to_pool_mapping_id
-      };
-      context.UserLiquidityPoolMapping.set(unique_user_accounted_for);
+    // add a new user if `sender` isn't a liquidity pool and doesn't already exist
+    // as a user
+    let sender_address = event.params.sender.toString();
+    if (!context.LiquidityPoolNew.get(sender_address)) {
+      if (!context.User.get(sender_address)) {
+        let newUser: UserEntity = {
+          id: sender_address
+        };
+        context.User.set(newUser);
+      }
     }
+
+    // add a new user if `to` isn't a liquidity pool and doesn't already exist
+    // as a user
+    let to_address = event.params.to.toString()
+    if (!context.LiquidityPoolNew.get(to_address)) {
+      if (!context.User.get(to_address)) {
+        let newUser: UserEntity = {
+          id: to_address
+        };
+        context.User.set(newUser);
+      }
+    }
+
 
     // Work out relative token pricing base on swaps above.
     const liquidityPoolInstanceNew: LiquidityPoolNewEntity = {
@@ -345,7 +347,6 @@ PoolContract_Swap_handler(({ event, context }) => {
         ? token1Price
         : liquidityPoolNew.token1Price,
       numberOfSwaps: liquidityPoolNew.numberOfSwaps + 1n,
-      numberOfUniqueUsers: numberOfUniqueUsers,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
