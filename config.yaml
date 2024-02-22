@@ -25,6 +25,7 @@ contracts:
       - event: Swap(address indexed sender, address indexed to, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out)
         requiredEntities:
           - name: LiquidityPoolNew
+          - name: UserLiquidityPoolMapping
           # - name: LiquidityPoolUserMapping
           #   labels: ["poolUserMapping"]
           # - name: User

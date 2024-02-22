@@ -15,7 +15,7 @@ import {
   VotingRewardContract_NotifyReward_handler,
 } from "../generated/src/Handlers.gen";
 
-import { TokenEntity, LiquidityPoolNewEntity } from "./src/Types.gen";
+import { TokenEntity, LiquidityPoolNewEntity, UserLiquidityPoolMappingEntity } from "./src/Types.gen";
 
 import {
   // DEFAULT_STATE_STORE,
@@ -140,6 +140,7 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
     totalFees1: 0n,
     totalFeesUSD: 0n,
     numberOfSwaps: 0n,
+    numberOfUniqueUsers: 0n,
     token0Price: 0n,
     token1Price: 0n,
     totalEmissions: 0n,
@@ -218,12 +219,25 @@ PoolContract_Swap_loader(({ event, context }) => {
       loadToken1: true,
     },
   });
+  // if the swap `sender` is a liquidityPool, then we won't count
+  // it as a unique user.
+  context.LiquidityPoolNew.load(event.params.sender.toString(), {
+    loaders: {
+      loadToken0: false,
+      loadToken1: false,
+    },
+  });
+
+  let user_to_pool_mapping_id = event.params.sender.toString() + event.srcAddress.toString();
+  context.UserLiquidityPoolMapping.load(user_to_pool_mapping_id);
 });
 
 PoolContract_Swap_handler(({ event, context }) => {
   let liquidityPoolNew = context.LiquidityPoolNew.get(
     event.srcAddress.toString()
   );
+
+
 
   // Fetching the relevant liquidity pool user mapping
   // const liquidityPoolUserMapping =
@@ -287,6 +301,37 @@ PoolContract_Swap_handler(({ event, context }) => {
     let volumeInUSD =
       netVolumeToken0USD != 0n ? netVolumeToken0USD : netVolumeToken1USD;
 
+
+    // Often swaps will make multiple hops through liquidity pools so 
+    // the 'sender' can be another liquidity pool.  We only want to 
+    // count an address as a unique user if it isn't another liquidity pool.  
+    let sender = event.params.sender.toString();
+
+    // unique combination of user address + liquidity pool address
+    let user_to_pool_mapping_id = event.params.sender.toString() + event.srcAddress.toString();
+
+    let numberOfUniqueUsers = liquidityPoolNew.numberOfUniqueUsers;
+
+    // try to get a liquidity pool at the address of the sender.
+    // also try to get a UserLiquidityPoolMapping entity at with
+    // the id (user address + liquidity pool address)
+    // if no liquidity pool exists && no (user address + liquidity pool address) exists, 
+    // then we count it as a new unique user.
+    if (
+      context.LiquidityPoolNew.get(sender) == undefined
+      &&
+      context.UserLiquidityPoolMapping.get(user_to_pool_mapping_id) == undefined
+    ) {
+      // count this address as a unique user
+      numberOfUniqueUsers += 1n;
+
+      // make sure we don't count this user again
+      let unique_user_accounted_for: UserLiquidityPoolMappingEntity = {
+        id: user_to_pool_mapping_id
+      };
+      context.UserLiquidityPoolMapping.set(unique_user_accounted_for);
+    }
+
     // Work out relative token pricing base on swaps above.
     const liquidityPoolInstanceNew: LiquidityPoolNewEntity = {
       ...liquidityPoolNew,
@@ -300,6 +345,7 @@ PoolContract_Swap_handler(({ event, context }) => {
         ? token1Price
         : liquidityPoolNew.token1Price,
       numberOfSwaps: liquidityPoolNew.numberOfSwaps + 1n,
+      numberOfUniqueUsers: numberOfUniqueUsers,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
@@ -343,6 +389,7 @@ PoolContract_Sync_handler(({ event, context }) => {
   let liquidityPoolNew = context.LiquidityPoolNew.get(
     event.srcAddress.toString()
   );
+
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   if (liquidityPoolNew) {
@@ -425,7 +472,7 @@ PoolContract_Sync_handler(({ event, context }) => {
       // and could be used here.
       TOKENS_PRICED_IN_USD_ADDRESSES.includes(token0Address) &&
       multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) >
-        BigInt(10 * 10 ** 22)
+      BigInt(10 * 10 ** 22)
     ) {
       // Other token can be accurately priced
       token1PricePerUSDNew = multiplyBase1e18(
@@ -436,7 +483,7 @@ PoolContract_Sync_handler(({ event, context }) => {
     } else if (
       TOKENS_PRICED_IN_USD_ADDRESSES.includes(token1Address) &&
       multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew) >
-        BigInt(10 * 10 ** 22)
+      BigInt(10 * 10 ** 22)
     ) {
       // Other token can be accurately priced
       token0PricePerUSDNew = multiplyBase1e18(
@@ -607,8 +654,8 @@ VoterContract_DistributeReward_loader(({ event, context }) => {
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
     context.Token.emissionRewardTokenLoad(
       CHAIN_CONSTANTS[event.chainId].rewardToken.address +
-        "-" +
-        event.chainId.toString()
+      "-" +
+      event.chainId.toString()
     );
   } else {
     // If there is no pool address with the particular gauge address, log the error

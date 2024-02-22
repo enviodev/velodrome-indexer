@@ -34,6 +34,7 @@ type LiquidityPoolNew {
   totalFees1: BigInt! # total fees collected in token1 units
   totalFeesUSD: BigInt! # total fees collected in USD
   numberOfSwaps: BigInt! # total number of swaps in the pool
+  numberOfUniqueUsers: BigInt! # total number of unique addresses that called swap
   token0Price: BigInt! # price of token0 relative to token1
   token1Price: BigInt! # price of token1 relative to token0
   totalEmissions: BigInt! # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
@@ -46,6 +47,11 @@ type LiquidityPoolNew {
     @derivedFrom(field: "pool")
   liquidityPoolWeeklySnapshots: [LiquidityPoolWeeklySnapshot!]!  # weekly snapshots of the pool
     @derivedFrom(field: "pool")
+}
+
+# utility entity for checking if a user is already part of a liquidity pool
+type UserLiquidityPoolMapping {
+  id: ID! # concat of user address + liquidity pool address
 }
 
 # Entity per pool that tracks all the necessary details for the pool
@@ -101,6 +107,7 @@ type LiquidityPoolHourlySnapshot {
   totalFees1: BigInt! # total fees collected in token1 units
   totalFeesUSD: BigInt! # total fees collected in USD
   numberOfSwaps: BigInt! # total number of swaps in the pool
+  numberOfUniqueUsers: BigInt! # total number of unique addresses that called swap
   token0Price: BigInt! # price of token0 relative to token1
   token1Price: BigInt! # price of token1 relative to token0
   totalEmissions: BigInt! # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
@@ -128,6 +135,7 @@ type LiquidityPoolDailySnapshot {
   totalFees1: BigInt! # total fees collected in token1 units
   totalFeesUSD: BigInt! # total fees collected in USD
   numberOfSwaps: BigInt! # total number of swaps in the pool
+  numberOfUniqueUsers: BigInt! # total number of unique addresses that called swap
   token0Price: BigInt! # price of token0 relative to token1
   token1Price: BigInt! # price of token1 relative to token0
   totalEmissions: BigInt! # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
@@ -155,6 +163,7 @@ type LiquidityPoolWeeklySnapshot {
   totalFees1: BigInt! # total fees collected in token1 units
   totalFeesUSD: BigInt! # total fees collected in USD
   numberOfSwaps: BigInt! # total number of swaps in the pool
+  numberOfUniqueUsers: BigInt! # total number of unique addresses that called swap
   token0Price: BigInt! # price of token0 relative to token1
   token1Price: BigInt! # price of token1 relative to token0
   totalEmissions: BigInt! # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)

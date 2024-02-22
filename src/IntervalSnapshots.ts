@@ -52,6 +52,7 @@ export function getLiquidityPoolSnapshotByInterval(
     totalFees1: liquidityPoolEntity.totalFees1,
     totalFeesUSD: liquidityPoolEntity.totalFeesUSD,
     numberOfSwaps: liquidityPoolEntity.numberOfSwaps,
+    numberOfUniqueUsers: liquidityPoolEntity.numberOfUniqueUsers,
     token0Price: liquidityPoolEntity.token0Price,
     token1Price: liquidityPoolEntity.token1Price,
     totalEmissions: liquidityPoolEntity.totalEmissions,
