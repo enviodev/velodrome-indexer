@@ -315,7 +315,8 @@ PoolContract_Swap_handler(({ event, context }) => {
     if (!context.LiquidityPoolNew.get(sender_address)) {
       if (!context.User.get(sender_address)) {
         let newUser: UserEntity = {
-          id: sender_address
+          id: sender_address,
+          joined_at_timestamp: BigInt(event.blockTimestamp)
         };
         context.User.set(newUser);
       }
@@ -327,7 +328,8 @@ PoolContract_Swap_handler(({ event, context }) => {
     if (!context.LiquidityPoolNew.get(to_address)) {
       if (!context.User.get(to_address)) {
         let newUser: UserEntity = {
-          id: to_address
+          id: to_address,
+          joined_at_timestamp: BigInt(event.blockTimestamp)
         };
         context.User.set(newUser);
       }
