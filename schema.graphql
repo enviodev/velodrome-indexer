@@ -52,6 +52,7 @@ type LiquidityPoolNew {
 # Other liquidity pools don't count as users
 type User {
   id: ID! # user address
+  numberOfSwaps: BigInt! # total number of swaps the user has made
   joined_at_timestamp: BigInt! # timestamp of the user's first swap (or being swapped to)
 }
 
