@@ -130,8 +130,8 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
       poolTokenSymbols[1],
       event.params.stable
     ),
-    token0: event.params.token0 + "-" + event.chainId.toString(),
-    token1: event.params.token1 + "-" + event.chainId.toString(),
+    token0_id: event.params.token0 + "-" + event.chainId.toString(),
+    token1_id: event.params.token1 + "-" + event.chainId.toString(),
     isStable: event.params.stable,
     reserve0: 0n,
     reserve1: 0n,
