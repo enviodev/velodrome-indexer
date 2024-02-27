@@ -1,0 +1,2 @@
+// Graphql Enum Type Variants
+
