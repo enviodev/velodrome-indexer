@@ -8,6 +8,8 @@ import {
   PoolFactoryContract_PoolCreated_loader,
   PoolFactoryContract_PoolCreated_handlerAsync,
   VoterContract_DistributeReward_loader,
+  PriceFetcherContract_PriceFetched_loader,
+  PriceFetcherContract_PriceFetched_handler,
   VoterContract_DistributeReward_handler,
   VoterContract_GaugeCreated_loader,
   VoterContract_GaugeCreated_handler,
@@ -130,8 +132,8 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
       poolTokenSymbols[1],
       event.params.stable
     ),
-    token0_id: event.params.token0 + "-" + event.chainId.toString(),
-    token1_id: event.params.token1 + "-" + event.chainId.toString(),
+    token0: event.params.token0 + "-" + event.chainId.toString(),
+    token1: event.params.token1 + "-" + event.chainId.toString(),
     isStable: event.params.stable,
     reserve0: 0n,
     reserve1: 0n,
@@ -454,8 +456,8 @@ PoolContract_Sync_handler(({ event, context }) => {
     //   };
     //   context.LatestPrice.set(newLatestPriceInstance);
     // }
-    let token0PricePerUSDNew = 0n;
-    let token1PricePerUSDNew = 0n;
+    // let token0PricePerUSDNew = 0n;
+    // let token1PricePerUSDNew = 0n;
 
     // caution, every pool can adjust prices here. Sync catiously, review!
     // Check at least x amount of stable coin reserves exist before pricing.
@@ -466,72 +468,74 @@ PoolContract_Sync_handler(({ event, context }) => {
     // We could add some logic that if the change is more than 20% in a single shot, its likely
     // a thinly traded liquidity pool and we shouldn't use it for pricing? Price of token for normal
     // coins should never drop that much that quick. Even 50%.
-    if (
-      USD_TOKENS_ADDRESSES.includes(token0Address) &&
-      normalizedReserve0 > BigInt(5 * 10 ** 22) // require $50k USD before using pricing.
-    ) {
-      token0PricePerUSDNew = TEN_TO_THE_18_BI;
-      token1PricePerUSDNew = token1Price;
-    } else if (
-      USD_TOKENS_ADDRESSES.includes(token1Address) &&
-      normalizedReserve1 > BigInt(5 * 10 ** 22)
-    ) {
-      token0PricePerUSDNew = token0Price;
-      token1PricePerUSDNew = TEN_TO_THE_18_BI;
-    } else if (
-      // We potentially don't even need this to be a whitelist ...
-      // So as long as the token had suffcient liquidity against a USD pair, its fairly priced.
-      // and could be used here.
-      TOKENS_PRICED_IN_USD_ADDRESSES.includes(token0Address) &&
-      multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) >
-        BigInt(10 * 10 ** 22)
-    ) {
-      // Other token can be accurately priced
-      token1PricePerUSDNew = multiplyBase1e18(
-        token0PricePerUSDNew,
-        token1Price
-      );
-      token0PricePerUSDNew = token0Instance.pricePerUSDNew;
-    } else if (
-      TOKENS_PRICED_IN_USD_ADDRESSES.includes(token1Address) &&
-      multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew) >
-        BigInt(10 * 10 ** 22)
-    ) {
-      // Other token can be accurately priced
-      token0PricePerUSDNew = multiplyBase1e18(
-        token1PricePerUSDNew,
-        token0Price
-      );
-      token1PricePerUSDNew = token1Instance.pricePerUSDNew;
-    } else if (
-      multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) >
-      BigInt(20 * 10 ** 22) // if more than 200k liquidity for random token, then we can use the price.
-    ) {
-      // Other token can be accurately priced
-      token1PricePerUSDNew = multiplyBase1e18(
-        token0PricePerUSDNew,
-        token1Price
-      );
-      token0PricePerUSDNew = token0Instance.pricePerUSDNew;
-    } else if (
-      multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew) >
-      BigInt(20 * 10 ** 22)
-    ) {
-      // Other token can be accurately priced
-      token0PricePerUSDNew = multiplyBase1e18(
-        token1PricePerUSDNew,
-        token0Price
-      );
-      token1PricePerUSDNew = token1Instance.pricePerUSDNew;
-    } else {
-      // critical, if one of the cases aren't matched, it should keep
-      // what price it already has for that token and not update it.
-      token0PricePerUSDNew = token0Instance.pricePerUSDNew;
-      token1PricePerUSDNew = token1Instance.pricePerUSDNew;
-    }
+    // if (
+    //   USD_TOKENS_ADDRESSES.includes(token0Address) &&
+    //   normalizedReserve0 > BigInt(5 * 10 ** 22) // require $50k USD before using pricing.
+    // ) {
+    //   token0PricePerUSDNew = TEN_TO_THE_18_BI;
+    //   token1PricePerUSDNew = token1Price;
+    // } else if (
+    //   USD_TOKENS_ADDRESSES.includes(token1Address) &&
+    //   normalizedReserve1 > BigInt(5 * 10 ** 22)
+    // ) {
+    //   token0PricePerUSDNew = token0Price;
+    //   token1PricePerUSDNew = TEN_TO_THE_18_BI;
+    // } else if (
+    //   // We potentially don't even need this to be a whitelist ...
+    //   // So as long as the token had suffcient liquidity against a USD pair, its fairly priced.
+    //   // and could be used here.
+    //   TOKENS_PRICED_IN_USD_ADDRESSES.includes(token0Address) &&
+    //   multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) >
+    //     BigInt(10 * 10 ** 22)
+    // ) {
+    //   // Other token can be accurately priced
+    //   token1PricePerUSDNew = multiplyBase1e18(
+    //     token0PricePerUSDNew,
+    //     token1Price
+    //   );
+    //   token0PricePerUSDNew = token0Instance.pricePerUSDNew;
+    // } else if (
+    //   TOKENS_PRICED_IN_USD_ADDRESSES.includes(token1Address) &&
+    //   multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew) >
+    //     BigInt(10 * 10 ** 22)
+    // ) {
+    //   // Other token can be accurately priced
+    //   token0PricePerUSDNew = multiplyBase1e18(
+    //     token1PricePerUSDNew,
+    //     token0Price
+    //   );
+    //   token1PricePerUSDNew = token1Instance.pricePerUSDNew;
+    // } else if (
+    //   multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) >
+    //   BigInt(20 * 10 ** 22) // if more than 200k liquidity for random token, then we can use the price.
+    // ) {
+    //   // Other token can be accurately priced
+    //   token1PricePerUSDNew = multiplyBase1e18(
+    //     token0PricePerUSDNew,
+    //     token1Price
+    //   );
+    //   token0PricePerUSDNew = token0Instance.pricePerUSDNew;
+    // } else if (
+    //   multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew) >
+    //   BigInt(20 * 10 ** 22)
+    // ) {
+    //   // Other token can be accurately priced
+    //   token0PricePerUSDNew = multiplyBase1e18(
+    //     token1PricePerUSDNew,
+    //     token0Price
+    //   );
+    //   token1PricePerUSDNew = token1Instance.pricePerUSDNew;
+    // } else {
+    //   // critical, if one of the cases aren't matched, it should keep
+    //   // what price it already has for that token and not update it.
+    //   token0PricePerUSDNew = token0Instance.pricePerUSDNew;
+    //   token1PricePerUSDNew = token1Instance.pricePerUSDNew;
+    // }
     // Think about case where a token was priced because it had suffcient liquidity,
     // but its price stays constant as it never achieves suffcient liquidity again to
     // update the price. Ideally we'd want to zero price this token again at somepoint.
+    let token0PricePerUSDNew = token0Instance.pricePerUSDNew;
+    let token1PricePerUSDNew = token1Instance.pricePerUSDNew;
 
     let totalLiquidityUSD = 0n;
     // Only non-zero this figure if we don't have a price for both tokens(?)
@@ -789,5 +793,32 @@ VotingRewardContract_NotifyReward_handler(({ event, context }) => {
 
     // Update the RewardTokenEntity in the DB
     // context.RewardToken.set(rewardToken); // Doesn't do anything from what I can tell.
+  }
+});
+
+PriceFetcherContract_PriceFetched_loader(({ event, context }) => {
+  // Load the single token from the loader to be updated
+  context.Token.load(
+    event.params.token.toString() + "-" + event.chainId.toString()
+  );
+});
+
+PriceFetcherContract_PriceFetched_handler(({ event, context }) => {
+  // Fetch the current token from the loader
+  let currentToken = context.Token.get(
+    event.params.token.toString() + "-" + event.chainId.toString()
+  );
+
+  // The token entity should be created via PoolCreated event from the PoolFactory contract
+  if (currentToken) {
+    // Create a new instance of TokenEntity to be updated in the DB
+    const newTokenInstance: TokenEntity = {
+      ...currentToken,
+      pricePerUSDNew: event.params.price,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+
+    // Update the TokenEntity in the DB
+    context.Token.set(newTokenInstance);
   }
 });

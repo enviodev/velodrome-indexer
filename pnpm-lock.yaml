@@ -15,8 +15,8 @@ importers:
         specifier: 4.3.10
         version: 4.3.10
       envio:
-        specifier: 0.0.31
-        version: 0.0.31
+        specifier: 0.0.29
+        version: 0.0.29
       mocha:
         specifier: ^10.2.0
         version: 10.2.0
@@ -51,9 +51,6 @@ importers:
       '@elastic/ecs-pino-format':
         specifier: 1.4.0
         version: 1.4.0
-      '@envio-dev/hypersync-client':
-        specifier: 0.1.0
-        version: 0.1.0
       '@glennsl/rescript-fetch':
         specifier: 0.2.0
         version: 0.2.0
@@ -93,6 +90,9 @@ importers:
       rescript-struct:
         specifier: 4.1.1
         version: 4.1.1(rescript@10.1.4)
+      skar-client-node:
+        specifier: 0.0.9
+        version: 0.0.9
       viem:
         specifier: 1.16.6
         version: 1.16.6(typescript@5.2.2)
@@ -138,72 +138,6 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       '@elastic/ecs-helpers': 1.1.0
-    dev: false
-
-  /@envio-dev/hypersync-client-darwin-arm64@0.1.0:
-    resolution: {integrity: sha512-PX8Y+pV7CR+n38IVsKTENm0pOrVfc8Hka9e3wuEBM886JqlHNSc+DIbAMufli12PIXhzkQMJ/pX4MI8O1RJUFw==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [darwin]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /@envio-dev/hypersync-client-darwin-x64@0.1.0:
-    resolution: {integrity: sha512-cInirs97xoVoHC+qvJZYDVkAPenlSfYBMK/OuX5WPRsAMwS2MECmksUBs0plPjn1mK0wBzIDAxI1Fa3yV2rVhQ==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [darwin]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /@envio-dev/hypersync-client-linux-arm64-gnu@0.1.0:
-    resolution: {integrity: sha512-DJGvUJI2Orpc01EEQMAZNGhzAA/iHifoz1gZWGNQ3+CFr+DaSCeY5jPmHDQVrjf+ywiPDNwab9paLyC9LBo80A==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [linux]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /@envio-dev/hypersync-client-linux-x64-gnu@0.1.0:
-    resolution: {integrity: sha512-ucpN2aP1dJKd2TOa/LVxOCU+AzVybra4pRkvaSXA/NUnNhU2HQGdW+MlHsgRZ6/f2XF0AT+AtCgQ68+dgggGFA==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [linux]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /@envio-dev/hypersync-client-linux-x64-musl@0.1.0:
-    resolution: {integrity: sha512-gQNtaowbT7QF787pJ2qYALOCJMvVfbMlbXDqfzvs3HubC4+FfeVeOh+nCqLthvqtoDC2rNBQrZ8woicAV3Q8FA==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [linux]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /@envio-dev/hypersync-client-win32-x64-msvc@0.1.0:
-    resolution: {integrity: sha512-cMgzUAMJHE5BquOR7E+96Ts/dFsvf4+9ynX7PtsSKcRIynFN+4aGTQz2DnXqsbOy0O74+uQ9lKMQUEWampns5Q==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [win32]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /@envio-dev/hypersync-client@0.1.0:
-    resolution: {integrity: sha512-F6KhPFfYtEs/IUceMDD6KLdd5Wh5aCki8ucQiLfEWDjA3FZaenKIsqMokgRWNlt9cGP/vHcM5tssBDBN5xjnBA==}
-    engines: {node: '>= 10'}
-    optionalDependencies:
-      '@envio-dev/hypersync-client-darwin-arm64': 0.1.0
-      '@envio-dev/hypersync-client-darwin-x64': 0.1.0
-      '@envio-dev/hypersync-client-linux-arm64-gnu': 0.1.0
-      '@envio-dev/hypersync-client-linux-x64-gnu': 0.1.0
-      '@envio-dev/hypersync-client-linux-x64-musl': 0.1.0
-      '@envio-dev/hypersync-client-win32-x64-msvc': 0.1.0
     dev: false
 
   /@ethereumjs/rlp@4.0.1:
@@ -258,8 +192,8 @@ packages:
     resolution: {integrity: sha512-V7/fPHgl+jsVPXqqeOzT8egNj2iBIVt+ECeMMG8TdcnTikP3oaBtUVqpT/gYCR68aEBJSF+XbYUxStjbFMqIIA==}
     engines: {node: '>= 16'}
 
-  /@opentelemetry/api@1.7.0:
-    resolution: {integrity: sha512-AdY5wvN0P2vXBi3b29hxZgSFvdhdxPB9+f0B6s//P9Q8nibRWeA3cHm8UmLpio9ABigkVHJ5NMPk+Mz8VCCyrw==}
+  /@opentelemetry/api@1.8.0:
+    resolution: {integrity: sha512-I/s6F7yKUDdtMsoBWXJe8Qz40Tui5vsuKCWJEWVL+5q9sSWRzzx6v2KeNsOBEwd94j0eWkpWCH4yB6rZg9Mf0w==}
     engines: {node: '>=8.0.0'}
     dev: false
 
@@ -533,10 +467,11 @@ packages:
       set-function-length: 1.1.1
     dev: true
 
-  /call-bind@1.0.6:
-    resolution: {integrity: sha512-Mj50FLHtlsoVfRfnHaZvyrooHcrlceNZdL/QBvJJVd9Ta55qCQK0gs4ss2oZDeV9zFCs6ewzYgVE5yfVmfFpVg==}
+  /call-bind@1.0.7:
+    resolution: {integrity: sha512-GHTSNSYICQ7scH7sZ+M2rFopRoLh8t2bLSW6BbgrtLsahOIB5iyAVJf9GjWK3cYTDaMj4XdBpM1cA6pIS0Kv2w==}
     engines: {node: '>= 0.4'}
     dependencies:
+      es-define-property: 1.0.0
       es-errors: 1.3.0
       function-bind: 1.1.2
       get-intrinsic: 1.2.4
@@ -719,14 +654,13 @@ packages:
       has-property-descriptors: 1.0.1
     dev: true
 
-  /define-data-property@1.1.2:
-    resolution: {integrity: sha512-SRtsSqsDbgpJBbW3pABMCOt6rQyeM8s8RiyeSN8jYG8sYmt/kGJejbydttUsnDs1tadr19tvhT4ShwMyoqAm4g==}
+  /define-data-property@1.1.4:
+    resolution: {integrity: sha512-rBMvIzlpA8v6E+SJZoo++HAYqsLrkg7MSfIinMPFhmkorw7X+dOXVJQs+QT69zGkzMyfDnIMN2Wid1+NbL3T+A==}
     engines: {node: '>= 0.4'}
     dependencies:
+      es-define-property: 1.0.0
       es-errors: 1.3.0
-      get-intrinsic: 1.2.4
       gopd: 1.0.1
-      has-property-descriptors: 1.0.1
     dev: false
 
   /depd@2.0.0:
@@ -768,37 +702,44 @@ packages:
       once: 1.4.0
     dev: false
 
-  /envio-darwin-arm64@0.0.31:
-    resolution: {integrity: sha512-LnSJ5It4IHpUjvI1KHP2VzLJ/e1O/zbxGBD5Rhu5XocqjgqMSD47mB5L1GJ0+cMTB6Iouujk1deUxZea6zBAFA==}
+  /envio-darwin-arm64@0.0.29:
+    resolution: {integrity: sha512-NzeisiHhEzxz4+g65OK4+oODM/wa2TQ1wmhDF1NgSZO/aFZTOas/JXrsfxYpxRR2AVoYO33Ilzsp2q0gJmcy9g==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-darwin-x64@0.0.31:
-    resolution: {integrity: sha512-o1/MGtPeElJjT3R54/vISah2/994yJf8vs2T+Ma4WTrCk1vnzRYoFYa185phWbRD6mv/Q/6/nrcI9wQpLYNFsA==}
+  /envio-darwin-x64@0.0.29:
+    resolution: {integrity: sha512-mnpn1g6RpPBmSWA1dmRLdl3/UOqrbji0tw036X7z4w3F3xdPjLYE2sLBqh4sTcxGfKjiCHlAzS/9EK5PalJCWw==}
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-linux-x64@0.0.31:
-    resolution: {integrity: sha512-FqSoMlFa/h5RFZ8ngi2gnU5qDBb1fIJkIIvKEGOZtFuaB4RTBwuCrhMSqEJdBBjqRxKmbbB6jHUeHIVZMqAhuA==}
+  /envio-linux-x64@0.0.29:
+    resolution: {integrity: sha512-SxIMyGuvlMuVtg3zO0B94MHQ75TgXta5JLgdmjX5gaWGQwk43zn5WHhekaS+kBrHECrTBIPCwACHusNMraPoig==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio@0.0.31:
-    resolution: {integrity: sha512-O2ohY4FHPl6jsi2hnhz1pxKpouO409nSzqoOSEyAhx6K3FPCs0RdnqsW8Xos+IiPHVIfB06Cc1x44W1FBRWc7g==}
+  /envio@0.0.29:
+    resolution: {integrity: sha512-dHz7rL2TL0Anm5Pghc1w8E0kwbx3Y8rixCmj+O451WJ3Mg3ue9uruP4iSTFeTwQOLlf554DGEkr+Aa+loZO44g==}
     hasBin: true
     optionalDependencies:
-      envio-darwin-arm64: 0.0.31
-      envio-darwin-x64: 0.0.31
-      envio-linux-x64: 0.0.31
+      envio-darwin-arm64: 0.0.29
+      envio-darwin-x64: 0.0.29
+      envio-linux-x64: 0.0.29
+    dev: false
+
+  /es-define-property@1.0.0:
+    resolution: {integrity: sha512-jxayLKShrEqqzJ0eumQbVhTYQM27CfT1T35+gCgDFoL82JLsXqTJ76zv6A0YLOgEnLUMvLzsDsGIrl8NFpT2gQ==}
+    engines: {node: '>= 0.4'}
+    dependencies:
+      get-intrinsic: 1.2.4
     dev: false
 
   /es-errors@1.3.0:
@@ -1522,7 +1463,7 @@ packages:
     resolution: {integrity: sha512-UocpgIrKyA2TKLVZDSfm8rGkL13C19YrQBAiG3xo3aDFWcHedxRxI3z+cIcucoxpSO0h5lff5iv/SXoxyeopeA==}
     engines: {node: ^16 || ^18 || >=20}
     dependencies:
-      '@opentelemetry/api': 1.7.0
+      '@opentelemetry/api': 1.8.0
       tdigest: 0.1.2
     dev: false
 
@@ -1550,7 +1491,7 @@ packages:
     resolution: {integrity: sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==}
     engines: {node: '>=0.6'}
     dependencies:
-      side-channel: 1.0.5
+      side-channel: 1.0.6
     dev: false
 
   /quick-format-unescaped@4.0.4:
@@ -1720,7 +1661,7 @@ packages:
     resolution: {integrity: sha512-j4t6ccc+VsKwYHso+kElc5neZpjtq9EnRICFZtWyBsLojhmeF/ZBd/elqm22WJh/BziDe/SBiOeAt0m2mfLD0g==}
     engines: {node: '>= 0.4'}
     dependencies:
-      define-data-property: 1.1.2
+      define-data-property: 1.1.4
       es-errors: 1.3.0
       function-bind: 1.1.2
       get-intrinsic: 1.2.4
@@ -1736,14 +1677,80 @@ packages:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
     dev: false
 
-  /side-channel@1.0.5:
-    resolution: {integrity: sha512-QcgiIWV4WV7qWExbN5llt6frQB/lBven9pqliLXfGPB+K9ZYXxDozp0wLkHS24kWCm+6YXH/f0HhnObZnZOBnQ==}
+  /side-channel@1.0.6:
+    resolution: {integrity: sha512-fDW/EZ6Q9RiO8eFG8Hj+7u/oW+XrPTIChwCOM2+th2A6OblDtYYIpve9m+KvI9Z4C9qSEXlaGR6bTEYHReuglA==}
     engines: {node: '>= 0.4'}
     dependencies:
-      call-bind: 1.0.6
+      call-bind: 1.0.7
       es-errors: 1.3.0
       get-intrinsic: 1.2.4
       object-inspect: 1.13.1
+    dev: false
+
+  /skar-client-node-darwin-arm64@0.0.9:
+    resolution: {integrity: sha512-qmwuufe8RNWjTZWSaKo1fnVWX35DmyAPW/CzavyuEnv88uzeCiWcDZNg0EhtjY9/nFsj/W8T/DaSSJ5eIXbYvg==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /skar-client-node-darwin-x64@0.0.9:
+    resolution: {integrity: sha512-ZdUY7QYZRvuV8LwPO/OddypWZqPXVIE+ZVxE9lHq/QyWP/uyPuBGyVhJeV9cfobrqeeBAV6FuN/shf8uIZUPyQ==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /skar-client-node-linux-arm64-gnu@0.0.9:
+    resolution: {integrity: sha512-rbkgX9slLiRMdofOHnvdCPnCWMmiFLkNSMgBq6OTebez9QkT1cyPomHCXMeiMLZgAVXdiwlhFq/Nqxm+YP/dMg==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /skar-client-node-linux-x64-gnu@0.0.9:
+    resolution: {integrity: sha512-ojQ/a4Mjk07oyAkWBKBy3M38+PJVY7phaEr9nFhc44rEzShsqqVJSHOUGrnyaN01/gFhYyJ96mOm0kD7TxMJSg==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /skar-client-node-linux-x64-musl@0.0.9:
+    resolution: {integrity: sha512-Rh5woAEiP1UO8GbF7T91IkANepGwmaqa1fpkefL5K61d6Ze3FvDIZA3Qz8aG0NOQPANCz68WqID6ysa6IiSGTg==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /skar-client-node-win32-x64-msvc@0.0.9:
+    resolution: {integrity: sha512-vfJY3gHe7Ba3AiqqMcJptw/xKPxg170Mg9HEPinMwAHnYDE2r8IWkp+SOXMci0m+q9jjUBDAy7+71G62dYIVvQ==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /skar-client-node@0.0.9:
+    resolution: {integrity: sha512-XWJQk9+oHrDXJf9qPvJmfVnBmWT0s8UYnHeu+oPpE+TaLkbmPugZgGZDZ7wvu1ZziMvhauLIblNtz9gsQxd/0w==}
+    engines: {node: '>= 10'}
+    optionalDependencies:
+      skar-client-node-darwin-arm64: 0.0.9
+      skar-client-node-darwin-x64: 0.0.9
+      skar-client-node-linux-arm64-gnu: 0.0.9
+      skar-client-node-linux-x64-gnu: 0.0.9
+      skar-client-node-linux-x64-musl: 0.0.9
+      skar-client-node-win32-x64-msvc: 0.0.9
     dev: false
 
   /sonic-boom@3.8.0:
