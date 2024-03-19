@@ -1,5 +1,4 @@
 import {
-  LiquidityPoolEntity,
   LiquidityPoolNewEntity,
   LiquidityPoolHourlySnapshotEntity,
   LiquidityPoolDailySnapshotEntity,
@@ -44,7 +43,7 @@ export function getLiquidityPoolSnapshotByInterval(
     chainID: liquidityPoolEntity.chainID,
     reserve0: liquidityPoolEntity.reserve0,
     reserve1: liquidityPoolEntity.reserve1,
-    totalLiquidityETH: liquidityPoolEntity.totalLiquidityETH,
+    // totalLiquidityETH: liquidityPoolEntity.totalLiquidityETH,
     totalLiquidityUSD: liquidityPoolEntity.totalLiquidityUSD,
     totalVolume0: liquidityPoolEntity.totalVolume0,
     totalVolume1: liquidityPoolEntity.totalVolume1,
@@ -91,8 +90,7 @@ export function getTokenSnapshotByInterval(
     symbol: tokenEntity.symbol,
     name: tokenEntity.name,
     token: tokenEntity.id,
-    pricePerETH: tokenEntity.pricePerETH,
-    pricePerUSD: tokenEntity.pricePerUSD,
+    poolUsedForPricing: tokenEntity.poolUsedForPricing,
     pricePerUSDNew: tokenEntity.pricePerUSDNew,
     lastUpdatedTimestamp: tokenEntity.lastUpdatedTimestamp,
   };
