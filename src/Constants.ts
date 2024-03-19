@@ -1,5 +1,5 @@
 import { Token, Pool } from "./CustomTypes";
-import { LatestETHPriceEntity, StateStoreEntity } from "./src/Types.gen";
+// import { LatestETHPriceEntity, StateStoreEntity } from "./src/Types.gen";
 
 export const TEN_TO_THE_3_BI = BigInt(10 ** 3);
 export const TEN_TO_THE_6_BI = BigInt(10 ** 6);
@@ -11,14 +11,14 @@ export const SECONDS_IN_A_WEEK = BigInt(604800);
 
 export const STATE_STORE_ID = "STATE";
 
-export const INITIAL_ETH_PRICE: LatestETHPriceEntity = {
-  id: "1687468854", // Using Timestamp of first price minus 1 second
-  price: 1869671494767075821464n, // Using the first calculated ETH price as initial price - an hour delay from the timestamp where ETH price was calculated
-};
-export const DEFAULT_STATE_STORE: StateStoreEntity = {
-  id: STATE_STORE_ID,
-  latestEthPrice: INITIAL_ETH_PRICE.id,
-};
+// export const INITIAL_ETH_PRICE: LatestETHPriceEntity = {
+//   id: "1687468854", // Using Timestamp of first price minus 1 second
+//   price: 1869671494767075821464n, // Using the first calculated ETH price as initial price - an hour delay from the timestamp where ETH price was calculated
+// };
+// export const DEFAULT_STATE_STORE: StateStoreEntity = {
+//   id: STATE_STORE_ID,
+//   latestEthPrice: INITIAL_ETH_PRICE.id,
+// };
 
 // Hardcoded WETH, USDC and OP token addresses with decimals
 export const WETH: Token = {
@@ -26,13 +26,19 @@ export const WETH: Token = {
   symbol: "WETH",
 };
 
+// TODO change this name to usdc.e and import native usdc from base
 export const USDC: Token = {
   address: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
   symbol: "USDC.e",
 };
 
+export const NATIVE_USDC: Token = {
+  address: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+  symbol: "USDC",
+};
+
 const USDC_BASE: Token = {
-  address: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+  address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   symbol: "USDC",
 };
 
@@ -41,6 +47,7 @@ export const OP: Token = {
   symbol: "OP",
 };
 
+// beware not checksummed.
 const LUSD: Token = {
   address: "0xc40f949f8a4e094d1b49a23ea9241d289b7b2819",
   symbol: "LUSD",
@@ -56,6 +63,7 @@ const USDbC: Token = {
   symbol: "USCbC",
 };
 
+// NB issue!! DAI address on base, Lyra address on optimism!!
 const DAI: Token = {
   address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
   symbol: "DAI",
@@ -74,6 +82,49 @@ const DOLA: Token = {
 const OPTIMISM_WHITELISTED_TOKENS: Token[] = [WETH, USDC, VELO, OP, LUSD];
 
 const BASE_WHITELISTED_TOKENS: Token[] = [WETH, USDbC, USDC_BASE, DAI, DOLA];
+
+// List of stablecoin pools with their token0, token1 and name
+export const PRICING_POOLS: Pool[] = [
+  {
+    address: "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b",
+    token0: WETH,
+    token1: USDC,
+    name: "vAMM-WETH/USDC.e",
+  },
+  {
+    address: "0x8134A2fDC127549480865fB8E5A9E8A8a95a54c5",
+    token0: USDC,
+    token1: VELO,
+    name: "Volatile AMM - USDC.e/VELO",
+  },
+  {
+    address: "0x0df083de449F75691fc5A36477a6f3284C269108",
+    token0: OP, // these fields aren't being used currently.
+    token1: USDC,
+    name: "Volatile AMM - OP/USDC.e",
+  },
+];
+
+export const PRICING_POOLS_ADDRESSES: string[] = PRICING_POOLS.map(
+  (pool) => pool.address
+);
+
+// Very carefully check these addresses don't get created cross chain.
+// Or add more defenses.
+const USD_TOKENS: Token[] = [USDC, USDbC, USDC_BASE, NATIVE_USDC];
+
+// update list.
+export const USD_TOKENS_ADDRESSES: string[] = USD_TOKENS.map(
+  (token) => token.address
+);
+
+const TOKENS_PRICED_IN_USD: Token[] = [WETH, OP, VELO];
+
+// update list.
+export const TOKENS_PRICED_IN_USD_ADDRESSES: string[] =
+  TOKENS_PRICED_IN_USD.map((token) => token.address);
+// Need to create a list of whitelisted tokens and all their known addresses.
+// I.e. WETH is a token for pricing, the WETH token across both base and optimism.
 
 // List of stablecoin pools with their token0, token1 and name
 const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
