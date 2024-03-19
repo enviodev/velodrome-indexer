@@ -132,8 +132,8 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
       poolTokenSymbols[1],
       event.params.stable
     ),
-    token0: event.params.token0 + "-" + event.chainId.toString(),
-    token1: event.params.token1 + "-" + event.chainId.toString(),
+    token0_id: event.params.token0 + "-" + event.chainId.toString(),
+    token1_id: event.params.token1 + "-" + event.chainId.toString(),
     isStable: event.params.stable,
     reserve0: 0n,
     reserve1: 0n,
@@ -160,10 +160,8 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
 
 PoolContract_Fees_loader(({ event, context }) => {
   context.LiquidityPoolNew.load(event.srcAddress.toString(), {
-    loaders: {
-      loadToken0: true,
-      loadToken1: true,
-    },
+    loadToken0: true,
+    loadToken1: true,
   });
 });
 
@@ -219,10 +217,8 @@ PoolContract_Fees_handler(({ event, context }) => {
 
 PoolContract_Swap_loader(({ event, context }) => {
   context.LiquidityPoolNew.load(event.srcAddress.toString(), {
-    loaders: {
-      loadToken0: true,
-      loadToken1: true,
-    },
+    loadToken0: true,
+    loadToken1: true,
   });
 
   // if the swap `sender` is a liquidityPool, then we won't count
@@ -237,10 +233,8 @@ PoolContract_Swap_loader(({ event, context }) => {
   // if the swap `to` is a liquidityPool, then we won't count
   // it as a unique user.
   context.LiquidityPoolNew.load(event.params.to.toString(), {
-    loaders: {
-      loadToken0: false,
-      loadToken1: false,
-    },
+    loadToken0: false,
+    loadToken1: false,
   });
 
   // context.User.load(event.params.sender.toString());
@@ -393,10 +387,8 @@ PoolContract_Swap_handler(({ event, context }) => {
 
 PoolContract_Sync_loader(({ event, context }) => {
   context.LiquidityPoolNew.load(event.srcAddress.toString(), {
-    loaders: {
-      loadToken0: true,
-      loadToken1: true,
-    },
+    loadToken0: true,
+    loadToken1: true,
   });
 });
 
