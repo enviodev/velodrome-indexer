@@ -65,7 +65,7 @@ const {
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   // // Dynamic contract registration for Pool contracts
-  // context.contractRegistration.addPool(event.params.pool);
+  context.contractRegistration.addPool(event.params.pool);
 
   // load the token entities
   context.Token.poolTokensLoad([
@@ -137,7 +137,6 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
     isStable: event.params.stable,
     reserve0: 0n,
     reserve1: 0n,
-    // totalLiquidityETH: 0n,
     totalLiquidityUSD: 0n,
     totalVolume0: 0n,
     totalVolume1: 0n,
