@@ -48,6 +48,14 @@ type LiquidityPoolNew {
     @derivedFrom(field: "pool")
 }
 
+# Entity for tracking a unique address in the `to` or `from` of a swap event
+# Other liquidity pools don't count as users
+type User {
+  id: ID! # user address
+  numberOfSwaps: BigInt! # total number of swaps the user has made
+  joined_at_timestamp: BigInt! # timestamp of the user's first swap (or being swapped to)
+}
+
 # Entity per pool that tracks all the necessary details for the pool
 # By nature this entity saves the latest state of the pool, and its state at different times should be attained from the snapshot entities
 # type LiquidityPool {
