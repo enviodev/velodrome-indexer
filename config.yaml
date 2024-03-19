@@ -9,8 +9,6 @@ contracts:
     events:
       - event: PoolCreated(address indexed token0, address indexed token1, bool indexed stable, address pool, uint256 unnamed)
         requiredEntities:
-          - name: StateStore
-            labels: ["stateStore"]
           - name: Token
             arrayLabels:
               - poolTokens
@@ -22,11 +20,12 @@ contracts:
       # Used to update the total fees earned by a swap pool
       - event: Fees(address indexed sender, uint256 amount0, uint256 amount1)
         requiredEntities:
-          - name: LiquidityPool
+          - name: LiquidityPoolNew
       # Used to update the swap and volume metrics of a particular pool and user
       - event: Swap(address indexed sender, address indexed to, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out)
         requiredEntities:
-          - name: LiquidityPool
+          - name: LiquidityPoolNew
+          - name: User
           # - name: LiquidityPoolUserMapping
           #   labels: ["poolUserMapping"]
           # - name: User
@@ -34,26 +33,11 @@ contracts:
       # Used to update the liquidity values of a particular pool
       - event: Sync(uint256 reserve0, uint256 reserve1)
         requiredEntities:
-          - name: StateStore
-            labels: ["stateStore"]
-          - name: LiquidityPool
-            labels:
-              - singlePool
-            arrayLabels:
-              # - stablecoinPools
-              - whitelistedPools0
-              - whitelistedPools1
+          # - name: LatestPrice
+          - name: LiquidityPoolNew
           - name: Token
-            arrayLabels:
-              - whitelistedTokens
-  # PriceFetcher contract is responsible for fetching the price of a particular token
-  - name: PriceFetcher
-    handler: src/EventHandlers.ts
-    events:
-      # Used to update the price of a particular token in USD
-      - event: PriceFetched(address indexed token, uint256 price)
-        requiredEntities:
-          - name: Token
+            # arrayLabels:
+            #   - whitelistedTokens
   # Voter contract is responsible for creating reward contracts and distributing rewards to the liquidity pools
   - name: Voter
     handler: src/EventHandlers.ts
@@ -61,7 +45,7 @@ contracts:
       # Used to update the reward emission metrics of a particular pool
       - event: DistributeReward(address indexed sender, address indexed gauge, uint256 amount)
         requiredEntities:
-          - name: LiquidityPool
+          - name: LiquidityPoolNew
             labels:
               - emissionSinglePool
           - name: Token
@@ -76,12 +60,19 @@ contracts:
       # Used to update the bribe reward metrics of a particular pool
       - event: NotifyReward(address indexed from, address indexed reward, uint256 indexed epoch, uint256 amount)
         requiredEntities:
-          - name: LiquidityPool
+          - name: LiquidityPoolNew
             labels:
               - bribeSinglePool
           - name: Token
             labels:
               - bribeRewardToken
+  - name: PriceFetcher
+    handler: src/EventHandlers.ts
+    events:
+      # Used to update the price of a particular token in USD
+      - event: PriceFetched(address indexed token, uint256 price)
+        requiredEntities:
+          - name: Token
 # Used to define the different chains that contracts (defined above) will be indexed from
 networks:
   - id: 10 # Optimism
@@ -742,10 +733,6 @@ networks:
           - 0xbA2D4A0F35Db19cF0dC4b750996Be8aB3E949784
           - 0xDF67069C01c1E21C076630088fA409B1f91BD015
           - 0x61c5EE130c5bc87b428B6248f6c10116D2f96199
-      - name: PriceFetcher
-        address:
-          - 0x11BbF869250424BEDC5f162094afF8b4A45bE841
-          - 0xe255e0774416604dd53f75ea8301157dcce6eb03
       - name: Voter
         address:
           - 0x41C914ee0c7E1A5edCD0295623e6dC557B5aBf3C
@@ -1094,6 +1081,11 @@ networks:
           - 0x164690E531f108d7637f8CEdB3b7E20cafa9d6D2
           - 0x0c34ad80a50cef903c66e7562F17CF92e552e37d
           - 0x9aAD5FC65E249bEdcedDC5c38101071b1266F2A4
+      - name: PriceFetcher
+        address:
+          - 0x11BbF869250424BEDC5f162094afF8b4A45bE841
+          - 0xe255e0774416604dd53f75ea8301157dcce6eb03
+          - 0x6777E70fe05daeD585Fbed3c2fcd2Cd8fb0b4E38
   - id: 8453 # Base
     start_block: 0
     # Specification of addresses per contract type defined above
@@ -1499,9 +1491,6 @@ networks:
           - 0xda129dd6BbBE910C9B683C757e6ABaa9543c2791
           - 0xB2dD366d733D84954C885489f9b70F8cCaFA7FFE
           - 0x0BC12fb1415ae22abcA8F597EA2893B9B8b1a758
-      - name: PriceFetcher
-        address:
-          - 0x593d092bb28ccefe33bfdd3d9457e77bd3084271
       - name: Voter
         address:
           - 0x16613524e02ad97eDfeF371bC883F2F5d6C480A5
@@ -1658,3 +1647,7 @@ networks:
           - 0x0B681EdA2cAC584064Ee5bFFD4C820E9C6276883
           - 0xD8B435840b8223Ab194A5571A6058a3989F4a586
           - 0x43f3c1fca1Ea82f5d81bad06a9a8dC6F12ae5e9c
+      - name: PriceFetcher
+        address:
+          - 0x593d092bb28ccefe33bfdd3d9457e77bd3084271
+          - 0x2910942669b9F0118d025be31B1A82E36bF88880
