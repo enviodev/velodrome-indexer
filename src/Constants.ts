@@ -9,16 +9,7 @@ export const SECONDS_IN_AN_HOUR = BigInt(3600);
 export const SECONDS_IN_A_DAY = BigInt(86400);
 export const SECONDS_IN_A_WEEK = BigInt(604800);
 
-export const STATE_STORE_ID = "STATE";
-
-// export const INITIAL_ETH_PRICE: LatestETHPriceEntity = {
-//   id: "1687468854", // Using Timestamp of first price minus 1 second
-//   price: 1869671494767075821464n, // Using the first calculated ETH price as initial price - an hour delay from the timestamp where ETH price was calculated
-// };
-// export const DEFAULT_STATE_STORE: StateStoreEntity = {
-//   id: STATE_STORE_ID,
-//   latestEthPrice: INITIAL_ETH_PRICE.id,
-// };
+// export const STATE_STORE_ID = "STATE";
 
 // Hardcoded WETH, USDC and OP token addresses with decimals
 export const WETH: Token = {
@@ -84,45 +75,45 @@ const OPTIMISM_WHITELISTED_TOKENS: Token[] = [WETH, USDC, VELO, OP, LUSD];
 const BASE_WHITELISTED_TOKENS: Token[] = [WETH, USDbC, USDC_BASE, DAI, DOLA];
 
 // List of stablecoin pools with their token0, token1 and name
-export const PRICING_POOLS: Pool[] = [
-  {
-    address: "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b",
-    token0: WETH,
-    token1: USDC,
-    name: "vAMM-WETH/USDC.e",
-  },
-  {
-    address: "0x8134A2fDC127549480865fB8E5A9E8A8a95a54c5",
-    token0: USDC,
-    token1: VELO,
-    name: "Volatile AMM - USDC.e/VELO",
-  },
-  {
-    address: "0x0df083de449F75691fc5A36477a6f3284C269108",
-    token0: OP, // these fields aren't being used currently.
-    token1: USDC,
-    name: "Volatile AMM - OP/USDC.e",
-  },
-];
+// export const PRICING_POOLS: Pool[] = [
+//   {
+//     address: "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b",
+//     token0: WETH,
+//     token1: USDC,
+//     name: "vAMM-WETH/USDC.e",
+//   },
+//   {
+//     address: "0x8134A2fDC127549480865fB8E5A9E8A8a95a54c5",
+//     token0: USDC,
+//     token1: VELO,
+//     name: "Volatile AMM - USDC.e/VELO",
+//   },
+//   {
+//     address: "0x0df083de449F75691fc5A36477a6f3284C269108",
+//     token0: OP, // these fields aren't being used currently.
+//     token1: USDC,
+//     name: "Volatile AMM - OP/USDC.e",
+//   },
+// ];
 
-export const PRICING_POOLS_ADDRESSES: string[] = PRICING_POOLS.map(
-  (pool) => pool.address
-);
+// export const PRICING_POOLS_ADDRESSES: string[] = PRICING_POOLS.map(
+//   (pool) => pool.address
+// );
 
 // Very carefully check these addresses don't get created cross chain.
 // Or add more defenses.
-const USD_TOKENS: Token[] = [USDC, USDbC, USDC_BASE, NATIVE_USDC];
+// const USD_TOKENS: Token[] = [USDC, USDbC, USDC_BASE, NATIVE_USDC];
 
 // update list.
-export const USD_TOKENS_ADDRESSES: string[] = USD_TOKENS.map(
-  (token) => token.address
-);
+// export const USD_TOKENS_ADDRESSES: string[] = USD_TOKENS.map(
+//   (token) => token.address
+// );
 
-const TOKENS_PRICED_IN_USD: Token[] = [WETH, OP, VELO];
+// const TOKENS_PRICED_IN_USD: Token[] = [WETH, OP, VELO];
 
 // update list.
-export const TOKENS_PRICED_IN_USD_ADDRESSES: string[] =
-  TOKENS_PRICED_IN_USD.map((token) => token.address);
+// export const TOKENS_PRICED_IN_USD_ADDRESSES: string[] =
+//   TOKENS_PRICED_IN_USD.map((token) => token.address);
 // Need to create a list of whitelisted tokens and all their known addresses.
 // I.e. WETH is a token for pricing, the WETH token across both base and optimism.
 
