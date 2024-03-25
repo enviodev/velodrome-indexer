@@ -23,25 +23,9 @@ import {
   UserEntity,
 } from "./src/Types.gen";
 
-import {
-  // DEFAULT_STATE_STORE,
-  // INITIAL_ETH_PRICE,
-  STATE_STORE_ID,
-  CHAIN_CONSTANTS,
-  PRICING_POOLS,
-  USD_TOKENS_ADDRESSES,
-  TOKENS_PRICED_IN_USD_ADDRESSES,
-  PRICING_POOLS_ADDRESSES,
-  TEN_TO_THE_18_BI,
-} from "./Constants";
+import { CHAIN_CONSTANTS } from "./Constants";
 
-import {
-  normalizeTokenAmountTo1e18,
-  // getLiquidityPoolAndUserMappingId,
-  generatePoolName,
-  trimAfterDashAndLowercase,
-  absBigInt,
-} from "./Helpers";
+import { normalizeTokenAmountTo1e18, generatePoolName } from "./Helpers";
 
 import { divideBase1e18, multiplyBase1e18 } from "./Maths";
 
@@ -107,7 +91,6 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
         name: tokenName,
         decimals: BigInt(tokenDecimals),
         chainID: BigInt(event.chainId),
-        poolUsedForPricing: "Nothing",
         pricePerUSDNew: 0n,
         lastUpdatedTimestamp: BigInt(event.blockTimestamp),
       };
@@ -220,23 +203,13 @@ PoolContract_Swap_loader(({ event, context }) => {
     loadToken1: true,
   });
 
-  // if the swap `sender` is a liquidityPool, then we won't count
-  // it as a unique user.
-  // context.LiquidityPoolNew.load(event.params.sender.toString(), {
-  //   loaders: {
-  //     loadToken0: false,
-  //     loadToken1: false,
-  //   },
-  // });
-
-  // if the swap `to` is a liquidityPool, then we won't count
-  // it as a unique user.
   context.LiquidityPoolNew.load(event.params.to.toString(), {
     loadToken0: false,
     loadToken1: false,
   });
 
-  // context.User.load(event.params.sender.toString());
+  // if the swap `to` is a liquidityPool, then we won't count
+  // it as a unique user.
   context.User.load(event.params.to.toString());
 });
 
@@ -244,27 +217,6 @@ PoolContract_Swap_handler(({ event, context }) => {
   let liquidityPoolNew = context.LiquidityPoolNew.get(
     event.srcAddress.toString()
   );
-
-  // Fetching the relevant liquidity pool user mapping
-  // const liquidityPoolUserMapping =
-  //   context.LiquidityPoolUserMapping.poolUserMapping;
-
-  // // If the mapping doesn't exist yet, create the mapping and save in DB
-  // if (!liquidityPoolUserMapping) {
-  //   let newLiquidityPoolUserMapping: LiquidityPoolUserMappingEntity = {
-  //     id: getLiquidityPoolAndUserMappingId(
-  //       event.srcAddress.toString(),
-  //       event.params.to.toString()
-  //     ),
-  //     liquidityPool: event.srcAddress.toString(),
-  //     user: event.params.to.toString(),
-  //   };
-
-  //   context.LiquidityPoolUserMapping.set(newLiquidityPoolUserMapping);
-  // }
-
-  // Fetching the relevant user entity
-  // let currentUser = context.User.user;
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   if (liquidityPoolNew) {
@@ -307,19 +259,6 @@ PoolContract_Swap_handler(({ event, context }) => {
     let volumeInUSD =
       netVolumeToken0USD != 0n ? netVolumeToken0USD : netVolumeToken1USD;
 
-    // add a new user if `sender` isn't a liquidity pool and doesn't already exist
-    // as a user
-    // let sender_address = event.params.sender.toString();
-    // if (!context.LiquidityPoolNew.get(sender_address)) {
-    //   if (!context.User.get(sender_address)) {
-    //     let newUser: UserEntity = {
-    //       id: sender_address,
-    //       joined_at_timestamp: BigInt(event.blockTimestamp),
-    //     };
-    //     context.User.set(newUser);
-    //   }
-    // }
-
     // add a new user if `to` isn't a liquidity pool and doesn't already exist
     // as a user
     let to_address = event.params.to.toString();
@@ -336,7 +275,11 @@ PoolContract_Swap_handler(({ event, context }) => {
         let existingUser: UserEntity = {
           ...currentUser,
           numberOfSwaps: currentUser.numberOfSwaps + 1n,
-        };
+          joined_at_timestamp:
+            currentUser.joined_at_timestamp < BigInt(event.blockTimestamp)
+              ? currentUser.joined_at_timestamp
+              : BigInt(event.blockTimestamp),
+        }; // for unordered head mode this correctly categorizes base users who may have joined early on optimism.
         context.User.set(existingUser);
       }
     }
@@ -358,29 +301,6 @@ PoolContract_Swap_handler(({ event, context }) => {
     };
 
     context.LiquidityPoolNew.set(liquidityPoolInstanceNew);
-
-    // Get the user id from the loader or initialize it from the event if user doesn't exist
-    // let existingUserId = currentUser
-    //   ? currentUser.id
-    //   : event.params.to.toString();
-    // let existingUserVolume = currentUser ? currentUser.totalSwapVolumeUSD : 0n;
-    // let existingUserNumberOfSwaps = currentUser
-    //   ? currentUser.numberOfSwaps
-    //   : 0n;
-
-    // // Create a new instance of UserEntity to be updated in the DB
-    // const userInstance: UserEntity = {
-    //   id: existingUserId,
-    //   totalSwapVolumeUSD:
-    //     existingUserVolume +
-    //     normalizedAmount0TotalUsd +
-    //     normalizedAmount1TotalUsd,
-    //   numberOfSwaps: existingUserNumberOfSwaps + 1n,
-    //   lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    // };
-
-    // Update the UserEntity in the DB
-    // context.User.set(userInstance);
   }
 });
 
@@ -425,106 +345,6 @@ PoolContract_Sync_handler(({ event, context }) => {
       token1Price = divideBase1e18(normalizedReserve0, normalizedReserve1);
     }
 
-    ////////////////////////// New code for pricing liquidity pools.
-
-    let token0Address = token0Instance.id.split("-")[0];
-    let token1Address = token1Instance.id.split("-")[0];
-
-    // if (PRICING_POOLS_ADDRESSES.includes(event.srcAddress.toString())) {
-    //   // push pool address to whitelistedPoolIds
-    //   // let latestPrice = context.LatestPrice.get(event.srcAddress.toString());
-    //   let priceInUSD;
-    //   // Note pools need to be volatile for this to work!!
-    //   if (USD_TOKENS_ADDRESSES.includes(token1Address)) {
-    //     priceInUSD = token0Price;
-    //   } else {
-    //     priceInUSD = token1Price;
-    //   }
-
-    //   const newLatestPriceInstance: LatestPriceEntity = {
-    //     id: event.srcAddress.toString(),
-    //     price: priceInUSD,
-    //   };
-    //   context.LatestPrice.set(newLatestPriceInstance);
-    // }
-    // let token0PricePerUSDNew = 0n;
-    // let token1PricePerUSDNew = 0n;
-
-    // caution, every pool can adjust prices here. Sync catiously, review!
-    // Check at least x amount of stable coin reserves exist before pricing.
-    // Review stability of pricing alogrithm here.
-    // Assuming stability of these stable coins.
-    // Don't use sync to set prices unless a critical amount of normalised reserves exist.
-
-    // We could add some logic that if the change is more than 20% in a single shot, its likely
-    // a thinly traded liquidity pool and we shouldn't use it for pricing? Price of token for normal
-    // coins should never drop that much that quick. Even 50%.
-    // if (
-    //   USD_TOKENS_ADDRESSES.includes(token0Address) &&
-    //   normalizedReserve0 > BigInt(5 * 10 ** 22) // require $50k USD before using pricing.
-    // ) {
-    //   token0PricePerUSDNew = TEN_TO_THE_18_BI;
-    //   token1PricePerUSDNew = token1Price;
-    // } else if (
-    //   USD_TOKENS_ADDRESSES.includes(token1Address) &&
-    //   normalizedReserve1 > BigInt(5 * 10 ** 22)
-    // ) {
-    //   token0PricePerUSDNew = token0Price;
-    //   token1PricePerUSDNew = TEN_TO_THE_18_BI;
-    // } else if (
-    //   // We potentially don't even need this to be a whitelist ...
-    //   // So as long as the token had suffcient liquidity against a USD pair, its fairly priced.
-    //   // and could be used here.
-    //   TOKENS_PRICED_IN_USD_ADDRESSES.includes(token0Address) &&
-    //   multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) >
-    //     BigInt(10 * 10 ** 22)
-    // ) {
-    //   // Other token can be accurately priced
-    //   token1PricePerUSDNew = multiplyBase1e18(
-    //     token0PricePerUSDNew,
-    //     token1Price
-    //   );
-    //   token0PricePerUSDNew = token0Instance.pricePerUSDNew;
-    // } else if (
-    //   TOKENS_PRICED_IN_USD_ADDRESSES.includes(token1Address) &&
-    //   multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew) >
-    //     BigInt(10 * 10 ** 22)
-    // ) {
-    //   // Other token can be accurately priced
-    //   token0PricePerUSDNew = multiplyBase1e18(
-    //     token1PricePerUSDNew,
-    //     token0Price
-    //   );
-    //   token1PricePerUSDNew = token1Instance.pricePerUSDNew;
-    // } else if (
-    //   multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) >
-    //   BigInt(20 * 10 ** 22) // if more than 200k liquidity for random token, then we can use the price.
-    // ) {
-    //   // Other token can be accurately priced
-    //   token1PricePerUSDNew = multiplyBase1e18(
-    //     token0PricePerUSDNew,
-    //     token1Price
-    //   );
-    //   token0PricePerUSDNew = token0Instance.pricePerUSDNew;
-    // } else if (
-    //   multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew) >
-    //   BigInt(20 * 10 ** 22)
-    // ) {
-    //   // Other token can be accurately priced
-    //   token0PricePerUSDNew = multiplyBase1e18(
-    //     token1PricePerUSDNew,
-    //     token0Price
-    //   );
-    //   token1PricePerUSDNew = token1Instance.pricePerUSDNew;
-    // } else {
-    //   // critical, if one of the cases aren't matched, it should keep
-    //   // what price it already has for that token and not update it.
-    //   token0PricePerUSDNew = token0Instance.pricePerUSDNew;
-    //   token1PricePerUSDNew = token1Instance.pricePerUSDNew;
-    // }
-    // Think about case where a token was priced because it had suffcient liquidity,
-    // but its price stays constant as it never achieves suffcient liquidity again to
-    // update the price. Ideally we'd want to zero price this token again at somepoint.
     let token0PricePerUSDNew = token0Instance.pricePerUSDNew;
     let token1PricePerUSDNew = token1Instance.pricePerUSDNew;
 
@@ -550,20 +370,12 @@ PoolContract_Sync_handler(({ event, context }) => {
       ...token0Instance,
       chainID: BigInt(event.chainId),
       pricePerUSDNew: token0PricePerUSDNew,
-      poolUsedForPricing:
-        token0Instance.pricePerUSDNew == token0PricePerUSDNew
-          ? token0Instance.poolUsedForPricing
-          : event.srcAddress.toString(),
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     const newToken1Instance: TokenEntity = {
       ...token1Instance,
       chainID: BigInt(event.chainId),
       pricePerUSDNew: token1PricePerUSDNew,
-      poolUsedForPricing:
-        token1Instance.pricePerUSDNew == token1PricePerUSDNew
-          ? token1Instance.poolUsedForPricing
-          : event.srcAddress.toString(),
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
@@ -630,7 +442,7 @@ PoolContract_Sync_handler(({ event, context }) => {
 VoterContract_GaugeCreated_loader(({ event, context }) => {
   // // Dynamically register bribe VotingReward contracts
   // // This means that user does not need to manually define all the BribeVotingReward contract address in the configuration file
-  // context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
+  context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
 });
 
 VoterContract_GaugeCreated_handler(({ event, context }) => {
@@ -709,9 +521,6 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
 
     // Update the LiquidityPoolEntity in the DB
     context.LiquidityPoolNew.set(newLiquidityPoolInstance);
-
-    // Update the RewardTokenEntity in the DB
-    // context.RewardToken.set(rewardToken);
   } else {
     // If there is no pool entity with the particular gauge address, log the error
     context.log.warn(
@@ -736,8 +545,6 @@ VotingRewardContract_NotifyReward_loader(({ event, context }) => {
       event.params.reward + "-" + event.chainId.toString()
     );
   } else {
-    //// QUESTION - I am running into this warning quite often. What does it mean? Why would this warning happen?
-
     // If there is no pool address with the particular gauge address, log the error
     context.log.warn(
       `No pool address found for the bribe voting address ${event.srcAddress.toString()}`
@@ -781,9 +588,6 @@ VotingRewardContract_NotifyReward_handler(({ event, context }) => {
 
     // Update the LiquidityPoolEntity in the DB
     context.LiquidityPoolNew.set(newLiquidityPoolInstance);
-
-    // Update the RewardTokenEntity in the DB
-    // context.RewardToken.set(rewardToken); // Doesn't do anything from what I can tell.
   }
 });
 

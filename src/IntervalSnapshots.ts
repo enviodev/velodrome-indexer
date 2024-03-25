@@ -90,7 +90,6 @@ export function getTokenSnapshotByInterval(
     symbol: tokenEntity.symbol,
     name: tokenEntity.name,
     token: tokenEntity.id,
-    poolUsedForPricing: tokenEntity.poolUsedForPricing,
     pricePerUSDNew: tokenEntity.pricePerUSDNew,
     lastUpdatedTimestamp: tokenEntity.lastUpdatedTimestamp,
   };
