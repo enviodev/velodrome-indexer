@@ -57,6 +57,15 @@ To stop the indexer, run
 ```bash
 envio stop
 ```
+### Hydra-mode
+
+Hydra is a postgres based database that exposes the same postgres api but stores the data in a columnlar layout which is optimised for analytic type queries that aggregate data across large numbers of rows on large datasets.
+
+To run this indexer against hydra (rather than standard postgres) first run `pnpm enable-hydra`.
+
+Once that completes without error, run `pnpm start`. 
+
+NOTE: it is advised not to run `envio dev` when in hydra mode. This creates risk that the indexer will revert to standard postgres mode. While developing, rather just use standard postgres, and switch to hydra once you are happy with the logic in the indexer.
 
 ### Testing
 

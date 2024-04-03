@@ -8,7 +8,8 @@
     "dev": "envio dev",
     "codegen": "envio codegen",
     "start": "ts-node generated/src/Index.bs.js",
-    "test": "mocha --require ts-node/register test/**/*.ts"
+    "test": "mocha --require ts-node/register test/**/*.ts",
+    "enable-hydra": "./hack/hydra-mode/hydra-mode.sh"
   },
   "devDependencies": {
     "@types/chai": "^4.3.11",
