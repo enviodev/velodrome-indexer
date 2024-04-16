@@ -34,3 +34,6 @@ hard-start:
 indexer-logs:
 	docker logs envio-indexer -f
 
+build-push-indexer:
+	docker buildx build -t "${TAG}"  -f Dockerfile --platform ${ARCH} . --progress=plain; docker push "${TAG}"
+
