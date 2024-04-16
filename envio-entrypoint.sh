@@ -1,9 +1,9 @@
 echo "Starting indexer..."
 sleep 10
 
-export TUI_OFF=${TUI_OFF} # turn the TUI off
+export TUI_OFF=${TUI_OFF} # should use TUI (set to true by default in docker compose)
 
-# these migrate step below is only required if hasura is being used
+# the migrate step below is only required if hasura is being used
 echo "running indexer migrations..."
 pnpm envio local db-migrate up
 
