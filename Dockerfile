@@ -5,8 +5,6 @@ WORKDIR /app/base-template
 
 RUN npm install -g npm@latest
 COPY . .
-RUN rm -rf generated
-RUN rm -rf node_modules
 
 ENV PNPM_HOME /usr/local/binp
 RUN npm install --global pnpm
