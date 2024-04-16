@@ -16,14 +16,13 @@
     "@types/node": "^18.16.1",
     "chai": "4.3.10",
     "js-yaml": "4.1.0",
-    "rescript": "^10.1.2",
     "typescript": "^5.0.4",
     "web3": "^4.4.0"
   },
   "dependencies": {
     "@types/mocha": "^10.0.6",
     "chai": "4.3.10",
-    "envio": "0.0.35",
+    "envio": "0.0.38",
     "mocha": "^10.2.0",
     "prettier": "^2.5.1",
     "ts-node": "^10.9.1"

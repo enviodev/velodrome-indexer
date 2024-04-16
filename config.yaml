@@ -1,7 +1,7 @@
 name: Velodrome_v2
 description: Multi-chain indexer for Velodrome V2 on Optimism and Aerodrome on Base
 unordered_multichain_mode: true
-# event_decoder: hypersync-client
+event_decoder: hypersync-client
 # Global contracts configuration that will be shared across all chains that are defined later in the config file
 # (i.e. Velodrome V2 on Optimism and Aerodrome on Base)
 contracts:
