@@ -54,6 +54,7 @@ services:
         limits:
           cpus: '0.8' # limit the resource of the container to 80% of 1 CPU (800m) testing for live environment
           memory: 800M # conservative can be increased if needed
+    restart: always
     environment:
       ENVIO_POSTGRES_PASSWORD: ${ENVIO_POSTGRES_PASSWORD:-testing}
       ENVIO_PG_HOST: envio-postgres
