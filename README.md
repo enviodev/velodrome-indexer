@@ -89,6 +89,22 @@ To push the Envio indexer container to a container registry login to the registr
 
 example: `make build-push-indexer TAG="velodrome-indexer-prod-1" ARCH="linux/amd64"`
 
+
+### Hydra setup
+
+Similar to the above, but uses a hydra postgres instance with no hasura.
+
+Setup files:
+
+- `docker-compose-hydra.yaml`
+- `Dockerfile-hydra`
+- `envio-entrypoint-hydra.sh`
+
+Make commands:
+- `make start-hydra`
+- `make hard-stop-hydra`
+- `make hard-restart-hydra`
+
 ### Testing
 
 To run the tests inside `/test` directory, run
