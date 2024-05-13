@@ -15,6 +15,7 @@ start-hydra:
 .PHONY:  hard-stop-hydra
  hard-stop-hydra:
 	docker compose -f docker-compose-hydra.yaml down -v
+	make remove-generated
 
 .PHONY: remove-generated
 remove-generated:
