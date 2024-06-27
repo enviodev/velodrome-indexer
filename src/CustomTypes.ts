@@ -1,21 +1,21 @@
-import { TokenEntity } from "./src/Types.gen";
+import { Token } from "./src/Types.gen";
 
 // Token type to contain minimal information about a token
-export type Token = {
+export type TokenInfo = {
   address: string;
   symbol: string;
 };
 
 export type TokenEntityMapping = {
   address: string;
-  tokenInstance: TokenEntity | undefined;
+  tokenInstance: Token | undefined;
 };
 
 // Pool type to contain minimal information about a pool
 export type Pool = {
   address: string;
-  token0: Token;
-  token1: Token;
+  token0: TokenInfo;
+  token1: TokenInfo;
   name: string;
 };
 
