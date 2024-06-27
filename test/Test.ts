@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { MockDb, Pool, PoolFactory } from "../generated/src/TestHelpers.gen";
 import {
   LiquidityPoolEntity,
-  TokenEntity,
+  Token,
   StateStoreEntity,
   LatestETHPriceEntity,
 } from "../generated/src/Types.gen";
@@ -100,7 +100,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
     );
 
     // Expected Token entities
-    const expectedToken0Entity: TokenEntity = {
+    const expectedToken0Entity: Token = {
       id: WETH.address + "-" + mockChainID.toString(),
       symbol: "WETH",
       name: "Wrapped Ether",
@@ -111,7 +111,7 @@ describe("PoolCreated event correctly creates LiquidityPool and Token entities",
       lastUpdatedTimestamp: BigInt(mockPoolCreatedEvent.blockTimestamp),
     };
     // Expected Token entities
-    const expectedToken1Entity: TokenEntity = {
+    const expectedToken1Entity: Token = {
       id: USDC.address + "-" + mockChainID.toString(),
       symbol: "USDC",
       name: "USD Coin",
@@ -164,7 +164,7 @@ describe("Fees event correctly updates LiquidityPool", () => {
   };
 
   // Mock Token entities
-  const mockToken0Entity: TokenEntity = {
+  const mockToken0Entity: Token = {
     id: WETH.address,
     symbol: "WETH",
     name: "Wrapped Ether",
@@ -175,7 +175,7 @@ describe("Fees event correctly updates LiquidityPool", () => {
     lastUpdatedTimestamp: 0n,
   };
   // Expected Token entities
-  const mockToken1Entity: TokenEntity = {
+  const mockToken1Entity: Token = {
     symbol: "WETH",
     name: "Wrapped Ether",
     decimals: 18n,
@@ -271,7 +271,7 @@ describe("Sync event correctly updates WETH/USDC pool entity", () => {
   };
 
   // Mock Token entities
-  const mockToken0Entity: TokenEntity = {
+  const mockToken0Entity: Token = {
     id: WETH.address,
     symbol: "WETH",
     name: "Wrapped Ether",
@@ -281,7 +281,7 @@ describe("Sync event correctly updates WETH/USDC pool entity", () => {
     pricePerUSD: mockETHPriceUSD,
     lastUpdatedTimestamp: 0n,
   };
-  const mockToken1Entity: TokenEntity = {
+  const mockToken1Entity: Token = {
     id: USDC.address,
     symbol: "USDC",
     name: "USD Coin",
@@ -408,7 +408,7 @@ describe("Sequence of Sync events correctly updates pool and token entity", () =
   };
 
   // Mock Token entities
-  const mockToken0Entity: TokenEntity = {
+  const mockToken0Entity: Token = {
     id: WETH.address,
     symbol: "WETH",
     name: "Wrapped Ether",
@@ -418,7 +418,7 @@ describe("Sequence of Sync events correctly updates pool and token entity", () =
     pricePerUSD: 0n,
     lastUpdatedTimestamp: 0n,
   };
-  const mockToken1Entity: TokenEntity = {
+  const mockToken1Entity: Token = {
     id: VELO.address,
     symbol: "VELO",
     name: "Velodrome",
@@ -534,7 +534,7 @@ describe("Sequence of Sync events correctly updates pool and token entity", () =
   };
 
   // Mock Token entities
-  const usdcToken: TokenEntity = {
+  const usdcToken: Token = {
     id: USDC.address,
     symbol: "USDC",
     name: "USD Coin",
@@ -618,13 +618,13 @@ describe("Sequence of Sync events correctly updates pool and token entity", () =
     );
 
     // Expected Token entities
-    const expectedToken0Entity: TokenEntity = {
+    const expectedToken0Entity: Token = {
       ...mockToken0Entity,
       pricePerETH: TEN_TO_THE_18_BI,
       pricePerUSD: 2000n * TEN_TO_THE_18_BI,
       lastUpdatedTimestamp: BigInt(mockSyncEvent.blockTimestamp),
     };
-    const expectedToken1Entity: TokenEntity = {
+    const expectedToken1Entity: Token = {
       ...mockToken1Entity,
       pricePerETH: (100n * TEN_TO_THE_18_BI) / TEN_TO_THE_6_BI, // 0.0001 WETH
       pricePerUSD: (2n * TEN_TO_THE_18_BI) / 10n, // 0.2 USD
@@ -684,13 +684,13 @@ describe("Sequence of Sync events correctly updates pool and token entity", () =
     );
 
     // Expected Token entities
-    const expectedToken0Entity: TokenEntity = {
+    const expectedToken0Entity: Token = {
       ...usdcToken,
       pricePerETH: (1n * TEN_TO_THE_18_BI) / 2000n, // 0.0005 WETH
       pricePerUSD: 1n * TEN_TO_THE_18_BI, // 1 USD
       lastUpdatedTimestamp: BigInt(secondMockSyncEvent.blockTimestamp),
     };
-    const expectedToken1Entity: TokenEntity = {
+    const expectedToken1Entity: Token = {
       ...mockToken1Entity,
       pricePerETH: 20000n, // 1 WETH
       pricePerUSD: 2000n * TEN_TO_THE_18_BI, // 2000 USD
@@ -704,7 +704,7 @@ describe("Sequence of Sync events correctly updates pool and token entity", () =
 });
 
 describe("Unit test - findPricePerETH", () => {
-  const usdcToken: TokenEntity = {
+  const usdcToken: Token = {
     id: USDC.address,
     symbol: "USDC",
     name: "USD Coin",
@@ -715,7 +715,7 @@ describe("Unit test - findPricePerETH", () => {
     lastUpdatedTimestamp: 0n,
   };
 
-  const veloToken: TokenEntity = {
+  const veloToken: Token = {
     id: VELO.address,
     symbol: "VELO",
     name: "Velodrome",
@@ -726,7 +726,7 @@ describe("Unit test - findPricePerETH", () => {
     lastUpdatedTimestamp: 0n,
   };
 
-  const wethToken: TokenEntity = {
+  const wethToken: Token = {
     id: WETH.address,
     symbol: "WETH",
     name: "Wrapped Ether",
