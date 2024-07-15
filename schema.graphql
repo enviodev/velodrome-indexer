@@ -1,19 +1,4 @@
-# Entity used to store the latest ETH price in USD
-# This is used for pricing purposes before PriceFetcher contract is deployed
-type LatestETHPrice {
-  id: ID! # updated Timestamp
-  price: BigInt! # In base 1e18
-}
-
-# Global state entity that is used for pricing
-type StateStore {
-  id: ID! # ID will always be "STORE"
-  latestEthPrice: LatestETHPrice! # latest ETH price in USD
-}
-
-# Entity per pool that tracks all the necessary details for the pool
-# By nature this entity saves the latest state of the pool, and its state at different times should be attained from the snapshot entities
-type LiquidityPool {
+type LiquidityPoolNew {
   id: ID! # pool address
   chainID: BigInt! # chain id of the pool
   name: String! # name of the pool
@@ -22,7 +7,6 @@ type LiquidityPool {
   isStable: Boolean! # whether the pool is a stable AMM or a volatile AMM
   reserve0: BigInt! # reserve of token0 in token units
   reserve1: BigInt! # reserve of token1 in token units
-  totalLiquidityETH: BigInt! # total liquidity of the swap pool in ETH
   totalLiquidityUSD: BigInt! # total liquidity of the swap pool in USD
   totalVolume0: BigInt! # total swap volume of token0 in token units
   totalVolume1: BigInt! # total swap volume of token1 in token units
@@ -37,14 +21,20 @@ type LiquidityPool {
   totalEmissionsUSD: BigInt! # total emissions for the pool in USD
   totalBribesUSD: BigInt! # total bribes for the pool in USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
-  userMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this pool
-    @derivedFrom(field: "liquidityPool")
   liquidityPoolHourlySnapshots: [LiquidityPoolHourlySnapshot!]!  # hourly snapshots of the pool
     @derivedFrom(field: "pool")
   liquidityPoolDailySnapshots: [LiquidityPoolDailySnapshot!]!  # daily snapshots of the pool
     @derivedFrom(field: "pool")
   liquidityPoolWeeklySnapshots: [LiquidityPoolWeeklySnapshot!]!  # weekly snapshots of the pool
     @derivedFrom(field: "pool")
+}
+
+# Entity for tracking a unique address in the `to` or `from` of a swap event
+# Other liquidity pools don't count as users
+type User {
+  id: ID! # user address
+  numberOfSwaps: BigInt! # total number of swaps the user has made
+  joined_at_timestamp: BigInt! # timestamp of the user's first swap (or being swapped to), Not accurate if run in multihead unordered mode.
 }
 
 # Hourly snapshot of the LiquidityPool entity
@@ -55,7 +45,6 @@ type LiquidityPoolHourlySnapshot {
   name: String! # name of the pool
   reserve0: BigInt! # reserve of token0 in token units
   reserve1: BigInt! # reserve of token1 in token units
-  totalLiquidityETH: BigInt! # total liquidity of the swap pool in ETH
   totalLiquidityUSD: BigInt! # total liquidity of the swap pool in USD
   totalVolume0: BigInt! # total swap volume of token0 in token units
   totalVolume1: BigInt! # total swap volume of token1 in token units
@@ -70,8 +59,6 @@ type LiquidityPoolHourlySnapshot {
   totalEmissionsUSD: BigInt! # total emissions for the pool in USD
   totalBribesUSD: BigInt! # total bribes for the pool in USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
-  userMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this pool
-    @derivedFrom(field: "liquidityPool")
 }
 
 # Daily snapshot of the LiquidityPool entity
@@ -82,7 +69,6 @@ type LiquidityPoolDailySnapshot {
   name: String! # name of the pool
   reserve0: BigInt! # reserve of token0 in token units
   reserve1: BigInt! # reserve of token1 in token units
-  totalLiquidityETH: BigInt! # total liquidity of the swap pool in ETH
   totalLiquidityUSD: BigInt! # total liquidity of the swap pool in USD
   totalVolume0: BigInt! # total swap volume of token0 in token units
   totalVolume1: BigInt! # total swap volume of token1 in token units
@@ -97,8 +83,6 @@ type LiquidityPoolDailySnapshot {
   totalEmissionsUSD: BigInt! # total emissions for the pool in USD
   totalBribesUSD: BigInt! # total bribes for the pool in USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
-  userMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this pool
-    @derivedFrom(field: "liquidityPool")
 }
 
 # Weekly snapshot of the LiquidityPool entity
@@ -109,7 +93,7 @@ type LiquidityPoolWeeklySnapshot {
   name: String! # name of the pool
   reserve0: BigInt! # reserve of token0 in token units
   reserve1: BigInt! # reserve of token1 in token units
-  totalLiquidityETH: BigInt! # total liquidity of the swap pool in ETH
+  # totalLiquidityETH: BigInt! # total liquidity of the swap pool in ETH
   totalLiquidityUSD: BigInt! # total liquidity of the swap pool in USD
   totalVolume0: BigInt! # total swap volume of token0 in token units
   totalVolume1: BigInt! # total swap volume of token1 in token units
@@ -124,8 +108,6 @@ type LiquidityPoolWeeklySnapshot {
   totalEmissionsUSD: BigInt! # total emissions for the pool in USD
   totalBribesUSD: BigInt! # total bribes for the pool in USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
-  userMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this pool
-    @derivedFrom(field: "liquidityPool")
 }
 
 # Entity that tracks the latest state of the token entity
@@ -136,8 +118,7 @@ type Token {
   name: String! # token name
   chainID: BigInt! # chain id of the token
   decimals: BigInt! # number of decimals
-  pricePerETH: BigInt! # price of token per ETH
-  pricePerUSD: BigInt! # price of token per USD
+  pricePerUSDNew: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
   tokenHourlySnapshots: [TokenHourlySnapshot!]! @derivedFrom(field: "token") # hourly snapshots of the token
   tokenDailySnapshots: [TokenDailySnapshot!]! @derivedFrom(field: "token") # daily snapshots of the token
@@ -151,8 +132,7 @@ type TokenHourlySnapshot {
   name: String! # token name
   chainID: BigInt! # chain id of the token
   token: String! # token address
-  pricePerETH: BigInt! # price of token per ETH
-  pricePerUSD: BigInt! # price of token per USD
+  pricePerUSDNew: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
 }
 
@@ -163,8 +143,7 @@ type TokenDailySnapshot {
   name: String! # token name
   chainID: BigInt! # chain id of the token
   token: String! # token address
-  pricePerETH: BigInt! # price of token per ETH
-  pricePerUSD: BigInt! # price of token per USD
+  pricePerUSDNew: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
 }
 
@@ -175,36 +154,6 @@ type TokenWeeklySnapshot {
   name: String! # token name
   chainID: BigInt! # chain id of the token
   token: String! # token address
-  pricePerETH: BigInt! # price of token per ETH
-  pricePerUSD: BigInt! # price of token per USD
-  lastUpdatedTimestamp: BigInt! # timestamp of last update
-}
-
-# Entity that tracks the latest state of the user entity
-type User {
-  id: ID! # user address
-  numberOfSwaps: BigInt!
-  totalSwapVolumeUSD: BigInt! # total swap volume of the user in USD
-  lastUpdatedTimestamp: BigInt! # timestamp of last update
-  liquidityPoolMappings: [LiquidityPoolUserMapping!]!  # all the LiquidityPoolUserMapping entities belonging to this user
-    @derivedFrom(field: "user")
-}
-
-# Entity that is used to signify a relationship between a user and a pool
-type LiquidityPoolUserMapping {
-  id: ID! # concatenation of liquidityPool and user id
-  liquidityPool: LiquidityPool! # liquidity pool entity
-  user: User! # user entity
-}
-
-# Entity that tracks the latest state of the reward token entity
-type RewardToken {
-  id: ID! # token address
-  symbol: String! # token symbol
-  name: String! # token name
-  chainID: BigInt! # chain id of the token
-  decimals: BigInt! # number of decimals
-  pricePerETH: BigInt! # price of token per ETH
-  pricePerUSD: BigInt! # price of token per USD
+  pricePerUSDNew: BigInt! # price of token per USD
   lastUpdatedTimestamp: BigInt! # timestamp of last update
 }

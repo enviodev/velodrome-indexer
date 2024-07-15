@@ -1,5 +1,3 @@
-const isRegressionValidationMode = false
-
 import {
   PoolContract_Fees_loader,
   PoolContract_Fees_handler,
@@ -9,9 +7,9 @@ import {
   PoolContract_Swap_handler,
   PoolFactoryContract_PoolCreated_loader,
   PoolFactoryContract_PoolCreated_handlerAsync,
+  VoterContract_DistributeReward_loader,
   PriceFetcherContract_PriceFetched_loader,
   PriceFetcherContract_PriceFetched_handler,
-  VoterContract_DistributeReward_loader,
   VoterContract_DistributeReward_handler,
   VoterContract_GaugeCreated_loader,
   VoterContract_GaugeCreated_handler,
@@ -20,30 +18,14 @@ import {
 } from "../generated/src/Handlers.gen";
 
 import {
-  LatestETHPriceEntity,
-  LiquidityPoolEntity,
   TokenEntity,
+  LiquidityPoolNewEntity,
   UserEntity,
-  LiquidityPoolUserMappingEntity,
 } from "./src/Types.gen";
 
-import {
-  DEFAULT_STATE_STORE,
-  INITIAL_ETH_PRICE,
-  STATE_STORE_ID,
-  TEN_TO_THE_18_BI,
-  CHAIN_CONSTANTS,
-} from "./Constants";
+import { CHAIN_CONSTANTS } from "./Constants";
 
-import {
-  calculateETHPriceInUSD,
-  isStablecoinPool,
-  findPricePerETHOld,
-  normalizeTokenAmountTo1e18,
-  getLiquidityPoolAndUserMappingId,
-  generatePoolName,
-  findPricePerETH,
-} from "./Helpers";
+import { normalizeTokenAmountTo1e18, generatePoolName } from "./Helpers";
 
 import { divideBase1e18, multiplyBase1e18 } from "./Maths";
 
@@ -54,37 +36,29 @@ import {
 
 import { SnapshotInterval, TokenEntityMapping } from "./CustomTypes";
 
-import { poolLookupStoreManager, whitelistedPoolIdsManager } from "./Store";
+import { poolLookupStoreManager } from "./Store";
 
 import { getErc20TokenDetails } from "./Erc20";
-import { assert } from "console";
 
 //// global state!
-const { getPoolAddressByGaugeAddress, getPoolAddressByBribeVotingRewardAddress, addRewardAddressDetails } = poolLookupStoreManager();
-const { addWhitelistedPoolId, getWhitelistedPoolIds, getTokensFromWhitelistedPool } = whitelistedPoolIdsManager();
+const {
+  getPoolAddressByGaugeAddress,
+  getPoolAddressByBribeVotingRewardAddress,
+  addRewardAddressDetails,
+} = poolLookupStoreManager();
 
 PoolFactoryContract_PoolCreated_loader(({ event, context }) => {
   // // Dynamic contract registration for Pool contracts
-  // context.contractRegistration.addPool(event.params.pool);
-
-  // load the global state store
-  context.StateStore.stateStoreLoad(STATE_STORE_ID, {
-    loaders: {},
-  });
+  context.contractRegistration.addPool(event.params.pool);
 
   // load the token entities
-  context.Token.poolTokensLoad([event.params.token0, event.params.token1]);
+  context.Token.poolTokensLoad([
+    event.params.token0 + "-" + event.chainId.toString(),
+    event.params.token1 + "-" + event.chainId.toString(),
+  ]);
 });
 
 PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
-  // Retrieve the global state store
-  let stateStore = await context.StateStore.stateStore;
-
-  if (!stateStore) {
-    context.LatestETHPrice.set(INITIAL_ETH_PRICE);
-    context.StateStore.set(DEFAULT_STATE_STORE);
-  }
-
   // Retrieve the token entities - they might be undefined at this point
   let poolTokens = await context.Token.poolTokens;
 
@@ -112,13 +86,12 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
 
       // Create new instances of TokenEntity to be updated in the DB
       const tokenInstance: TokenEntity = {
-        id: poolTokenAddressMapping.address,
+        id: poolTokenAddressMapping.address + "-" + event.chainId.toString(),
         symbol: tokenSymbol,
         name: tokenName,
         decimals: BigInt(tokenDecimals),
         chainID: BigInt(event.chainId),
-        pricePerETH: 0n,
-        pricePerUSD: 0n,
+        pricePerUSDNew: 0n,
         lastUpdatedTimestamp: BigInt(event.blockTimestamp),
       };
 
@@ -134,7 +107,7 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
   }
 
   // Create a new instance of LiquidityPoolEntity to be updated in the DB
-  const newPool: LiquidityPoolEntity = {
+  const pool: LiquidityPoolNewEntity = {
     id: event.params.pool.toString(),
     chainID: BigInt(event.chainId),
     name: generatePoolName(
@@ -142,12 +115,11 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
       poolTokenSymbols[1],
       event.params.stable
     ),
-    token0: event.params.token0,
-    token1: event.params.token1,
+    token0_id: event.params.token0 + "-" + event.chainId.toString(),
+    token1_id: event.params.token1 + "-" + event.chainId.toString(),
     isStable: event.params.stable,
     reserve0: 0n,
     reserve1: 0n,
-    totalLiquidityETH: 0n,
     totalLiquidityUSD: 0n,
     totalVolume0: 0n,
     totalVolume1: 0n,
@@ -165,44 +137,30 @@ PoolFactoryContract_PoolCreated_handlerAsync(async ({ event, context }) => {
   };
 
   // Create the LiquidityPoolEntity in the DB
-  context.LiquidityPool.set(newPool);
-
-  // Push the pool that was created to the poolsWithWhitelistedTokens list if the pool contains at least one whitelisted token
-  if (
-    CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
-      event.params.token0
-    ) ||
-    CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses.includes(
-      event.params.token1
-    )
-  ) {
-    // push pool address to whitelistedPoolIds
-    addWhitelistedPoolId(event.chainId, event.params.token0, event.params.token1, newPool.id);
-  }
+  context.LiquidityPoolNew.set(pool);
 });
 
 PoolContract_Fees_loader(({ event, context }) => {
-  //Load the single liquidity pool from the loader to be updated
-  context.LiquidityPool.load(event.srcAddress.toString(), {
-    loaders: {
-      loadToken0: true,
-      loadToken1: true,
-    },
+  context.LiquidityPoolNew.load(event.srcAddress.toString(), {
+    loadToken0: true,
+    loadToken1: true,
   });
 });
 
 PoolContract_Fees_handler(({ event, context }) => {
   // Fetch the current liquidity pool from the loader
-  let currentLiquidityPool = context.LiquidityPool.get(
+  let currentLiquidityPool = context.LiquidityPoolNew.get(
     event.srcAddress.toString()
   );
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   if (currentLiquidityPool) {
     // Get the tokens from the loader and update their pricing
-    let token0Instance = context.LiquidityPool.getToken0(currentLiquidityPool);
+    let token0Instance =
+      context.LiquidityPoolNew.getToken0(currentLiquidityPool);
 
-    let token1Instance = context.LiquidityPool.getToken1(currentLiquidityPool);
+    let token1Instance =
+      context.LiquidityPoolNew.getToken1(currentLiquidityPool);
 
     // Normalize swap amounts to 1e18
     let normalizedFeeAmount0Total = normalizeTokenAmountTo1e18(
@@ -217,14 +175,14 @@ PoolContract_Fees_handler(({ event, context }) => {
     // Calculate amounts in USD
     let normalizedFeeAmount0TotalUsd = multiplyBase1e18(
       normalizedFeeAmount0Total,
-      token0Instance.pricePerUSD
+      token0Instance.pricePerUSDNew
     );
     let normalizedFeeAmount1TotalUsd = multiplyBase1e18(
       normalizedFeeAmount1Total,
-      token1Instance.pricePerUSD
+      token1Instance.pricePerUSDNew
     );
     // Create a new instance of LiquidityPoolEntity to be updated in the DB
-    const liquidityPoolInstance: LiquidityPoolEntity = {
+    const liquidityPoolInstance: LiquidityPoolNewEntity = {
       ...currentLiquidityPool,
       totalFees0: currentLiquidityPool.totalFees0 + normalizedFeeAmount0Total,
       totalFees1: currentLiquidityPool.totalFees1 + normalizedFeeAmount1Total,
@@ -235,195 +193,135 @@ PoolContract_Fees_handler(({ event, context }) => {
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     // Update the LiquidityPoolEntity in the DB
-    context.LiquidityPool.set(liquidityPoolInstance);
+    context.LiquidityPoolNew.set(liquidityPoolInstance);
   }
 });
 
 PoolContract_Swap_loader(({ event, context }) => {
-  //Load the single liquidity pool from the loader to be updated
-  context.LiquidityPool.load(event.srcAddress.toString(), {
-    loaders: {
-      loadToken0: true,
-      loadToken1: true,
-    },
+  context.LiquidityPoolNew.load(event.srcAddress.toString(), {
+    loadToken0: true,
+    loadToken1: true,
   });
 
-  //Load the mapping for liquidity pool and the user
-  context.LiquidityPoolUserMapping.poolUserMappingLoad(
-    getLiquidityPoolAndUserMappingId(
-      event.srcAddress.toString(),
-      event.params.to.toString()
-    ),
-    {}
-  );
+  context.LiquidityPoolNew.load(event.params.to.toString(), {
+    loadToken0: false,
+    loadToken1: false,
+  });
 
-  //Load the user entity
-  context.User.userLoad(event.params.to.toString());
+  // if the swap `to` is a liquidityPool, then we won't count
+  // it as a unique user.
+  context.User.load(event.params.to.toString());
 });
 
 PoolContract_Swap_handler(({ event, context }) => {
-  // Fetch the current liquidity pool from the loader
-  let currentLiquidityPool = context.LiquidityPool.get(
+  let liquidityPoolNew = context.LiquidityPoolNew.get(
     event.srcAddress.toString()
   );
 
-  // Fetching the relevant liquidity pool user mapping
-  const liquidityPoolUserMapping =
-    context.LiquidityPoolUserMapping.poolUserMapping;
-
-  // If the mapping doesn't exist yet, create the mapping and save in DB
-  if (!liquidityPoolUserMapping) {
-    let newLiquidityPoolUserMapping: LiquidityPoolUserMappingEntity = {
-      id: getLiquidityPoolAndUserMappingId(
-        event.srcAddress.toString(),
-        event.params.to.toString()
-      ),
-      liquidityPool: event.srcAddress.toString(),
-      user: event.params.sender.toString(),
-    };
-
-    context.LiquidityPoolUserMapping.set(newLiquidityPoolUserMapping);
-  }
-
-  // Fetching the relevant user entity
-  let currentUser = context.User.user;
-
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
-  if (currentLiquidityPool) {
+  if (liquidityPoolNew) {
     // Get the tokens from the loader and update their pricing
-    let token0Instance = context.LiquidityPool.getToken0(currentLiquidityPool);
+    let token0Instance = context.LiquidityPoolNew.getToken0(liquidityPoolNew);
 
-    let token1Instance = context.LiquidityPool.getToken1(currentLiquidityPool);
+    let token1Instance = context.LiquidityPoolNew.getToken1(liquidityPoolNew);
 
-    // Normalize swap amounts to 1e18
-    let normalizedAmount0Total = normalizeTokenAmountTo1e18(
+    // Same as above.
+    // Important assume if amount0In is >0 then amount0Out =0 etc
+    let netAmount0 = normalizeTokenAmountTo1e18(
       event.params.amount0In + event.params.amount0Out,
       Number(token0Instance.decimals)
     );
-    let normalizedAmount1Total = normalizeTokenAmountTo1e18(
+    let netAmount1 = normalizeTokenAmountTo1e18(
       event.params.amount1In + event.params.amount1Out,
       Number(token1Instance.decimals)
     );
 
+    let token0Price = 0n;
+    let token1Price = 0n;
+    if (netAmount0 != 0n && netAmount1 != 0n) {
+      token0Price = divideBase1e18(netAmount1, netAmount0);
+      token1Price = divideBase1e18(netAmount0, netAmount1);
+    }
+
     // Calculate amounts in USD
-    let normalizedAmount0TotalUsd = multiplyBase1e18(
-      normalizedAmount0Total,
-      token0Instance.pricePerUSD
+    // We don't double count volume, we use USD of first token if possible to
+    // Calculate volume in USD.
+    let netVolumeToken0USD = multiplyBase1e18(
+      netAmount0,
+      token0Instance.pricePerUSDNew
     );
-    let normalizedAmount1TotalUsd = multiplyBase1e18(
-      normalizedAmount1Total,
-      token1Instance.pricePerUSD
+    let netVolumeToken1USD = multiplyBase1e18(
+      netAmount1,
+      token1Instance.pricePerUSDNew
     );
 
-    // Get the user id from the loader or initialize it from the event if user doesn't exist
-    let existingUserId = currentUser
-      ? currentUser.id
-      : event.params.to.toString();
-    let existingUserVolume = currentUser ? currentUser.totalSwapVolumeUSD : 0n;
-    let existingUserNumberOfSwaps = currentUser
-      ? currentUser.numberOfSwaps
-      : 0n;
+    // Try use volume from token 0 if its priced, otherwise use token 1.
+    let volumeInUSD =
+      netVolumeToken0USD != 0n ? netVolumeToken0USD : netVolumeToken1USD;
 
-    // Create a new instance of UserEntity to be updated in the DB
-    const userInstance: UserEntity = {
-      id: existingUserId,
-      totalSwapVolumeUSD:
-        existingUserVolume +
-        normalizedAmount0TotalUsd +
-        normalizedAmount1TotalUsd,
-      numberOfSwaps: existingUserNumberOfSwaps + 1n,
+    // add a new user if `to` isn't a liquidity pool and doesn't already exist
+    // as a user
+    let to_address = event.params.to.toString();
+    if (!context.LiquidityPoolNew.get(to_address)) {
+      let currentUser = context.User.get(to_address);
+      if (!currentUser) {
+        let newUser: UserEntity = {
+          id: to_address,
+          numberOfSwaps: 1n,
+          joined_at_timestamp: BigInt(event.blockTimestamp),
+        };
+        context.User.set(newUser);
+      } else {
+        let existingUser: UserEntity = {
+          ...currentUser,
+          numberOfSwaps: currentUser.numberOfSwaps + 1n,
+          joined_at_timestamp:
+            currentUser.joined_at_timestamp < BigInt(event.blockTimestamp)
+              ? currentUser.joined_at_timestamp
+              : BigInt(event.blockTimestamp),
+        }; // for unordered head mode this correctly categorizes base users who may have joined early on optimism.
+        context.User.set(existingUser);
+      }
+    }
+
+    // Work out relative token pricing base on swaps above.
+    const liquidityPoolInstanceNew: LiquidityPoolNewEntity = {
+      ...liquidityPoolNew,
+      totalVolume0: liquidityPoolNew.totalVolume0 + netAmount0,
+      totalVolume1: liquidityPoolNew.totalVolume1 + netAmount1,
+      totalVolumeUSD: liquidityPoolNew.totalVolumeUSD + volumeInUSD,
+      token0Price: liquidityPoolNew.isStable
+        ? token0Price
+        : liquidityPoolNew.token0Price,
+      token1Price: liquidityPoolNew.isStable
+        ? token1Price
+        : liquidityPoolNew.token1Price,
+      numberOfSwaps: liquidityPoolNew.numberOfSwaps + 1n,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
-    // Create a new instance of LiquidityPoolEntity to be updated in the DB
-    const liquidityPoolInstance: LiquidityPoolEntity = {
-      ...currentLiquidityPool,
-      totalVolume0: currentLiquidityPool.totalVolume0 + normalizedAmount0Total,
-      totalVolume1: currentLiquidityPool.totalVolume1 + normalizedAmount1Total,
-      totalVolumeUSD:
-        currentLiquidityPool.totalVolumeUSD +
-        normalizedAmount0TotalUsd +
-        normalizedAmount1TotalUsd,
-      numberOfSwaps: currentLiquidityPool.numberOfSwaps + 1n,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
-
-    // Update the LiquidityPoolEntity in the DB
-    context.LiquidityPool.set(liquidityPoolInstance);
-
-    // Update the UserEntity in the DB
-    context.User.set(userInstance);
+    context.LiquidityPoolNew.set(liquidityPoolInstanceNew);
   }
 });
 
 PoolContract_Sync_loader(({ event, context }) => {
-  // load the global state store
-  context.StateStore.stateStoreLoad(STATE_STORE_ID, {
-    loaders: { loadLatestEthPrice: true },
+  context.LiquidityPoolNew.load(event.srcAddress.toString(), {
+    loadToken0: true,
+    loadToken1: true,
   });
-
-  // Load the single liquidity pool from the loader to be updated
-  context.LiquidityPool.singlePoolLoad(event.srcAddress.toString(), {
-    loaders: {
-      loadToken0: true,
-      loadToken1: true,
-    },
-  });
-
-  // Load stablecoin pools for weighted average ETH price calculation, only if pool is stablecoin pool
-  const stableCoinPoolAddresses = isStablecoinPool(
-    event.srcAddress.toString().toLowerCase(),
-    event.chainId
-  )
-    ? CHAIN_CONSTANTS[event.chainId].stablecoinPoolAddresses
-    : [];
-  context.LiquidityPool.stablecoinPoolsLoad(stableCoinPoolAddresses, {});
-
-  // Load all the whitelisted pools i.e. pools with at least one white listed tokens
-  const maybeTokensWhitelisted = getTokensFromWhitelistedPool(event.chainId, event.srcAddress.toString());
-  if (maybeTokensWhitelisted) { // only load here if tokens are in whitelisted pool.
-    context.LiquidityPool.whitelistedPools0Load(getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token0), {});
-    context.LiquidityPool.whitelistedPools1Load(getWhitelistedPoolIds(event.chainId, maybeTokensWhitelisted.token1), {});
-  } else {
-    context.LiquidityPool.whitelistedPools0Load([], {});
-    context.LiquidityPool.whitelistedPools1Load([], {});
-  }
-
-  // Load all the whitelisted tokens to be potentially used in pricing
-  context.Token.whitelistedTokensLoad(
-    CHAIN_CONSTANTS[event.chainId].whitelistedTokenAddresses
-  );
 });
 
 PoolContract_Sync_handler(({ event, context }) => {
-  // Fetch the state store from the loader
-  const { stateStore } = context.StateStore;
-  if (!stateStore) {
-    throw new Error(
-      "Critical bug: stateStore is undefined. Make sure it is defined on pool creation."
-    );
-  }
-
-  // Fetch the current liquidity pool from the loader
-  let currentLiquidityPool = context.LiquidityPool.singlePool;
-
-  // Get a list of all the whitelisted token entities
-  let whitelistedTokensList = context.Token.whitelistedTokens.filter(
-    (item) => !!item
-  ) as TokenEntity[];
-
-  // Get the LatestETHPrice object
-  let latestEthPrice = context.StateStore.getLatestEthPrice(stateStore);
+  let liquidityPoolNew = context.LiquidityPoolNew.get(
+    event.srcAddress.toString()
+  );
 
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
-  if (currentLiquidityPool) {
+  if (liquidityPoolNew) {
     // Get the tokens from the loader and update their pricing
-    let token0Instance = context.LiquidityPool.getToken0(currentLiquidityPool);
+    let token0Instance = context.LiquidityPoolNew.getToken0(liquidityPoolNew);
 
-    let token1Instance = context.LiquidityPool.getToken1(currentLiquidityPool);
-
-    let token0Price = currentLiquidityPool.token0Price;
-    let token1Price = currentLiquidityPool.token1Price;
+    let token1Instance = context.LiquidityPoolNew.getToken1(liquidityPoolNew);
 
     // Normalize reserve amounts to 1e18
     let normalizedReserve0 = normalizeTokenAmountTo1e18(
@@ -435,116 +333,76 @@ PoolContract_Sync_handler(({ event, context }) => {
       Number(token1Instance.decimals)
     );
 
-    // Calculate relative token prices
-    if (normalizedReserve0 != 0n && normalizedReserve1 != 0n) {
+    let token0Price = liquidityPoolNew.token0Price;
+    let token1Price = liquidityPoolNew.token1Price;
+    // Only if the pool is not stable does this token price hold, otherwise uses previous price
+    if (
+      normalizedReserve0 != 0n &&
+      normalizedReserve1 != 0n &&
+      !liquidityPoolNew.isStable
+    ) {
       token0Price = divideBase1e18(normalizedReserve1, normalizedReserve0);
-
       token1Price = divideBase1e18(normalizedReserve0, normalizedReserve1);
     }
 
-    let relevantPoolEntitiesToken0 = context.LiquidityPool.whitelistedPools0.filter(
-      (item): item is LiquidityPoolEntity => item !== undefined
-    );
-    let relevantPoolEntitiesToken1 = context.LiquidityPool.whitelistedPools1.filter(
-      (item): item is LiquidityPoolEntity => item !== undefined
-    );
+    let token0PricePerUSDNew = token0Instance.pricePerUSDNew;
+    let token1PricePerUSDNew = token1Instance.pricePerUSDNew;
 
-    let { token0PricePerETH, token1PricePerETH } = findPricePerETH(
-      currentLiquidityPool,
-      context.LiquidityPool.getToken0,
-      context.LiquidityPool.getToken1,
-      whitelistedTokensList,
-      relevantPoolEntitiesToken0,
-      relevantPoolEntitiesToken1,
-      event.chainId,
-      token0Price,
-      token1Price
-    )
+    let totalLiquidityUSD = 0n;
+    // Only non-zero this figure if we don't have a price for both tokens(?)
+    totalLiquidityUSD =
+      multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) +
+      multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew);
 
-    let token0PricePerUSD, token1PricePerUSD;
-
-    // Logic to either use relative pricing method of ETH price to price in USD or use PriceFetcher price
-    if (
-      event.blockNumber >=
-      CHAIN_CONSTANTS[event.chainId].firstPriceFetchedBlockNumber
-    ) {
-      // Use price fetcher price
-      token0PricePerUSD = token0Instance.pricePerUSD;
-      token1PricePerUSD = token1Instance.pricePerUSD;
-    } else {
-      // Use relative pricing method
-      token0PricePerUSD = multiplyBase1e18(
-        token0PricePerETH,
-        latestEthPrice.price
-      );
-      token1PricePerUSD = multiplyBase1e18(
-        token1PricePerETH,
-        latestEthPrice.price
-      );
-    }
+    // Create a new instance of LiquidityPoolEntity to be updated in the DB
+    const liquidityPoolInstanceNew: LiquidityPoolNewEntity = {
+      ...liquidityPoolNew,
+      reserve0: normalizedReserve0,
+      reserve1: normalizedReserve1,
+      totalLiquidityUSD: totalLiquidityUSD,
+      token0Price: token0Price,
+      token1Price: token1Price,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
 
     // Create a new instance of TokenEntity to be updated in the DB
     const newToken0Instance: TokenEntity = {
       ...token0Instance,
       chainID: BigInt(event.chainId),
-      pricePerETH: token0PricePerETH,
-      pricePerUSD: token0PricePerUSD,
+      pricePerUSDNew: token0PricePerUSDNew,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
     const newToken1Instance: TokenEntity = {
       ...token1Instance,
       chainID: BigInt(event.chainId),
-      pricePerETH: token1PricePerETH,
-      pricePerUSD: token1PricePerUSD,
+      pricePerUSDNew: token1PricePerUSDNew,
       lastUpdatedTimestamp: BigInt(event.blockTimestamp),
     };
 
-    // Create a new instance of LiquidityPoolEntity to be updated in the DB
-    const liquidityPoolInstance: LiquidityPoolEntity = {
-      ...currentLiquidityPool,
-      reserve0: normalizedReserve0,
-      reserve1: normalizedReserve1,
-      totalLiquidityETH:
-        multiplyBase1e18(normalizedReserve0, newToken0Instance.pricePerETH) +
-        multiplyBase1e18(normalizedReserve1, newToken1Instance.pricePerETH),
-      totalLiquidityUSD:
-        multiplyBase1e18(normalizedReserve0, newToken0Instance.pricePerUSD) +
-        multiplyBase1e18(normalizedReserve1, newToken1Instance.pricePerUSD),
-      token0Price,
-      token1Price,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
-
-    // Create a new instance of LiquidityPoolHourlySnapshotEntity to be updated in the DB
     const liquidityPoolHourlySnapshotInstance =
       getLiquidityPoolSnapshotByInterval(
-        liquidityPoolInstance,
+        liquidityPoolInstanceNew,
         SnapshotInterval.Hourly
       );
 
-    // Create a new instance of LiquidityPoolDailySnapshotEntity to be updated in the DB
     const liquidityPoolDailySnapshotInstance =
       getLiquidityPoolSnapshotByInterval(
-        liquidityPoolInstance,
+        liquidityPoolInstanceNew,
         SnapshotInterval.Daily
       );
 
-    // Create a new instance of LiquidityPoolWeeklySnapshotEntity to be updated in the DB
     const liquidityPoolWeeklySnapshotInstance =
       getLiquidityPoolSnapshotByInterval(
-        liquidityPoolInstance,
+        liquidityPoolInstanceNew,
         SnapshotInterval.Weekly
       );
 
-    // Update the LiquidityPoolEntity in the DB
-    context.LiquidityPool.set(liquidityPoolInstance);
-    // Update the LiquidityPoolDailySnapshotEntity in the DB
+    context.LiquidityPoolNew.set(liquidityPoolInstanceNew);
+
     context.LiquidityPoolHourlySnapshot.set(
       liquidityPoolHourlySnapshotInstance
     );
-    // Update the LiquidityPoolDailySnapshotEntity in the DB
     context.LiquidityPoolDailySnapshot.set(liquidityPoolDailySnapshotInstance);
-    // Update the LiquidityPoolWeeklySnapshotEntity in the DB
     context.LiquidityPoolWeeklySnapshot.set(
       liquidityPoolWeeklySnapshotInstance
     );
@@ -578,75 +436,13 @@ PoolContract_Sync_handler(({ event, context }) => {
       // Update the TokenWeeklySnapshotEntity in the DB
       context.TokenWeeklySnapshot.set(tokenWeeklySnapshotInstance);
     }
-
-    // Updating of ETH price if the pool is a stablecoin pool
-    if (
-      isStablecoinPool(event.srcAddress.toString().toLowerCase(), event.chainId)
-    ) {
-      // Filter out undefined values
-      let stablecoinPoolsList = context.LiquidityPool.stablecoinPools.filter(
-        (item): item is LiquidityPoolEntity => item !== undefined
-      );
-
-      // Overwrite stablecoin pool with latest data
-      let poolIndex = stablecoinPoolsList.findIndex(
-        (pool) => pool.id === liquidityPoolInstance.id
-      );
-      stablecoinPoolsList[poolIndex] = liquidityPoolInstance;
-
-      // Calculate weighted average ETH price using stablecoin pools
-      let ethPriceInUSD = calculateETHPriceInUSD(stablecoinPoolsList);
-
-      // Use the previous eth price if the new eth price is 0
-      if (ethPriceInUSD == 0n) {
-        ethPriceInUSD = latestEthPrice.price;
-      }
-
-      // Creating LatestETHPriceEntity with the latest price
-      let latestEthPriceInstance: LatestETHPriceEntity = {
-        id: event.blockTimestamp.toString(),
-        price: ethPriceInUSD,
-      };
-
-      // Creating a new instance of LatestETHPriceEntity to be updated in the DB
-      context.LatestETHPrice.set(latestEthPriceInstance);
-
-      // update latestETHPriceKey value with event.blockTimestamp.toString()
-      context.StateStore.set({
-        ...stateStore,
-        latestEthPrice: latestEthPriceInstance.id,
-      });
-    }
-  }
-});
-
-PriceFetcherContract_PriceFetched_loader(({ event, context }) => {
-  // Load the single token from the loader to be updated
-  context.Token.load(event.params.token.toString());
-});
-
-PriceFetcherContract_PriceFetched_handler(({ event, context }) => {
-  // Fetch the current token from the loader
-  let currentToken = context.Token.get(event.params.token.toString());
-
-  // The token entity should be created via PoolCreated event from the PoolFactory contract
-  if (currentToken) {
-    // Create a new instance of TokenEntity to be updated in the DB
-    const newTokenInstance: TokenEntity = {
-      ...currentToken,
-      pricePerUSD: event.params.price,
-      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
-    };
-
-    // Update the TokenEntity in the DB
-    context.Token.set(newTokenInstance);
   }
 });
 
 VoterContract_GaugeCreated_loader(({ event, context }) => {
   // // Dynamically register bribe VotingReward contracts
   // // This means that user does not need to manually define all the BribeVotingReward contract address in the configuration file
-  // context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
+  context.contractRegistration.addVotingReward(event.params.bribeVotingReward);
 });
 
 VoterContract_GaugeCreated_handler(({ event, context }) => {
@@ -664,16 +460,21 @@ VoterContract_GaugeCreated_handler(({ event, context }) => {
 
 VoterContract_DistributeReward_loader(({ event, context }) => {
   // retrieve the pool address from the gauge address
-  let poolAddress = getPoolAddressByGaugeAddress(event.chainId, event.params.gauge);
+  let poolAddress = getPoolAddressByGaugeAddress(
+    event.chainId,
+    event.params.gauge
+  );
 
   // If there is a pool address with the particular gauge address, load the pool
   if (poolAddress) {
     // Load the LiquidityPool entity to be updated,
-    context.LiquidityPool.emissionSinglePoolLoad(poolAddress, {});
+    context.LiquidityPoolNew.emissionSinglePoolLoad(poolAddress, {});
 
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
     context.Token.emissionRewardTokenLoad(
-      CHAIN_CONSTANTS[event.chainId].rewardToken.address
+      CHAIN_CONSTANTS[event.chainId].rewardToken.address +
+        "-" +
+        event.chainId.toString()
     );
   } else {
     // If there is no pool address with the particular gauge address, log the error
@@ -687,7 +488,7 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
   // Fetch reward token (VELO for Optimism and AERO for Base) entity
   let rewardToken = context.Token.emissionRewardToken;
   // Fetch the Gauge entity that was loaded
-  let currentLiquidityPool = context.LiquidityPool.emissionSinglePool;
+  let currentLiquidityPool = context.LiquidityPoolNew.emissionSinglePool;
 
   // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
   // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point
@@ -697,12 +498,19 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
       Number(rewardToken.decimals)
     );
 
+    // If the reward token does not have a price in USD, log
+    if (rewardToken.pricePerUSDNew == 0n) {
+      context.log.warn(
+        `Reward token with ID ${rewardToken.id.toString()} does not have a USD price yet.`
+      );
+    }
+
     let normalizedEmissionsAmountUsd = multiplyBase1e18(
       normalizedEmissionsAmount,
-      rewardToken.pricePerUSD
+      rewardToken.pricePerUSDNew
     );
     // Create a new instance of GaugeEntity to be updated in the DB
-    let newLiquidityPoolInstance: LiquidityPoolEntity = {
+    let newLiquidityPoolInstance: LiquidityPoolNewEntity = {
       ...currentLiquidityPool,
       totalEmissions:
         currentLiquidityPool.totalEmissions + normalizedEmissionsAmount,
@@ -712,10 +520,7 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
     };
 
     // Update the LiquidityPoolEntity in the DB
-    context.LiquidityPool.set(newLiquidityPoolInstance);
-
-    // Update the RewardTokenEntity in the DB
-    context.RewardToken.set(rewardToken);
+    context.LiquidityPoolNew.set(newLiquidityPoolInstance);
   } else {
     // If there is no pool entity with the particular gauge address, log the error
     context.log.warn(
@@ -726,18 +531,20 @@ VoterContract_DistributeReward_handler(({ event, context }) => {
 
 VotingRewardContract_NotifyReward_loader(({ event, context }) => {
   // retrieve the pool address from the gauge address
-  let poolAddress = getPoolAddressByBribeVotingRewardAddress(event.chainId, event.srcAddress);
+  let poolAddress = getPoolAddressByBribeVotingRewardAddress(
+    event.chainId,
+    event.srcAddress
+  );
 
   if (poolAddress) {
     // Load the LiquidityPool entity to be updated,
-    context.LiquidityPool.bribeSinglePoolLoad(poolAddress, {});
+    context.LiquidityPoolNew.bribeSinglePoolLoad(poolAddress, {});
 
     // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
-    context.Token.bribeRewardTokenLoad(event.params.reward);
-  }
-  else {
-    //// QUESTION - I am running into this warning quite often. What does it mean? Why would this warning happen?
-
+    context.Token.bribeRewardTokenLoad(
+      event.params.reward + "-" + event.chainId.toString()
+    );
+  } else {
     // If there is no pool address with the particular gauge address, log the error
     context.log.warn(
       `No pool address found for the bribe voting address ${event.srcAddress.toString()}`
@@ -749,7 +556,7 @@ VotingRewardContract_NotifyReward_handler(({ event, context }) => {
   // Fetch reward token (VELO for Optimism and AERO for Base) entity
   let rewardToken = context.Token.bribeRewardToken;
   // Fetch the Gauge entity that was loaded
-  let currentLiquidityPool = context.LiquidityPool.bribeSinglePool;
+  let currentLiquidityPool = context.LiquidityPoolNew.bribeSinglePool;
 
   // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
   // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point
@@ -760,19 +567,19 @@ VotingRewardContract_NotifyReward_handler(({ event, context }) => {
     );
 
     // If the reward token does not have a price in USD, log
-    if (rewardToken.pricePerUSD == 0n) {
+    if (rewardToken.pricePerUSDNew == 0n) {
       context.log.warn(
-        `Reward token with address ${event.params.reward.toString()} does not have a USD price yet.`
+        `Reward token with ID ${event.params.reward.toString()} does not have a USD price yet.`
       );
     }
 
     // Calculate the bribes amount in USD
     let normalizedBribesAmountUsd = multiplyBase1e18(
       normalizedBribesAmount,
-      rewardToken.pricePerUSD
+      rewardToken.pricePerUSDNew
     );
     // Create a new instance of GaugeEntity to be updated in the DB
-    let newLiquidityPoolInstance: LiquidityPoolEntity = {
+    let newLiquidityPoolInstance: LiquidityPoolNewEntity = {
       ...currentLiquidityPool,
       totalBribesUSD:
         currentLiquidityPool.totalBribesUSD + normalizedBribesAmountUsd,
@@ -780,9 +587,33 @@ VotingRewardContract_NotifyReward_handler(({ event, context }) => {
     };
 
     // Update the LiquidityPoolEntity in the DB
-    context.LiquidityPool.set(newLiquidityPoolInstance);
+    context.LiquidityPoolNew.set(newLiquidityPoolInstance);
+  }
+});
 
-    // Update the RewardTokenEntity in the DB
-    context.RewardToken.set(rewardToken);
+PriceFetcherContract_PriceFetched_loader(({ event, context }) => {
+  // Load the single token from the loader to be updated
+  context.Token.load(
+    event.params.token.toString() + "-" + event.chainId.toString()
+  );
+});
+
+PriceFetcherContract_PriceFetched_handler(({ event, context }) => {
+  // Fetch the current token from the loader
+  let currentToken = context.Token.get(
+    event.params.token.toString() + "-" + event.chainId.toString()
+  );
+
+  // The token entity should be created via PoolCreated event from the PoolFactory contract
+  if (currentToken) {
+    // Create a new instance of TokenEntity to be updated in the DB
+    const newTokenInstance: TokenEntity = {
+      ...currentToken,
+      pricePerUSDNew: event.params.price,
+      lastUpdatedTimestamp: BigInt(event.blockTimestamp),
+    };
+
+    // Update the TokenEntity in the DB
+    context.Token.set(newTokenInstance);
   }
 });

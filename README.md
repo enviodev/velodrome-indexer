@@ -57,6 +57,53 @@ To stop the indexer, run
 ```bash
 envio stop
 ```
+### Hydra-mode
+
+Hydra is a postgres based database that exposes the same postgres api but stores the data in a columnlar layout which is optimised for analytic type queries that aggregate data across large numbers of rows on large datasets.
+
+To run this indexer against hydra (rather than standard postgres) first run `pnpm enable-hydra`.
+
+Once that completes without error, run `pnpm start`. 
+
+NOTE: it is advised not to run `envio dev` when in hydra mode. This creates risk that the indexer will revert to standard postgres mode. While developing, rather just use standard postgres, and switch to hydra once you are happy with the logic in the indexer.
+
+
+### Deploying Local Docker Environment
+
+The local docker environment deploys all the containers needed to run a containerized Envio Indexer environment:
+
+- postgres database
+- hasura graphql engine (optional)
+- envio indexer
+
+To begin, in the root folder, simply run `make start` (note if you have run `envio dev` prior, ensure you have removed the dev environment from docker by running `envio local docker down`)
+
+To hard restart run `make hard-restart` (this brings down all the docker images, volumes and removes any generated code and node_modules, prompting a full rebuild of the environment)
+
+You can turn the terminal UI off by setting the environment variable TUI_OFF before running any of the make commands (`export TUI_OFF=true; make start`) however, if you'd like the TUI and to see the indexer logs in the terminal, you can run `export TUI_OFF=false; make start` and then `make indexer-logs` to see the container logs of the indexer.
+
+
+To push the Envio indexer container to a container registry login to the registry and run:
+
+`make build-push-indexer TAG=<your_image_tag> ARCH=<desired_architecture>`
+
+example: `make build-push-indexer TAG="velodrome-indexer-prod-1" ARCH="linux/amd64"`
+
+
+### Hydra setup
+
+Similar to the above, but uses a hydra postgres instance with no hasura.
+
+Setup files:
+
+- `docker-compose-hydra.yaml`
+- `Dockerfile-hydra`
+- `envio-entrypoint-hydra.sh`
+
+Make commands:
+- `make start-hydra`
+- `make hard-stop-hydra`
+- `make hard-restart-hydra`
 
 ### Testing
 
