@@ -2,6 +2,7 @@
 name: Velodrome_v2
 description: Multi-chain indexer for Velodrome V2 on Optimism and Aerodrome on Base
 unordered_multichain_mode: true
+rollback_on_reorg: false
 event_decoder: hypersync-client
 # Global contracts configuration that will be shared across all chains that are defined later in the config file
 # (i.e. Velodrome V2 on Optimism and Aerodrome on Base)
@@ -27,7 +28,7 @@ contracts:
     events:
       # Used to update the reward emission metrics of a particular pool
       - event: DistributeReward(address indexed sender, address indexed gauge, uint256 amount)
-     # Used to update the reward address details of a particular pool
+      # Used to update the reward address details of a particular pool
       - event: GaugeCreated(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory, address pool, address bribeVotingReward, address feeVotingReward, address gauge, address creator)
   # VotingReward contract is responsible for distributing bribe rewards to the liquidity providers
   - name: VotingReward
