@@ -1,5 +1,7 @@
 import { TokenInfo, Pool } from "./CustomTypes";
-// import { LatestETHPriceEntity, StateStoreEntity } from "./src/Types.gen";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const TEN_TO_THE_3_BI = BigInt(10 ** 3);
 export const TEN_TO_THE_6_BI = BigInt(10 ** 6);
@@ -72,50 +74,13 @@ const DOLA: TokenInfo = {
 // list of WHITELISTED tokens with their symbol and decimals to be used in pricing
 const OPTIMISM_WHITELISTED_TOKENS: TokenInfo[] = [WETH, USDC, VELO, OP, LUSD];
 
-const BASE_WHITELISTED_TOKENS: TokenInfo[] = [WETH, USDbC, USDC_BASE, DAI, DOLA];
-
-// List of stablecoin pools with their token0, token1 and name
-// export const PRICING_POOLS: Pool[] = [
-//   {
-//     address: "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b",
-//     token0: WETH,
-//     token1: USDC,
-//     name: "vAMM-WETH/USDC.e",
-//   },
-//   {
-//     address: "0x8134A2fDC127549480865fB8E5A9E8A8a95a54c5",
-//     token0: USDC,
-//     token1: VELO,
-//     name: "Volatile AMM - USDC.e/VELO",
-//   },
-//   {
-//     address: "0x0df083de449F75691fc5A36477a6f3284C269108",
-//     token0: OP, // these fields aren't being used currently.
-//     token1: USDC,
-//     name: "Volatile AMM - OP/USDC.e",
-//   },
-// ];
-
-// export const PRICING_POOLS_ADDRESSES: string[] = PRICING_POOLS.map(
-//   (pool) => pool.address
-// );
-
-// Very carefully check these addresses don't get created cross chain.
-// Or add more defenses.
-// const USD_TOKENS: Token[] = [USDC, USDbC, USDC_BASE, NATIVE_USDC];
-
-// update list.
-// export const USD_TOKENS_ADDRESSES: string[] = USD_TOKENS.map(
-//   (token) => token.address
-// );
-
-// const TOKENS_PRICED_IN_USD: Token[] = [WETH, OP, VELO];
-
-// update list.
-// export const TOKENS_PRICED_IN_USD_ADDRESSES: string[] =
-//   TOKENS_PRICED_IN_USD.map((token) => token.address);
-// Need to create a list of whitelisted tokens and all their known addresses.
-// I.e. WETH is a token for pricing, the WETH token across both base and optimism.
+const BASE_WHITELISTED_TOKENS: TokenInfo[] = [
+  WETH,
+  USDbC,
+  USDC_BASE,
+  DAI,
+  DOLA,
+];
 
 // List of stablecoin pools with their token0, token1 and name
 const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
@@ -185,7 +150,7 @@ const OPTIMISM_CONSTANTS: chainConstants = {
   usdc: USDC,
   firstPriceFetchedBlockNumber: 106247807,
   rewardToken: VELO,
-  rpcURL: "https://rpc.ankr.com/optimism",
+  rpcURL: process.env.OPTIMISM_RPC_URL || "https://rpc.ankr.com/optimism",
   stablecoinPools: OPTIMISM_STABLECOIN_POOLS,
   stablecoinPoolAddresses: OPTIMISM_STABLECOIN_POOLS.map(
     (pool) => pool.address
@@ -203,7 +168,7 @@ const BASE_CONSTANTS: chainConstants = {
   usdc: USDbC,
   firstPriceFetchedBlockNumber: 3347620,
   rewardToken: AERO,
-  rpcURL: "https://base.publicnode.com",
+  rpcURL: process.env.BASE_RPC_URL || "https://base.publicnode.com",
   stablecoinPools: BASE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: BASE_STABLECOIN_POOLS.map((pool) => pool.address),
   testingPoolAddresses: BASE_TESTING_POOL_ADDRESSES,
