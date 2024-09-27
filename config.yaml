@@ -4,48 +4,34 @@ description: Multi-chain indexer for Velodrome V2 on Optimism and Aerodrome on B
 unordered_multichain_mode: true
 rollback_on_reorg: false
 event_decoder: hypersync-client
-# Global contracts configuration that will be shared across all chains that are defined later in the config file
-# (i.e. Velodrome V2 on Optimism and Aerodrome on Base)
+
 contracts:
-  # PoolFactory contract is responsible for creating new pools
   - name: PoolFactory
     handler: src/EventHandlers.ts
     events:
       - event: PoolCreated(address indexed token0, address indexed token1, bool indexed stable, address pool, uint256 unnamed)
-  # Pool contract emits all the events related to a particular swap pool
   - name: Pool
     handler: src/EventHandlers.ts
     events:
-      # Used to update the total fees earned by a swap pool
       - event: Fees(address indexed sender, uint256 amount0, uint256 amount1)
-      # Used to update the swap and volume metrics of a particular pool and user
       - event: Swap(address indexed sender, address indexed to, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out)
-      # Used to update the liquidity values of a particular pool
       - event: Sync(uint256 reserve0, uint256 reserve1)
-  # Voter contract is responsible for creating reward contracts and distributing rewards to the liquidity pools
   - name: Voter
     handler: src/EventHandlers.ts
     events:
-      # Used to update the reward emission metrics of a particular pool
       - event: DistributeReward(address indexed sender, address indexed gauge, uint256 amount)
-      # Used to update the reward address details of a particular pool
       - event: GaugeCreated(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory, address pool, address bribeVotingReward, address feeVotingReward, address gauge, address creator)
-  # VotingReward contract is responsible for distributing bribe rewards to the liquidity providers
   - name: VotingReward
     handler: src/EventHandlers.ts
     events:
-      # Used to update the bribe reward metrics of a particular pool
       - event: NotifyReward(address indexed from, address indexed reward, uint256 indexed epoch, uint256 amount)
   - name: PriceFetcher
     handler: src/EventHandlers.ts
     events:
-      # Used to update the price of a particular token in USD
       - event: PriceFetched(address indexed token, uint256 price)
-# Used to define the different chains that contracts (defined above) will be indexed from
 networks:
   - id: 10 # Optimism
     start_block: 0
-    # Specification of addresses per contract type defined above
     contracts:
       - name: PoolFactory
         address:
@@ -1056,7 +1042,6 @@ networks:
           - 0x6777E70fe05daeD585Fbed3c2fcd2Cd8fb0b4E38
   - id: 8453 # Base
     start_block: 0
-    # Specification of addresses per contract type defined above
     contracts:
       - name: PoolFactory
         address:

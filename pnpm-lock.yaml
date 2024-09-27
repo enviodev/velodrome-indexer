@@ -15,8 +15,8 @@ importers:
         specifier: 4.3.10
         version: 4.3.10
       envio:
-        specifier: 2.3.2
-        version: 2.3.2
+        specifier: 0.0.0-release-numeric-precision-scale-20240926204155-76b6e25b
+        version: 0.0.0-release-numeric-precision-scale-20240926204155-76b6e25b
       mocha:
         specifier: ^10.2.0
         version: 10.2.0
@@ -901,46 +901,28 @@ packages:
       once: 1.4.0
     dev: false
 
-  /envio-darwin-arm64@2.3.2:
-    resolution: {integrity: sha512-CmyG796jrfnvMx/p/JrS6HiqPjyXR8sPmo8TKMSpuEFsM30r0iSRM1+2AJw1+w/3uyfgP/E6GsHPZyD55tsBRg==}
+  /envio-darwin-arm64@0.0.0-release-numeric-precision-scale-20240926204155-76b6e25b:
+    resolution: {integrity: sha512-mvjMAyMfYuSw9O9FwoLXZQjJB/FZxoje0dSTVjrnCtg9w6XbU5C5jRHsmLMfCAIuzD0y5hKs2YTM11WTgVSAaQ==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-darwin-x64@2.3.2:
-    resolution: {integrity: sha512-cYgOSgY6qUPV733oORmEQk12nEShaz2E2Js72L3mh3djGrZmTQaIb0whl9uIptYO8B4vmpRPM9j1ox4eoihydA==}
-    cpu: [x64]
-    os: [darwin]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /envio-linux-arm64@2.3.2:
-    resolution: {integrity: sha512-PAgWkP1AVdfBFt1NCH1gsnRAqev2nNjJZhh1zaNJikUOMjBsj1qQDXSgvnji7DyoqbjCPldQTxGBWP9CRTPqOQ==}
-    cpu: [arm64]
-    os: [linux]
-    requiresBuild: true
-    dev: false
-    optional: true
-
-  /envio-linux-x64@2.3.2:
-    resolution: {integrity: sha512-oadisYezSR+MOjsQ1hWl3jGNy2vU7EvtX3UBMuU5yx9qnJj+APx8eSo3EZKjUbhRwodBIPg+P667S/UvmvXoFQ==}
+  /envio-linux-x64@0.0.0-release-numeric-precision-scale-20240926204155-76b6e25b:
+    resolution: {integrity: sha512-V99wecimFJjcH+aaxRPzZqi2qZ7ljmVqqxaNDhZ5WeC4MQ1ZVNOJMsEhBipjG+fFhFdNdtuDD2Rv2xzrQKb8qA==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio@2.3.2:
-    resolution: {integrity: sha512-WI9JEZyHri/xx2E0Rdu5PNXioWZiNIncT3ukYMxS2kbUgb1qLBMSPDb5Ffrsb7j1yaI9vVuYciEalxrRv7k7vg==}
+  /envio@0.0.0-release-numeric-precision-scale-20240926204155-76b6e25b:
+    resolution: {integrity: sha512-sygUNgB8bRz/o+b0kIPLmH7T0oYPwXFGairTiwdVX6iAeSn3KWt7clSmaxiI47XMLKOW01R1TlI3RWDNjE3pjg==}
     hasBin: true
     optionalDependencies:
-      envio-darwin-arm64: 2.3.2
-      envio-darwin-x64: 2.3.2
-      envio-linux-arm64: 2.3.2
-      envio-linux-x64: 2.3.2
+      envio-darwin-arm64: 0.0.0-release-numeric-precision-scale-20240926204155-76b6e25b
+      envio-linux-x64: 0.0.0-release-numeric-precision-scale-20240926204155-76b6e25b
     dev: false
 
   /es-define-property@1.0.0:
