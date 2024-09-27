@@ -712,6 +712,10 @@ PriceFetcher.PriceFetched.handlerWithLoader({
   },
 });
 
+CLFactory.PoolCreated.contractRegister(({ event, context }) => {
+  context.addCLPool(event.params.pool);
+});
+
 CLFactory.PoolCreated.handler(async ({ event, context }) => {
   const entity: CLFactory_PoolCreated = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
