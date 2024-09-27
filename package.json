@@ -22,7 +22,7 @@
   "dependencies": {
     "@types/mocha": "^10.0.6",
     "chai": "4.3.10",
-    "envio": "2.3.2",
+    "envio": "v0.9.9-branch-numeric-precision-scale-v2",
     "mocha": "^10.2.0",
     "prettier": "^2.5.1",
     "ts-node": "^10.9.1"
