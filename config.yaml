@@ -7,16 +7,16 @@ event_decoder: hypersync-client
 
 contracts:
   - name: PoolFactory
-    handler: src/EventHandlers.ts
+    handler: src/EventHandlers/PoolFactory.ts
     events:
       - event: PoolCreated(address indexed token0, address indexed token1, bool indexed stable, address pool, uint256 unnamed)
       - event: SetCustomFee(address indexed pool, uint256 fee)
   - name: CLFactory
-    handler: src/EventHandlers.ts
+    handler: src/EventHandlers/CLFactory.ts
     events:
       - event: PoolCreated(address indexed token0, address indexed token1, int24 indexed tickSpacing, address pool)
   - name: CLPool
-    handler: src/CLEventHandlers.ts
+    handler: src/EventHandlers/CLPool.ts
     events:
       - event: Burn(address indexed owner, int24 indexed tickLower, int24 indexed tickUpper, uint128 amount, uint256 amount0, uint256 amount1)
       - event: Collect(address indexed owner, address recipient, int24 indexed tickLower, int24 indexed tickUpper, uint128 amount0, uint128 amount1)
@@ -28,28 +28,28 @@ contracts:
       - event: SetFeeProtocol(uint8 feeProtocol0Old, uint8 feeProtocol1Old, uint8 feeProtocol0New, uint8 feeProtocol1New)
       - event: Swap(address indexed sender, address indexed recipient, int256 amount0, int256 amount1, uint160 sqrtPriceX96, uint128 liquidity, int24 tick)
   - name: Pool
-    handler: src/EventHandlers.ts
+    handler: src/EventHandlers/Pool.ts
     events:
       - event: Fees(address indexed sender, uint256 amount0, uint256 amount1)
       - event: Swap(address indexed sender, address indexed to, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out)
       - event: Sync(uint256 reserve0, uint256 reserve1)
   - name: Voter
-    handler: src/EventHandlers.ts
+    handler: src/EventHandlers/Voter.ts
     events:
       - event: DistributeReward(address indexed sender, address indexed gauge, uint256 amount)
       - event: GaugeCreated(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory, address pool, address bribeVotingReward, address feeVotingReward, address gauge, address creator)
   - name: VotingReward
-    handler: src/EventHandlers.ts
+    handler: src/EventHandlers/VotingReward.ts
     events:
       - event: Deposit(address indexed from, uint256 indexed tokenId, uint256 amount)
       - event: NotifyReward(address indexed from, address indexed reward, uint256 indexed epoch, uint256 amount)
       - event: Withdraw(address indexed from, uint256 indexed tokenId, uint256 amount)
   - name: Gauge
-    handler: src/EventHandlers.ts
+    handler: src/EventHandlers/Gauge.ts
     events:
       - event: NotifyReward(address indexed from, uint256 amount)
   - name: PriceFetcher
-    handler: src/EventHandlers.ts
+    handler: src/EventHandlers/PriceFetcher.ts
     events:
       - event: PriceFetched(address indexed token, uint256 price)
 networks:
