@@ -15,6 +15,18 @@ contracts:
     handler: src/EventHandlers.ts
     events:
       - event: PoolCreated(address indexed token0, address indexed token1, int24 indexed tickSpacing, address pool)
+  - name: CLPool
+    handler: src/CLEventHandlers.ts
+    events:
+      - event: Burn(address indexed owner, int24 indexed tickLower, int24 indexed tickUpper, uint128 amount, uint256 amount0, uint256 amount1)
+      - event: Collect(address indexed owner, address recipient, int24 indexed tickLower, int24 indexed tickUpper, uint128 amount0, uint128 amount1)
+      - event: CollectFees(address indexed recipient, uint128 amount0, uint128 amount1)
+      - event: Flash(address indexed sender, address indexed recipient, uint256 amount0, uint256 amount1, uint256 paid0, uint256 paid1)
+      - event: IncreaseObservationCardinalityNext(uint16 observationCardinalityNextOld, uint16 observationCardinalityNextNew)
+      - event: Initialize(uint160 sqrtPriceX96, int24 tick)
+      - event: Mint(address sender, address indexed owner, int24 indexed tickLower, int24 indexed tickUpper, uint128 amount, uint256 amount0, uint256 amount1)
+      - event: SetFeeProtocol(uint8 feeProtocol0Old, uint8 feeProtocol1Old, uint8 feeProtocol0New, uint8 feeProtocol1New)
+      - event: Swap(address indexed sender, address indexed recipient, int256 amount0, int256 amount1, uint160 sqrtPriceX96, uint128 liquidity, int24 tick)
   - name: Pool
     handler: src/EventHandlers.ts
     events:
@@ -1054,6 +1066,8 @@ networks:
           - 0x11BbF869250424BEDC5f162094afF8b4A45bE841
           - 0xe255e0774416604dd53f75ea8301157dcce6eb03
           - 0x6777E70fe05daeD585Fbed3c2fcd2Cd8fb0b4E38
+      - name: CLPool
+        address:
   - id: 8453 # Base
     start_block: 0
     contracts:
@@ -1621,3 +1635,5 @@ networks:
         address:
           - 0x593d092bb28ccefe33bfdd3d9457e77bd3084271
           - 0x2910942669b9F0118d025be31B1A82E36bF88880
+      - name: CLPool
+        address:
