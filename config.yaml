@@ -1,82 +1,67 @@
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
 name: Velodrome_v2
 description: Multi-chain indexer for Velodrome V2 on Optimism and Aerodrome on Base
 unordered_multichain_mode: true
+rollback_on_reorg: false
 event_decoder: hypersync-client
-# Global contracts configuration that will be shared across all chains that are defined later in the config file
-# (i.e. Velodrome V2 on Optimism and Aerodrome on Base)
+
 contracts:
-  # PoolFactory contract is responsible for creating new pools
   - name: PoolFactory
     handler: src/EventHandlers.ts
     events:
       - event: PoolCreated(address indexed token0, address indexed token1, bool indexed stable, address pool, uint256 unnamed)
-        requiredEntities:
-          - name: Token
-            arrayLabels:
-              - poolTokens
-        isAsync: true
-  # Pool contract emits all the events related to a particular swap pool
+      - event: SetCustomFee(address indexed pool, uint256 fee)
+  - name: CLFactory
+    handler: src/EventHandlers.ts
+    events:
+      - event: PoolCreated(address indexed token0, address indexed token1, int24 indexed tickSpacing, address pool)
+  - name: CLPool
+    handler: src/CLEventHandlers.ts
+    events:
+      - event: Burn(address indexed owner, int24 indexed tickLower, int24 indexed tickUpper, uint128 amount, uint256 amount0, uint256 amount1)
+      - event: Collect(address indexed owner, address recipient, int24 indexed tickLower, int24 indexed tickUpper, uint128 amount0, uint128 amount1)
+      - event: CollectFees(address indexed recipient, uint128 amount0, uint128 amount1)
+      - event: Flash(address indexed sender, address indexed recipient, uint256 amount0, uint256 amount1, uint256 paid0, uint256 paid1)
+      - event: IncreaseObservationCardinalityNext(uint16 observationCardinalityNextOld, uint16 observationCardinalityNextNew)
+      - event: Initialize(uint160 sqrtPriceX96, int24 tick)
+      - event: Mint(address sender, address indexed owner, int24 indexed tickLower, int24 indexed tickUpper, uint128 amount, uint256 amount0, uint256 amount1)
+      - event: SetFeeProtocol(uint8 feeProtocol0Old, uint8 feeProtocol1Old, uint8 feeProtocol0New, uint8 feeProtocol1New)
+      - event: Swap(address indexed sender, address indexed recipient, int256 amount0, int256 amount1, uint160 sqrtPriceX96, uint128 liquidity, int24 tick)
   - name: Pool
     handler: src/EventHandlers.ts
     events:
-      # Used to update the total fees earned by a swap pool
       - event: Fees(address indexed sender, uint256 amount0, uint256 amount1)
-        requiredEntities:
-          - name: LiquidityPoolNew
-      # Used to update the swap and volume metrics of a particular pool and user
       - event: Swap(address indexed sender, address indexed to, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out)
-        requiredEntities:
-          - name: LiquidityPoolNew
-          - name: User
-      # Used to update the liquidity values of a particular pool
       - event: Sync(uint256 reserve0, uint256 reserve1)
-        requiredEntities:
-          - name: LiquidityPoolNew
-          - name: Token
-  # Voter contract is responsible for creating reward contracts and distributing rewards to the liquidity pools
   - name: Voter
     handler: src/EventHandlers.ts
     events:
-      # Used to update the reward emission metrics of a particular pool
       - event: DistributeReward(address indexed sender, address indexed gauge, uint256 amount)
-        requiredEntities:
-          - name: LiquidityPoolNew
-            labels:
-              - emissionSinglePool
-          - name: Token
-            labels:
-              - emissionRewardToken
-      # Used to update the reward address details of a particular pool
       - event: GaugeCreated(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory, address pool, address bribeVotingReward, address feeVotingReward, address gauge, address creator)
-  # VotingReward contract is responsible for distributing bribe rewards to the liquidity providers
   - name: VotingReward
     handler: src/EventHandlers.ts
     events:
-      # Used to update the bribe reward metrics of a particular pool
+      - event: Deposit(address indexed from, uint256 indexed tokenId, uint256 amount)
       - event: NotifyReward(address indexed from, address indexed reward, uint256 indexed epoch, uint256 amount)
-        requiredEntities:
-          - name: LiquidityPoolNew
-            labels:
-              - bribeSinglePool
-          - name: Token
-            labels:
-              - bribeRewardToken
+      - event: Withdraw(address indexed from, uint256 indexed tokenId, uint256 amount)
+  - name: Gauge
+    handler: src/EventHandlers.ts
+    events:
+      - event: NotifyReward(address indexed from, uint256 amount)
   - name: PriceFetcher
     handler: src/EventHandlers.ts
     events:
-      # Used to update the price of a particular token in USD
       - event: PriceFetched(address indexed token, uint256 price)
-        requiredEntities:
-          - name: Token
-# Used to define the different chains that contracts (defined above) will be indexed from
 networks:
   - id: 10 # Optimism
     start_block: 0
-    # Specification of addresses per contract type defined above
     contracts:
       - name: PoolFactory
         address:
           - 0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a
+      - name: CLFactory
+        address:
+          - 0xCc0bDDB707055e04e497aB22a59c2aF4391cd12F
       - name: Pool
         address:
           - 0x585Af0b397AC42dbeF7f18395426BF878634f18D
@@ -1081,13 +1066,17 @@ networks:
           - 0x11BbF869250424BEDC5f162094afF8b4A45bE841
           - 0xe255e0774416604dd53f75ea8301157dcce6eb03
           - 0x6777E70fe05daeD585Fbed3c2fcd2Cd8fb0b4E38
+      - name: CLPool
+        address:
   - id: 8453 # Base
     start_block: 0
-    # Specification of addresses per contract type defined above
     contracts:
       - name: PoolFactory
         address:
           - 0x420DD381b31aEf6683db6B902084cB0FFECe40Da
+      - name: CLFactory
+        address:
+          - 0x5e7BB104d84c7CB9B682AaC2F3d509f5F406809A
       - name: Pool
         address:
           - 0x723AEf6543aecE026a15662Be4D3fb3424D502A9
@@ -1646,3 +1635,5 @@ networks:
         address:
           - 0x593d092bb28ccefe33bfdd3d9457e77bd3084271
           - 0x2910942669b9F0118d025be31B1A82E36bF88880
+      - name: CLPool
+        address:

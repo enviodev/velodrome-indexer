@@ -1,12 +1,12 @@
 import {
-  LiquidityPoolNewEntity,
-  LiquidityPoolHourlySnapshotEntity,
-  LiquidityPoolDailySnapshotEntity,
-  LiquidityPoolWeeklySnapshotEntity,
-  TokenEntity,
-  TokenHourlySnapshotEntity,
-  TokenDailySnapshotEntity,
-  TokenWeeklySnapshotEntity,
+  LiquidityPoolNew,
+  LiquidityPoolHourlySnapshot,
+  LiquidityPoolDailySnapshot,
+  LiquidityPoolWeeklySnapshot,
+  Token,
+  TokenHourlySnapshot,
+  TokenDailySnapshot,
+  TokenWeeklySnapshot,
 } from "./src/Types.gen";
 
 import {
@@ -19,12 +19,12 @@ import { SnapshotInterval } from "./CustomTypes";
 
 // Generic function to return a snapshot of entity of type LiquidityPool given a specific snapshot interval
 export function getLiquidityPoolSnapshotByInterval(
-  liquidityPoolEntity: LiquidityPoolNewEntity,
+  liquidityPoolEntity: LiquidityPoolNew,
   interval: SnapshotInterval
 ):
-  | LiquidityPoolHourlySnapshotEntity
-  | LiquidityPoolDailySnapshotEntity
-  | LiquidityPoolWeeklySnapshotEntity {
+  | LiquidityPoolHourlySnapshot
+  | LiquidityPoolDailySnapshot
+  | LiquidityPoolWeeklySnapshot {
   // Get the number of seconds in the interval
   const numberOfSecondsInInterval = getNumberOfSecondsInInterval(interval);
 
@@ -66,12 +66,12 @@ export function getLiquidityPoolSnapshotByInterval(
 
 // Generic function to return a snapshot of entity of type Token given a specific snapshot interval
 export function getTokenSnapshotByInterval(
-  tokenEntity: TokenEntity,
+  tokenEntity: Token,
   interval: SnapshotInterval
 ):
-  | TokenHourlySnapshotEntity
-  | TokenDailySnapshotEntity
-  | TokenWeeklySnapshotEntity {
+  | TokenHourlySnapshot
+  | TokenDailySnapshot
+  | TokenWeeklySnapshot {
   // Get the number of seconds in the interval
   const numberOfSecondsInInterval = getNumberOfSecondsInInterval(interval);
 

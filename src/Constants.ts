@@ -1,5 +1,7 @@
-import { Token, Pool } from "./CustomTypes";
-// import { LatestETHPriceEntity, StateStoreEntity } from "./src/Types.gen";
+import { TokenInfo, Pool } from "./CustomTypes";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const TEN_TO_THE_3_BI = BigInt(10 ** 3);
 export const TEN_TO_THE_6_BI = BigInt(10 ** 6);
@@ -12,110 +14,73 @@ export const SECONDS_IN_A_WEEK = BigInt(604800);
 // export const STATE_STORE_ID = "STATE";
 
 // Hardcoded WETH, USDC and OP token addresses with decimals
-export const WETH: Token = {
+export const WETH: TokenInfo = {
   address: "0x4200000000000000000000000000000000000006",
   symbol: "WETH",
 };
 
 // TODO change this name to usdc.e and import native usdc from base
-export const USDC: Token = {
+export const USDC: TokenInfo = {
   address: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
   symbol: "USDC.e",
 };
 
-export const NATIVE_USDC: Token = {
+export const NATIVE_USDC: TokenInfo = {
   address: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
   symbol: "USDC",
 };
 
-const USDC_BASE: Token = {
+const USDC_BASE: TokenInfo = {
   address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   symbol: "USDC",
 };
 
-export const OP: Token = {
+export const OP: TokenInfo = {
   address: "0x4200000000000000000000000000000000000042",
   symbol: "OP",
 };
 
 // beware not checksummed.
-const LUSD: Token = {
+const LUSD: TokenInfo = {
   address: "0xc40f949f8a4e094d1b49a23ea9241d289b7b2819",
   symbol: "LUSD",
 };
 
-export const VELO: Token = {
+export const VELO: TokenInfo = {
   address: "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db",
   symbol: "VELO",
 };
 
-const USDbC: Token = {
+const USDbC: TokenInfo = {
   address: "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
   symbol: "USCbC",
 };
 
 // NB issue!! DAI address on base, Lyra address on optimism!!
-const DAI: Token = {
+const DAI: TokenInfo = {
   address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
   symbol: "DAI",
 };
 
-const AERO: Token = {
+const AERO: TokenInfo = {
   address: "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
   symbol: "AERO",
 };
 
-const DOLA: Token = {
+const DOLA: TokenInfo = {
   address: "0x4621b7A9c75199271F773Ebd9A499dbd165c3191",
   symbol: "DOLA",
 };
 // list of WHITELISTED tokens with their symbol and decimals to be used in pricing
-const OPTIMISM_WHITELISTED_TOKENS: Token[] = [WETH, USDC, VELO, OP, LUSD];
+const OPTIMISM_WHITELISTED_TOKENS: TokenInfo[] = [WETH, USDC, VELO, OP, LUSD];
 
-const BASE_WHITELISTED_TOKENS: Token[] = [WETH, USDbC, USDC_BASE, DAI, DOLA];
-
-// List of stablecoin pools with their token0, token1 and name
-// export const PRICING_POOLS: Pool[] = [
-//   {
-//     address: "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b",
-//     token0: WETH,
-//     token1: USDC,
-//     name: "vAMM-WETH/USDC.e",
-//   },
-//   {
-//     address: "0x8134A2fDC127549480865fB8E5A9E8A8a95a54c5",
-//     token0: USDC,
-//     token1: VELO,
-//     name: "Volatile AMM - USDC.e/VELO",
-//   },
-//   {
-//     address: "0x0df083de449F75691fc5A36477a6f3284C269108",
-//     token0: OP, // these fields aren't being used currently.
-//     token1: USDC,
-//     name: "Volatile AMM - OP/USDC.e",
-//   },
-// ];
-
-// export const PRICING_POOLS_ADDRESSES: string[] = PRICING_POOLS.map(
-//   (pool) => pool.address
-// );
-
-// Very carefully check these addresses don't get created cross chain.
-// Or add more defenses.
-// const USD_TOKENS: Token[] = [USDC, USDbC, USDC_BASE, NATIVE_USDC];
-
-// update list.
-// export const USD_TOKENS_ADDRESSES: string[] = USD_TOKENS.map(
-//   (token) => token.address
-// );
-
-// const TOKENS_PRICED_IN_USD: Token[] = [WETH, OP, VELO];
-
-// update list.
-// export const TOKENS_PRICED_IN_USD_ADDRESSES: string[] =
-//   TOKENS_PRICED_IN_USD.map((token) => token.address);
-// Need to create a list of whitelisted tokens and all their known addresses.
-// I.e. WETH is a token for pricing, the WETH token across both base and optimism.
+const BASE_WHITELISTED_TOKENS: TokenInfo[] = [
+  WETH,
+  USDbC,
+  USDC_BASE,
+  DAI,
+  DOLA,
+];
 
 // List of stablecoin pools with their token0, token1 and name
 const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
@@ -167,15 +132,15 @@ const BASE_TESTING_POOL_ADDRESSES: string[] = [
 
 // Object containing all the constants for a chain
 type chainConstants = {
-  eth: Token;
-  usdc: Token;
+  eth: TokenInfo;
+  usdc: TokenInfo;
   firstPriceFetchedBlockNumber: number;
-  rewardToken: Token;
+  rewardToken: TokenInfo;
   rpcURL: string;
   stablecoinPools: Pool[];
   stablecoinPoolAddresses: string[];
   testingPoolAddresses: string[];
-  whitelistedTokens: Token[];
+  whitelistedTokens: TokenInfo[];
   whitelistedTokenAddresses: string[];
 };
 
@@ -185,7 +150,7 @@ const OPTIMISM_CONSTANTS: chainConstants = {
   usdc: USDC,
   firstPriceFetchedBlockNumber: 106247807,
   rewardToken: VELO,
-  rpcURL: "https://rpc.ankr.com/optimism",
+  rpcURL: process.env.OPTIMISM_RPC_URL || "https://rpc.ankr.com/optimism",
   stablecoinPools: OPTIMISM_STABLECOIN_POOLS,
   stablecoinPoolAddresses: OPTIMISM_STABLECOIN_POOLS.map(
     (pool) => pool.address
@@ -203,7 +168,7 @@ const BASE_CONSTANTS: chainConstants = {
   usdc: USDbC,
   firstPriceFetchedBlockNumber: 3347620,
   rewardToken: AERO,
-  rpcURL: "https://base.publicnode.com",
+  rpcURL: process.env.BASE_RPC_URL || "https://base.publicnode.com",
   stablecoinPools: BASE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: BASE_STABLECOIN_POOLS.map((pool) => pool.address),
   testingPoolAddresses: BASE_TESTING_POOL_ADDRESSES,
