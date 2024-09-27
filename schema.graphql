@@ -176,3 +176,77 @@ type Gauge_NotifyReward {
   timestamp: Timestamp!
   chainId: Int!
 }
+
+type BribeVotingReward_NotifyReward {
+  id: ID!
+  from: String!
+  reward: String!
+  epoch: BigInt! @precision(digits: 76)
+  amount: BigInt! @precision(digits: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type Pool_Swap {
+  id: ID!
+  sender: String!
+  to: String!
+  amount0In: BigInt! @precision(digits: 76)
+  amount1In: BigInt! @precision(digits: 76)
+  amount0Out: BigInt! @precision(digits: 76)
+  amount1Out: BigInt! @precision(digits: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type BribeVotingReward_Deposit {
+  id: ID!
+  from: String!
+  tokenId: BigInt! @precision(digits: 76)
+  amount: BigInt! @precision(digits: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type BribeVotingReward_Withdraw {
+  id: ID!
+  from: String!
+  tokenId: BigInt! @precision(digits: 76)
+  amount: BigInt! @precision(digits: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type Voter_GaugeCreated {
+  id: ID!
+  poolFactory: String!
+  votingRewardsFactory: String!
+  gaugeFactory: String!
+  pool: String!
+  bribeVotingReward: String!
+  feeVotingReward: String!
+  gauge: String!
+  creator: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type PoolFactory_SetCustomFee {
+  id: ID!
+  pool: String!
+  fee: BigInt! @precision(digits: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+}
+type Pool_Sync {
+  id: ID!
+  reserve0: BigInt! @precision(digits: 76)
+  reserve1: BigInt! @precision(digits: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}

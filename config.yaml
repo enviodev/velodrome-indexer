@@ -10,6 +10,7 @@ contracts:
     handler: src/EventHandlers.ts
     events:
       - event: PoolCreated(address indexed token0, address indexed token1, bool indexed stable, address pool, uint256 unnamed)
+      - event: SetCustomFee(address indexed pool, uint256 fee)
   - name: CLFactory
     handler: src/EventHandlers.ts
     events:
@@ -28,9 +29,9 @@ contracts:
   - name: VotingReward
     handler: src/EventHandlers.ts
     events:
-      # - event: Deposit(address indexed from, uint256 indexed tokenId, uint256 amount)
+      - event: Deposit(address indexed from, uint256 indexed tokenId, uint256 amount)
       - event: NotifyReward(address indexed from, address indexed reward, uint256 indexed epoch, uint256 amount)
-      # - event: Withdraw(address indexed from, uint256 indexed tokenId, uint256 amount)
+      - event: Withdraw(address indexed from, uint256 indexed tokenId, uint256 amount)
   - name: Gauge
     handler: src/EventHandlers.ts
     events:
