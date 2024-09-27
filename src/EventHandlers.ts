@@ -4,25 +4,22 @@ import {
   Voter,
   PriceFetcher,
   VotingReward,
+  CLFactory,
+  CLFactory_PoolCreated,
+  Gauge,
+  Gauge_NotifyReward,
 } from "generated";
 
 import { Token, LiquidityPoolNew, User } from "./src/Types.gen";
-
 import { CHAIN_CONSTANTS } from "./Constants";
-
 import { normalizeTokenAmountTo1e18, generatePoolName } from "./Helpers";
-
 import { divideBase1e18, multiplyBase1e18 } from "./Maths";
-
 import {
   getLiquidityPoolSnapshotByInterval,
   getTokenSnapshotByInterval,
 } from "./IntervalSnapshots";
-
 import { SnapshotInterval, TokenEntityMapping } from "./CustomTypes";
-
 import { poolLookupStoreManager } from "./Store";
-
 import { getErc20TokenDetails } from "./Erc20";
 
 //// global state!
@@ -465,9 +462,8 @@ Pool.Sync.handlerWithLoader({
 });
 
 Voter.GaugeCreated.contractRegister(({ event, context }) => {
-  // // Dynamically register bribe VotingReward contracts
-  // // This means that user does not need to manually define all the BribeVotingReward contract address in the configuration file
-  context.addVotingReward(event.params.gauge);
+  context.addVotingReward(event.params.bribeVotingReward);
+  context.addGauge(event.params.gauge);
 });
 
 Voter.GaugeCreated.handler(async ({ event, context }) => {
@@ -499,8 +495,8 @@ Voter.DistributeReward.handlerWithLoader({
       // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
       const rewardToken = await context.Token.get(
         CHAIN_CONSTANTS[event.chainId].rewardToken.address +
-        "-" +
-        event.chainId.toString()
+          "-" +
+          event.chainId.toString()
       );
 
       return { currentLiquidityPool, rewardToken };
@@ -653,4 +649,31 @@ PriceFetcher.PriceFetched.handlerWithLoader({
       }
     }
   },
+});
+
+CLFactory.PoolCreated.handler(async ({ event, context }) => {
+  const entity: CLFactory_PoolCreated = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    token0: event.params.token0,
+    token1: event.params.token1,
+    tickSpacing: event.params.tickSpacing,
+    pool: event.params.pool,
+    timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+    chainId: event.chainId,
+  };
+
+  context.CLFactory_PoolCreated.set(entity);
+});
+
+Gauge.NotifyReward.handler(async ({ event, context }) => {
+  const entity: Gauge_NotifyReward = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    from: event.params.from,
+    amount: event.params.amount,
+    timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+    sourceAddress: event.srcAddress,
+    chainId: event.chainId,
+  };
+
+  context.Gauge_NotifyReward.set(entity);
 });

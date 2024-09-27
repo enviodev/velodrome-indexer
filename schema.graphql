@@ -157,3 +157,22 @@ type TokenWeeklySnapshot {
   pricePerUSDNew: BigInt! @precision(digits: 76) # price of token per USD
   lastUpdatedTimestamp: BigInt! @precision(digits: 76) # timestamp of last update
 }
+
+type CLFactory_PoolCreated {
+  id: ID!
+  token0: String!
+  token1: String!
+  tickSpacing: BigInt! @precision(digits: 76)
+  pool: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type Gauge_NotifyReward {
+  id: ID!
+  from: String!
+  amount: BigInt! @precision(digits: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}

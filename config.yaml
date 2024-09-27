@@ -10,6 +10,10 @@ contracts:
     handler: src/EventHandlers.ts
     events:
       - event: PoolCreated(address indexed token0, address indexed token1, bool indexed stable, address pool, uint256 unnamed)
+  - name: CLFactory
+    handler: src/EventHandlers.ts
+    events:
+      - event: PoolCreated(address indexed token0, address indexed token1, int24 indexed tickSpacing, address pool)
   - name: Pool
     handler: src/EventHandlers.ts
     events:
@@ -24,7 +28,13 @@ contracts:
   - name: VotingReward
     handler: src/EventHandlers.ts
     events:
+      # - event: Deposit(address indexed from, uint256 indexed tokenId, uint256 amount)
       - event: NotifyReward(address indexed from, address indexed reward, uint256 indexed epoch, uint256 amount)
+      # - event: Withdraw(address indexed from, uint256 indexed tokenId, uint256 amount)
+  - name: Gauge
+    handler: src/EventHandlers.ts
+    events:
+      - event: NotifyReward(address indexed from, uint256 amount)
   - name: PriceFetcher
     handler: src/EventHandlers.ts
     events:
@@ -36,6 +46,9 @@ networks:
       - name: PoolFactory
         address:
           - 0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a
+      - name: CLFactory
+        address:
+          - 0xCc0bDDB707055e04e497aB22a59c2aF4391cd12F
       - name: Pool
         address:
           - 0x585Af0b397AC42dbeF7f18395426BF878634f18D
@@ -1046,6 +1059,9 @@ networks:
       - name: PoolFactory
         address:
           - 0x420DD381b31aEf6683db6B902084cB0FFECe40Da
+      - name: CLFactory
+        address:
+          - 0x5e7BB104d84c7CB9B682AaC2F3d509f5F406809A
       - name: Pool
         address:
           - 0x723AEf6543aecE026a15662Be4D3fb3424D502A9
