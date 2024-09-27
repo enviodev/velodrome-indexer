@@ -54,7 +54,7 @@ contracts:
       - event: PriceFetched(address indexed token, uint256 price)
 networks:
   - id: 10 # Optimism
-    start_block: 121535532
+    start_block: 0
     contracts:
       - name: PoolFactory
         address:
@@ -1069,7 +1069,7 @@ networks:
       - name: CLPool
         address:
   - id: 8453 # Base
-    start_block: 13899663
+    start_block: 0
     contracts:
       - name: PoolFactory
         address:
