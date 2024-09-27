@@ -1066,6 +1066,8 @@ networks:
           - 0x11BbF869250424BEDC5f162094afF8b4A45bE841
           - 0xe255e0774416604dd53f75ea8301157dcce6eb03
           - 0x6777E70fe05daeD585Fbed3c2fcd2Cd8fb0b4E38
+      - name: CLPool
+        address:
   - id: 8453 # Base
     start_block: 13899663
     contracts:
@@ -1633,3 +1635,5 @@ networks:
         address:
           - 0x593d092bb28ccefe33bfdd3d9457e77bd3084271
           - 0x2910942669b9F0118d025be31B1A82E36bF88880
+      - name: CLPool
+        address:
