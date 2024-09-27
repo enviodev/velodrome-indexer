@@ -8,6 +8,13 @@ import {
   CLFactory_PoolCreated,
   Gauge,
   Gauge_NotifyReward,
+  BribeVotingReward_NotifyReward,
+  BribeVotingReward_Deposit,
+  BribeVotingReward_Withdraw,
+  Pool_Swap,
+  Voter_GaugeCreated,
+  PoolFactory_SetCustomFee,
+  Pool_Sync,
 } from "generated";
 
 import { Token, LiquidityPoolNew, User } from "./src/Types.gen";
@@ -230,6 +237,20 @@ Pool.Swap.handlerWithLoader({
   handler: async ({ event, context, loaderReturn }) => {
     // The pool entity should be created via PoolCreated event from the PoolFactory contract
     // QUESTION: Should it error if this is undefined?
+    const entity: Pool_Swap = {
+      id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+      sender: event.params.sender,
+      to: event.params.to,
+      amount0In: event.params.amount0In,
+      amount1In: event.params.amount1In,
+      amount0Out: event.params.amount0Out,
+      amount1Out: event.params.amount1Out,
+      sourceAddress: event.srcAddress, // Add sourceAddress
+      timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+      chainId: event.chainId,
+    };
+
+    context.Pool_Swap.set(entity);
     if (loaderReturn) {
       const {
         liquidityPoolNew,
@@ -338,6 +359,17 @@ Pool.Sync.handlerWithLoader({
     return { liquidityPoolNew, token0Instance, token1Instance };
   },
   handler: async ({ event, context, loaderReturn }) => {
+    const entity: Pool_Sync = {
+      id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+      reserve0: event.params.reserve0,
+      reserve1: event.params.reserve1,
+      sourceAddress: event.srcAddress,
+      timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+      chainId: event.chainId,
+    };
+
+    context.Pool_Sync.set(entity);
+
     if (loaderReturn) {
       const { liquidityPoolNew, token0Instance, token1Instance } = loaderReturn;
 
@@ -467,6 +499,22 @@ Voter.GaugeCreated.contractRegister(({ event, context }) => {
 });
 
 Voter.GaugeCreated.handler(async ({ event, context }) => {
+  const entity: Voter_GaugeCreated = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    poolFactory: event.params.poolFactory,
+    votingRewardsFactory: event.params.votingRewardsFactory,
+    gaugeFactory: event.params.gaugeFactory,
+    pool: event.params.pool,
+    bribeVotingReward: event.params.bribeVotingReward,
+    feeVotingReward: event.params.feeVotingReward,
+    gauge: event.params.gauge,
+    creator: event.params.creator,
+    timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+    chainId: event.chainId,
+  };
+
+  context.Voter_GaugeCreated.set(entity);
+
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   // Store pool details in poolRewardAddressStore
   let currentPoolRewardAddressMapping = {
@@ -583,6 +631,19 @@ VotingReward.NotifyReward.handlerWithLoader({
     return null;
   },
   handler: async ({ event, context, loaderReturn }) => {
+    const entity: BribeVotingReward_NotifyReward = {
+      id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+      from: event.params.from,
+      reward: event.params.reward,
+      epoch: event.params.epoch,
+      amount: event.params.amount,
+      timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+      sourceAddress: event.srcAddress,
+      chainId: event.chainId,
+    };
+
+    context.BribeVotingReward_NotifyReward.set(entity);
+
     if (loaderReturn) {
       const { currentLiquidityPool, rewardToken } = loaderReturn;
 
@@ -651,6 +712,10 @@ PriceFetcher.PriceFetched.handlerWithLoader({
   },
 });
 
+CLFactory.PoolCreated.contractRegister(({ event, context }) => {
+  context.addCLPool(event.params.pool);
+});
+
 CLFactory.PoolCreated.handler(async ({ event, context }) => {
   const entity: CLFactory_PoolCreated = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
@@ -676,4 +741,44 @@ Gauge.NotifyReward.handler(async ({ event, context }) => {
   };
 
   context.Gauge_NotifyReward.set(entity);
+});
+
+VotingReward.Deposit.handler(async ({ event, context }) => {
+  const entity: BribeVotingReward_Deposit = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    from: event.params.from,
+    tokenId: event.params.tokenId,
+    amount: event.params.amount,
+    timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+    sourceAddress: event.srcAddress,
+    chainId: event.chainId,
+  };
+
+  context.BribeVotingReward_Deposit.set(entity);
+});
+
+VotingReward.Withdraw.handler(async ({ event, context }) => {
+  const entity: BribeVotingReward_Withdraw = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    from: event.params.from,
+    tokenId: event.params.tokenId,
+    amount: event.params.amount,
+    timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+    sourceAddress: event.srcAddress,
+    chainId: event.chainId,
+  };
+
+  context.BribeVotingReward_Withdraw.set(entity);
+});
+
+PoolFactory.SetCustomFee.handler(async ({ event, context }) => {
+  const entity: PoolFactory_SetCustomFee = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    pool: event.params.pool,
+    fee: event.params.fee,
+    timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+    chainId: event.chainId,
+  };
+
+  context.PoolFactory_SetCustomFee.set(entity);
 });

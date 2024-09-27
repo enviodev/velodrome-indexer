@@ -176,3 +176,184 @@ type Gauge_NotifyReward {
   timestamp: Timestamp!
   chainId: Int!
 }
+
+type BribeVotingReward_NotifyReward {
+  id: ID!
+  from: String!
+  reward: String!
+  epoch: BigInt! @precision(digits: 76)
+  amount: BigInt! @precision(digits: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type Pool_Swap {
+  id: ID!
+  sender: String!
+  to: String!
+  amount0In: BigInt! @precision(digits: 76)
+  amount1In: BigInt! @precision(digits: 76)
+  amount0Out: BigInt! @precision(digits: 76)
+  amount1Out: BigInt! @precision(digits: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type BribeVotingReward_Deposit {
+  id: ID!
+  from: String!
+  tokenId: BigInt! @precision(digits: 76)
+  amount: BigInt! @precision(digits: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type BribeVotingReward_Withdraw {
+  id: ID!
+  from: String!
+  tokenId: BigInt! @precision(digits: 76)
+  amount: BigInt! @precision(digits: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type Voter_GaugeCreated {
+  id: ID!
+  poolFactory: String!
+  votingRewardsFactory: String!
+  gaugeFactory: String!
+  pool: String!
+  bribeVotingReward: String!
+  feeVotingReward: String!
+  gauge: String!
+  creator: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type PoolFactory_SetCustomFee {
+  id: ID!
+  pool: String!
+  fee: BigInt! @precision(digits: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type Pool_Sync {
+  id: ID!
+  reserve0: BigInt! @precision(digits: 76)
+  reserve1: BigInt! @precision(digits: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type CLPool_Burn {
+  id: ID!
+  owner: String!
+  tickLower: BigInt! @precision(digits: 76)
+  tickUpper: BigInt! @precision(digits: 76)
+  amount: BigInt! @precision(digits: 76)
+  amount0: BigInt! @precision(digits: 76)
+  amount1: BigInt! @precision(digits: 76)
+  sourceAddress: String! @index
+  timestamp: Timestamp! @index
+  chainId: Int! @index
+}
+
+type CLPool_Collect {
+  id: ID!
+  owner: String!
+  recipient: String!
+  tickLower: BigInt! @precision(digits: 76)
+  tickUpper: BigInt! @precision(digits: 76)
+  amount0: BigInt! @precision(digits: 76)
+  amount1: BigInt! @precision(digits: 76)
+  sourceAddress: String! @index
+  timestamp: Timestamp! @index
+  chainId: Int! @index
+}
+
+type CLPool_CollectFees {
+  id: ID!
+  recipient: String!
+  amount0: BigInt! @precision(digits: 76)
+  amount1: BigInt! @precision(digits: 76)
+  sourceAddress: String! @index
+  timestamp: Timestamp! @index
+  chainId: Int! @index
+}
+
+type CLPool_Flash {
+  id: ID!
+  sender: String!
+  recipient: String!
+  amount0: BigInt! @precision(digits: 76)
+  amount1: BigInt! @precision(digits: 76)
+  paid0: BigInt! @precision(digits: 76)
+  paid1: BigInt! @precision(digits: 76)
+  sourceAddress: String! @index
+  timestamp: Timestamp! @index
+  chainId: Int! @index
+}
+
+type CLPool_IncreaseObservationCardinalityNext {
+  id: ID!
+  observationCardinalityNextOld: BigInt! @precision(digits: 76)
+  observationCardinalityNextNew: BigInt! @precision(digits: 76)
+  sourceAddress: String! @index
+  timestamp: Timestamp! @index
+  chainId: Int! @index
+}
+
+type CLPool_Initialize {
+  id: ID!
+  sqrtPriceX96: BigInt! @precision(digits: 76)
+  tick: BigInt! @precision(digits: 76)
+  sourceAddress: String! @index
+  timestamp: Timestamp! @index
+  chainId: Int! @index
+}
+
+type CLPool_Mint {
+  id: ID!
+  sender: String!
+  owner: String!
+  tickLower: BigInt! @precision(digits: 76)
+  tickUpper: BigInt! @precision(digits: 76)
+  amount: BigInt! @precision(digits: 76)
+  amount0: BigInt! @precision(digits: 76)
+  amount1: BigInt! @precision(digits: 76)
+  sourceAddress: String! @index
+  timestamp: Timestamp! @index
+  chainId: Int! @index
+}
+
+type CLPool_SetFeeProtocol {
+  id: ID!
+  feeProtocol0Old: BigInt! @precision(digits: 76)
+  feeProtocol1Old: BigInt! @precision(digits: 76)
+  feeProtocol0New: BigInt! @precision(digits: 76)
+  feeProtocol1New: BigInt! @precision(digits: 76)
+  sourceAddress: String! @index
+  timestamp: Timestamp! @index
+  chainId: Int! @index
+}
+
+type CLPool_Swap {
+  id: ID!
+  sender: String!
+  recipient: String!
+  amount0: BigInt! @precision(digits: 76)
+  amount1: BigInt! @precision(digits: 76)
+  sqrtPriceX96: BigInt! @precision(digits: 76)
+  liquidity: BigInt! @precision(digits: 76)
+  tick: BigInt! @precision(digits: 76)
+  sourceAddress: String! @index
+  timestamp: Timestamp! @index
+  chainId: Int! @index
+}
