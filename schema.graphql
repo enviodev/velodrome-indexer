@@ -20,7 +20,7 @@ type LiquidityPoolNew {
   totalEmissions: BigInt! @precision(digits: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
   totalEmissionsUSD: BigInt! @precision(digits: 76) # total emissions for the pool in USD
   totalBribesUSD: BigInt! @precision(digits: 76) # total bribes for the pool in USD
-  lastUpdatedTimestamp: BigInt! @precision(digits: 76) # timestamp of last update
+  lastUpdatedTimestamp: Timestamp! # timestamp of last update
   liquidityPoolHourlySnapshots: [LiquidityPoolHourlySnapshot!]!  # hourly snapshots of the pool
     @derivedFrom(field: "pool")
   liquidityPoolDailySnapshots: [LiquidityPoolDailySnapshot!]!  # daily snapshots of the pool
@@ -34,7 +34,7 @@ type LiquidityPoolNew {
 type User {
   id: ID! # user address
   numberOfSwaps: BigInt! @precision(digits: 76) # total number of swaps the user has made
-  joined_at_timestamp: BigInt! @precision(digits: 76) # timestamp of the user's first swap (or being swapped to), Not accurate if run in multihead unordered mode.
+  joined_at_timestamp: Timestamp! # timestamp of the user's first swap (or being swapped to), Not accurate if run in multihead unordered mode.
 }
 
 # Hourly snapshot of the LiquidityPool entity
@@ -58,7 +58,7 @@ type LiquidityPoolHourlySnapshot {
   totalEmissions: BigInt! @precision(digits: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
   totalEmissionsUSD: BigInt! @precision(digits: 76) # total emissions for the pool in USD
   totalBribesUSD: BigInt! @precision(digits: 76) # total bribes for the pool in USD
-  lastUpdatedTimestamp: BigInt! @precision(digits: 76) # timestamp of last update
+  lastUpdatedTimestamp: Timestamp! # timestamp of last update
 }
 
 # Daily snapshot of the LiquidityPool entity
@@ -82,7 +82,7 @@ type LiquidityPoolDailySnapshot {
   totalEmissions: BigInt! @precision(digits: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
   totalEmissionsUSD: BigInt! @precision(digits: 76) # total emissions for the pool in USD
   totalBribesUSD: BigInt! @precision(digits: 76) # total bribes for the pool in USD
-  lastUpdatedTimestamp: BigInt! @precision(digits: 76) # timestamp of last update
+  lastUpdatedTimestamp: Timestamp! # timestamp of last update
 }
 
 # Weekly snapshot of the LiquidityPool entity
@@ -107,7 +107,7 @@ type LiquidityPoolWeeklySnapshot {
   totalEmissions: BigInt! @precision(digits: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
   totalEmissionsUSD: BigInt! @precision(digits: 76) # total emissions for the pool in USD
   totalBribesUSD: BigInt! @precision(digits: 76) # total bribes for the pool in USD
-  lastUpdatedTimestamp: BigInt! @precision(digits: 76) # timestamp of last update
+  lastUpdatedTimestamp: Timestamp! # timestamp of last update
 }
 
 # Entity that tracks the latest state of the token entity
@@ -119,7 +119,7 @@ type Token {
   chainID: BigInt! @precision(digits: 76) # chain id of the token
   decimals: BigInt! @precision(digits: 76) # number of decimals
   pricePerUSDNew: BigInt! @precision(digits: 76) # price of token per USD
-  lastUpdatedTimestamp: BigInt! @precision(digits: 76) # timestamp of last update
+  lastUpdatedTimestamp: Timestamp! # timestamp of last update
   tokenHourlySnapshots: [TokenHourlySnapshot!]! @derivedFrom(field: "token") # hourly snapshots of the token
   tokenDailySnapshots: [TokenDailySnapshot!]! @derivedFrom(field: "token") # daily snapshots of the token
   tokenWeeklySnapshots: [TokenWeeklySnapshot!]! @derivedFrom(field: "token") # weekly snapshots of the token
@@ -133,7 +133,7 @@ type TokenHourlySnapshot {
   chainID: BigInt! @precision(digits: 76) # chain id of the token
   token: String! # token address
   pricePerUSDNew: BigInt! @precision(digits: 76) # price of token per USD
-  lastUpdatedTimestamp: BigInt! @precision(digits: 76) # timestamp of last update
+  lastUpdatedTimestamp: Timestamp! # timestamp of last update
 }
 
 # Daily snapshot of the LiquidityPool entity
@@ -144,7 +144,7 @@ type TokenDailySnapshot {
   chainID: BigInt! @precision(digits: 76) # chain id of the token
   token: String! # token address
   pricePerUSDNew: BigInt! @precision(digits: 76) # price of token per USD
-  lastUpdatedTimestamp: BigInt! @precision(digits: 76) # timestamp of last update
+  lastUpdatedTimestamp: Timestamp! # timestamp of last update
 }
 
 # Weekly snapshot of the LiquidityPool entity
@@ -155,7 +155,7 @@ type TokenWeeklySnapshot {
   chainID: BigInt! @precision(digits: 76) # chain id of the token
   token: String! # token address
   pricePerUSDNew: BigInt! @precision(digits: 76) # price of token per USD
-  lastUpdatedTimestamp: BigInt! @precision(digits: 76) # timestamp of last update
+  lastUpdatedTimestamp: Timestamp! # timestamp of last update
 }
 
 type CLFactory_PoolCreated {
@@ -177,7 +177,7 @@ type Gauge_NotifyReward {
   chainId: Int!
 }
 
-type BribeVotingReward_NotifyReward {
+type VotingReward_NotifyReward {
   id: ID!
   from: String!
   reward: String!
@@ -201,7 +201,7 @@ type Pool_Swap {
   chainId: Int!
 }
 
-type BribeVotingReward_Deposit {
+type VotingReward_Deposit {
   id: ID!
   from: String!
   tokenId: BigInt! @precision(digits: 76)
@@ -211,7 +211,7 @@ type BribeVotingReward_Deposit {
   chainId: Int!
 }
 
-type BribeVotingReward_Withdraw {
+type VotingReward_Withdraw {
   id: ID!
   from: String!
   tokenId: BigInt! @precision(digits: 76)

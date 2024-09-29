@@ -43,7 +43,6 @@ export function getLiquidityPoolSnapshotByInterval(
     chainID: liquidityPoolEntity.chainID,
     reserve0: liquidityPoolEntity.reserve0,
     reserve1: liquidityPoolEntity.reserve1,
-    // totalLiquidityETH: liquidityPoolEntity.totalLiquidityETH,
     totalLiquidityUSD: liquidityPoolEntity.totalLiquidityUSD,
     totalVolume0: liquidityPoolEntity.totalVolume0,
     totalVolume1: liquidityPoolEntity.totalVolume1,
@@ -112,14 +111,19 @@ function getNumberOfSecondsInInterval(interval: SnapshotInterval): bigint {
   }
 }
 
-// Function to return the interval ID for a given snapshot entity
 function getIdForEntityByInterval(
   id: string,
-  lastUpdatedTimestamp: bigint,
+  lastUpdatedTimestamp: Date,
   numberOfSeconds: bigint
 ): string {
-  let interval = lastUpdatedTimestamp / numberOfSeconds;
+  // Convert Date to Unix timestamp in seconds
+  let lastUpdatedTimestampInSeconds = Math.floor(lastUpdatedTimestamp.getTime() / 1000);
+
+  // Perform interval calculation
+  let interval = BigInt(lastUpdatedTimestampInSeconds) / numberOfSeconds;
   let intervalStartTimestamp = interval * numberOfSeconds;
+
+  // Generate intervalPairID
   let intervalPairID = id.concat("-").concat(intervalStartTimestamp.toString());
 
   return intervalPairID;
