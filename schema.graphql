@@ -201,6 +201,40 @@ type Pool_Swap {
   chainId: Int!
 }
 
+type Pool_Burn {
+  id: ID!
+  sourceAddress: String!
+  sender: String!
+  to: String!
+  amount0: BigInt! @precision(digits: 76)
+  amount1: BigInt! @precision(digits: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type Pool_Mint {
+  id: ID!
+  sourceAddress: String!
+  sender: String!
+  amount0: BigInt! @precision(digits: 76)
+  amount1: BigInt! @precision(digits: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type Pool_Sync {
+  id: ID!
+  reserve0: BigInt! @precision(digits: 76)
+  reserve1: BigInt! @precision(digits: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type Voter {
+  id: ID!
+}
+
 type VotingReward_Deposit {
   id: ID!
   from: String!
@@ -217,6 +251,17 @@ type VotingReward_Withdraw {
   tokenId: BigInt! @precision(digits: 76)
   amount: BigInt! @precision(digits: 76)
   sourceAddress: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type Voter_Voted {
+  id: ID!
+  sender: String!
+  pool: String!
+  tokenId: BigInt! @precision(digits: 76)
+  weight: BigInt! @precision(digits: 76)
+  totalWeight: BigInt! @precision(digits: 76)
   timestamp: Timestamp!
   chainId: Int!
 }
@@ -243,14 +288,6 @@ type PoolFactory_SetCustomFee {
   chainId: Int!
 }
 
-type Pool_Sync {
-  id: ID!
-  reserve0: BigInt! @precision(digits: 76)
-  reserve1: BigInt! @precision(digits: 76)
-  sourceAddress: String!
-  timestamp: Timestamp!
-  chainId: Int!
-}
 
 type CLPool_Burn {
   id: ID!
