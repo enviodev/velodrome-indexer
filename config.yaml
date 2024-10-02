@@ -30,12 +30,15 @@ contracts:
   - name: Pool
     handler: src/EventHandlers/Pool.ts
     events:
+      - event: Mint(address indexed sender, uint256 amount0, uint256 amount1)
+      - event: Burn(address indexed sender, address indexed to, uint256 amount0, uint256 amount1)
       - event: Fees(address indexed sender, uint256 amount0, uint256 amount1)
       - event: Swap(address indexed sender, address indexed to, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out)
       - event: Sync(uint256 reserve0, uint256 reserve1)
   - name: Voter
     handler: src/EventHandlers/Voter.ts
     events:
+      - event: Voted(address indexed sender, address indexed pool, uint256 indexed tokenId, uint256 weight, uint256 totalWeight, uint256 timestamp)
       - event: DistributeReward(address indexed sender, address indexed gauge, uint256 amount)
       - event: GaugeCreated(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory, address pool, address bribeVotingReward, address feeVotingReward, address gauge, address creator)
   - name: VotingReward

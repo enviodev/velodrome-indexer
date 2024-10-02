@@ -2,6 +2,8 @@ import {
   Pool,
   Pool_Swap,
   Pool_Sync,
+  Pool_Mint,
+  Pool_Burn,
 } from "generated";
 
 import { Token, LiquidityPoolNew, User } from "./../src/Types.gen";
@@ -12,6 +14,35 @@ import {
   getTokenSnapshotByInterval,
 } from "./../IntervalSnapshots";
 import { SnapshotInterval } from "./../CustomTypes";
+
+Pool.Mint.handler(async ({ event, context }) => {
+  const entity: Pool_Mint = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    sender: event.params.sender,
+    amount0: event.params.amount0,
+    amount1: event.params.amount1,
+    sourceAddress: event.srcAddress,
+    timestamp: new Date(event.block.timestamp * 1000),
+    chainId: event.chainId,
+  };
+
+  context.Pool_Mint.set(entity);
+});
+
+Pool.Burn.handler(async ({ event, context }) => {
+  const entity: Pool_Burn = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    sender: event.params.sender,
+    to: event.params.to,
+    amount0: event.params.amount0,
+    amount1: event.params.amount1,
+    sourceAddress: event.srcAddress,
+    timestamp: new Date(event.block.timestamp * 1000),
+    chainId: event.chainId,
+  };
+
+  context.Pool_Burn.set(entity);
+});
 
 Pool.Fees.handlerWithLoader({
   loader: async ({ event, context }) => {

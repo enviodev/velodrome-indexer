@@ -1,6 +1,7 @@
 import {
   Voter,
   Voter_GaugeCreated,
+  Voter_Voted,
 } from "generated";
 
 import { LiquidityPoolNew } from "./../src/Types.gen";
@@ -13,6 +14,21 @@ const {
   getPoolAddressByGaugeAddress,
   addRewardAddressDetails,
 } = poolLookupStoreManager();
+
+Voter.Voted.handler(async ({ event, context }) => {
+  const entity: Voter_Voted = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    sender: event.params.sender,
+    pool: event.params.pool,
+    tokenId: event.params.tokenId,
+    weight: event.params.weight,
+    totalWeight: event.params.totalWeight,
+    timestamp: new Date(event.block.timestamp * 1000),
+    chainId: event.chainId,
+  };
+
+  context.Voter_Voted.set(entity);
+});
 
 Voter.GaugeCreated.contractRegister(({ event, context }) => {
   context.addVotingReward(event.params.bribeVotingReward);
