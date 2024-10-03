@@ -15,8 +15,8 @@ importers:
         specifier: 4.3.10
         version: 4.3.10
       envio:
-        specifier: v0.9.9-branch-numeric-precision-scale-v2
-        version: 0.9.9-branch-numeric-precision-scale-v2
+        specifier: v2.4.1
+        version: 2.4.1
       mocha:
         specifier: ^10.2.0
         version: 10.2.0
@@ -901,46 +901,46 @@ packages:
       once: 1.4.0
     dev: false
 
-  /envio-darwin-arm64@0.9.9-branch-numeric-precision-scale-v2:
-    resolution: {integrity: sha512-bZLwZ2fgTH+cchB4eFY9ksJrJWurHagkNq2f1uAJbM0OHoNueQ+Nr0FucVeiynyngUJffwsDLntQXHz1dw1uQQ==}
+  /envio-darwin-arm64@2.4.1:
+    resolution: {integrity: sha512-uwwKhThFH9dZhQKd6kmleeTyl//GlJGvhFXuhuJ7xn93oGbOOy3hsoYfJZSbVmb0SSSJkgWdAKN82mYHNfdVwQ==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-darwin-x64@0.9.9-branch-numeric-precision-scale-v2:
-    resolution: {integrity: sha512-LbJCbsbNuhCB08TebsNKX1Pd96FN3gBGyu5CR9qnYJ1r4O+B0kqDgP2oQ0RlyvqHFXUKEkUKH3a/bxbXcICXuw==}
+  /envio-darwin-x64@2.4.1:
+    resolution: {integrity: sha512-SKqI2hQmjmqlDYCwFaEK6TDJMLL/UE/wWlUIzsAY5drJQTwAL0mBXzUfQM8JbMgDoxeWyKNegUV1vCuTmCDREw==}
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-linux-arm64@0.9.9-branch-numeric-precision-scale-v2:
-    resolution: {integrity: sha512-CHs07cuIAmx3sVfNg++fkN5MCpbFLEsFs3fHeDCiikS8EAj4ywT7qcPMHDj+Kjsfjnv1qkBj/xSN03EDGqjcJQ==}
+  /envio-linux-arm64@2.4.1:
+    resolution: {integrity: sha512-ujUUifyKM4kHkHfcudeH8iIf5xPiW9t+IzMCgY4gug2fs3Z3biyhmeaylYNpvNiIoQ58vZqJ23fBKaUn7CPPog==}
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-linux-x64@0.9.9-branch-numeric-precision-scale-v2:
-    resolution: {integrity: sha512-dsIfPTDi7lLySyg54TyEOP+5WiPXcG/To4cHlsPLOWxeNN54+Ct7u/qNp2O5Zc7t3Y2MFRoA4o3nblujdpXYYw==}
+  /envio-linux-x64@2.4.1:
+    resolution: {integrity: sha512-aeVQ9I4zum6X+kBeJrFev/bTDePZRSlt6HytcnqJd7+iWagQggUejhcrSccp2eRSeQ95sGp+F+lQOFfWJHyEJQ==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio@0.9.9-branch-numeric-precision-scale-v2:
-    resolution: {integrity: sha512-B4yLgOVw19PRPzFlkUS6TI57kZ6RpuxCcaxNi5PUV7PK3XAVMFGTYA/3/AOHJEE15u92cT1olJbZWXOER/e8sg==}
+  /envio@2.4.1:
+    resolution: {integrity: sha512-GsHv4S/mAzr//XCyTHFBnfd1CZFlfaG+wcWJkpeguzhnttNSOMJXCR4UPG0PxV2cZYiA3eVrOSPn58fTzk2G5g==}
     hasBin: true
     optionalDependencies:
-      envio-darwin-arm64: 0.9.9-branch-numeric-precision-scale-v2
-      envio-darwin-x64: 0.9.9-branch-numeric-precision-scale-v2
-      envio-linux-arm64: 0.9.9-branch-numeric-precision-scale-v2
-      envio-linux-x64: 0.9.9-branch-numeric-precision-scale-v2
+      envio-darwin-arm64: 2.4.1
+      envio-darwin-x64: 2.4.1
+      envio-linux-arm64: 2.4.1
+      envio-linux-x64: 2.4.1
     dev: false
 
   /es-define-property@1.0.0:
