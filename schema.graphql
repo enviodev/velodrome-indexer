@@ -1,25 +1,25 @@
 type LiquidityPoolNew {
   id: ID! # pool address
-  chainID: BigInt! @precision(digits: 76) # chain id of the pool
+  chainID: BigInt! @config(precision: 76) # chain id of the pool
   name: String! # name of the pool
   token0: Token! # token0 entity
   token1: Token! # token1 entity
   isStable: Boolean! # whether the pool is a stable AMM or a volatile AMM
-  reserve0: BigInt! @precision(digits: 76) # reserve of token0 in token units
-  reserve1: BigInt! @precision(digits: 76) # reserve of token1 in token units
-  totalLiquidityUSD: BigInt! @precision(digits: 76) # total liquidity of the swap pool in USD
-  totalVolume0: BigInt! @precision(digits: 76) # total swap volume of token0 in token units
-  totalVolume1: BigInt! @precision(digits: 76) # total swap volume of token1 in token units
-  totalVolumeUSD: BigInt! @precision(digits: 76) # total swap volume of the pool in USD
-  totalFees0: BigInt! @precision(digits: 76) # total fees collected in token0 units
-  totalFees1: BigInt! @precision(digits: 76) # total fees collected in token1 units
-  totalFeesUSD: BigInt! @precision(digits: 76) # total fees collected in USD
-  numberOfSwaps: BigInt! @precision(digits: 76) # total number of swaps in the pool
-  token0Price: BigInt! @precision(digits: 76) # price of token0 relative to token1
-  token1Price: BigInt! @precision(digits: 76) # price of token1 relative to token0
-  totalEmissions: BigInt! @precision(digits: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
-  totalEmissionsUSD: BigInt! @precision(digits: 76) # total emissions for the pool in USD
-  totalBribesUSD: BigInt! @precision(digits: 76) # total bribes for the pool in USD
+  reserve0: BigInt! @config(precision: 76) # reserve of token0 in token units
+  reserve1: BigInt! @config(precision: 76) # reserve of token1 in token units
+  totalLiquidityUSD: BigInt! @config(precision: 76) # total liquidity of the swap pool in USD
+  totalVolume0: BigInt! @config(precision: 76) # total swap volume of token0 in token units
+  totalVolume1: BigInt! @config(precision: 76) # total swap volume of token1 in token units
+  totalVolumeUSD: BigInt! @config(precision: 76) # total swap volume of the pool in USD
+  totalFees0: BigInt! @config(precision: 76) # total fees collected in token0 units
+  totalFees1: BigInt! @config(precision: 76) # total fees collected in token1 units
+  totalFeesUSD: BigInt! @config(precision: 76) # total fees collected in USD
+  numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps in the pool
+  token0Price: BigInt! @config(precision: 76) # price of token0 relative to token1
+  token1Price: BigInt! @config(precision: 76) # price of token1 relative to token0
+  totalEmissions: BigInt! @config(precision: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
+  totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
+  totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
   lastUpdatedTimestamp: Timestamp! # timestamp of last update
   liquidityPoolHourlySnapshots: [LiquidityPoolHourlySnapshot!]!  # hourly snapshots of the pool
     @derivedFrom(field: "pool")
@@ -33,80 +33,79 @@ type LiquidityPoolNew {
 # Other liquidity pools don't count as users
 type User {
   id: ID! # user address
-  numberOfSwaps: BigInt! @precision(digits: 76) # total number of swaps the user has made
+  numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps the user has made
   joined_at_timestamp: Timestamp! # timestamp of the user's first swap (or being swapped to), Not accurate if run in multihead unordered mode.
 }
 
 # Hourly snapshot of the LiquidityPool entity
 type LiquidityPoolHourlySnapshot {
   id: ID! # address of the pool - number of days since unix epoch time
-  chainID: BigInt! @precision(digits: 76) # chain id of the pool
+  chainID: BigInt! @config(precision: 76) # chain id of the pool
   pool: String! # address of the pool
   name: String! # name of the pool
-  reserve0: BigInt! @precision(digits: 76) # reserve of token0 in token units
-  reserve1: BigInt! @precision(digits: 76) # reserve of token1 in token units
-  totalLiquidityUSD: BigInt! @precision(digits: 76) # total liquidity of the swap pool in USD
-  totalVolume0: BigInt! @precision(digits: 76) # total swap volume of token0 in token units
-  totalVolume1: BigInt! @precision(digits: 76) # total swap volume of token1 in token units
-  totalVolumeUSD: BigInt! @precision(digits: 76) # total swap volume of the pool in USD
-  totalFees0: BigInt! @precision(digits: 76) # total fees collected in token0 units
-  totalFees1: BigInt! @precision(digits: 76) # total fees collected in token1 units
-  totalFeesUSD: BigInt! @precision(digits: 76) # total fees collected in USD
-  numberOfSwaps: BigInt! @precision(digits: 76) # total number of swaps in the pool
-  token0Price: BigInt! @precision(digits: 76) # price of token0 relative to token1
-  token1Price: BigInt! @precision(digits: 76) # price of token1 relative to token0
-  totalEmissions: BigInt! @precision(digits: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
-  totalEmissionsUSD: BigInt! @precision(digits: 76) # total emissions for the pool in USD
-  totalBribesUSD: BigInt! @precision(digits: 76) # total bribes for the pool in USD
+  reserve0: BigInt! @config(precision: 76) # reserve of token0 in token units
+  reserve1: BigInt! @config(precision: 76) # reserve of token1 in token units
+  totalLiquidityUSD: BigInt! @config(precision: 76) # total liquidity of the swap pool in USD
+  totalVolume0: BigInt! @config(precision: 76) # total swap volume of token0 in token units
+  totalVolume1: BigInt! @config(precision: 76) # total swap volume of token1 in token units
+  totalVolumeUSD: BigInt! @config(precision: 76) # total swap volume of the pool in USD
+  totalFees0: BigInt! @config(precision: 76) # total fees collected in token0 units
+  totalFees1: BigInt! @config(precision: 76) # total fees collected in token1 units
+  totalFeesUSD: BigInt! @config(precision: 76) # total fees collected in USD
+  numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps in the pool
+  token0Price: BigInt! @config(precision: 76) # price of token0 relative to token1
+  token1Price: BigInt! @config(precision: 76) # price of token1 relative to token0
+  totalEmissions: BigInt! @config(precision: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
+  totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
+  totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
   lastUpdatedTimestamp: Timestamp! # timestamp of last update
 }
 
 # Daily snapshot of the LiquidityPool entity
 type LiquidityPoolDailySnapshot {
   id: ID! # address of the pool - number of days since unix epoch time
-  chainID: BigInt! @precision(digits: 76) # chain id of the pool
+  chainID: BigInt! @config(precision: 76) # chain id of the pool
   pool: String! # address of the pool
   name: String! # name of the pool
-  reserve0: BigInt! @precision(digits: 76) # reserve of token0 in token units
-  reserve1: BigInt! @precision(digits: 76) # reserve of token1 in token units
-  totalLiquidityUSD: BigInt! @precision(digits: 76) # total liquidity of the swap pool in USD
-  totalVolume0: BigInt! @precision(digits: 76) # total swap volume of token0 in token units
-  totalVolume1: BigInt! @precision(digits: 76) # total swap volume of token1 in token units
-  totalVolumeUSD: BigInt! @precision(digits: 76) # total swap volume of the pool in USD
-  totalFees0: BigInt! @precision(digits: 76) # total fees collected in token0 units
-  totalFees1: BigInt! @precision(digits: 76) # total fees collected in token1 units
-  totalFeesUSD: BigInt! @precision(digits: 76) # total fees collected in USD
-  numberOfSwaps: BigInt! @precision(digits: 76) # total number of swaps in the pool
-  token0Price: BigInt! @precision(digits: 76) # price of token0 relative to token1
-  token1Price: BigInt! @precision(digits: 76) # price of token1 relative to token0
-  totalEmissions: BigInt! @precision(digits: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
-  totalEmissionsUSD: BigInt! @precision(digits: 76) # total emissions for the pool in USD
-  totalBribesUSD: BigInt! @precision(digits: 76) # total bribes for the pool in USD
+  reserve0: BigInt! @config(precision: 76) # reserve of token0 in token units
+  reserve1: BigInt! @config(precision: 76) # reserve of token1 in token units
+  totalLiquidityUSD: BigInt! @config(precision: 76) # total liquidity of the swap pool in USD
+  totalVolume0: BigInt! @config(precision: 76) # total swap volume of token0 in token units
+  totalVolume1: BigInt! @config(precision: 76) # total swap volume of token1 in token units
+  totalVolumeUSD: BigInt! @config(precision: 76) # total swap volume of the pool in USD
+  totalFees0: BigInt! @config(precision: 76) # total fees collected in token0 units
+  totalFees1: BigInt! @config(precision: 76) # total fees collected in token1 units
+  totalFeesUSD: BigInt! @config(precision: 76) # total fees collected in USD
+  numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps in the pool
+  token0Price: BigInt! @config(precision: 76) # price of token0 relative to token1
+  token1Price: BigInt! @config(precision: 76) # price of token1 relative to token0
+  totalEmissions: BigInt! @config(precision: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
+  totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
+  totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
   lastUpdatedTimestamp: Timestamp! # timestamp of last update
 }
 
 # Weekly snapshot of the LiquidityPool entity
 type LiquidityPoolWeeklySnapshot {
   id: ID! # address of the pool - number of weeks since unix epoch time
-  chainID: BigInt! @precision(digits: 76) # chain id of the pool
+  chainID: BigInt! @config(precision: 76) # chain id of the pool
   pool: String! # address of the pool
   name: String! # name of the pool
-  reserve0: BigInt! @precision(digits: 76) # reserve of token0 in token units
-  reserve1: BigInt! @precision(digits: 76) # reserve of token1 in token units
-  # totalLiquidityETH: BigInt! # total liquidity of the swap pool in ETH
-  totalLiquidityUSD: BigInt! @precision(digits: 76) # total liquidity of the swap pool in USD
-  totalVolume0: BigInt! @precision(digits: 76) # total swap volume of token0 in token units
-  totalVolume1: BigInt! @precision(digits: 76) # total swap volume of token1 in token units
-  totalVolumeUSD: BigInt! @precision(digits: 76) # total swap volume of the pool in USD
-  totalFees0: BigInt! @precision(digits: 76) # total fees collected in token0 units
-  totalFees1: BigInt! @precision(digits: 76) # total fees collected in token1 units
-  totalFeesUSD: BigInt! @precision(digits: 76) # total fees collected in USD
-  numberOfSwaps: BigInt! @precision(digits: 76) # total number of swaps in the pool
-  token0Price: BigInt! @precision(digits: 76) # price of token0 relative to token1
-  token1Price: BigInt! @precision(digits: 76) # price of token1 relative to token0
-  totalEmissions: BigInt! @precision(digits: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
-  totalEmissionsUSD: BigInt! @precision(digits: 76) # total emissions for the pool in USD
-  totalBribesUSD: BigInt! @precision(digits: 76) # total bribes for the pool in USD
+  reserve0: BigInt! @config(precision: 76) # reserve of token0 in token units
+  reserve1: BigInt! @config(precision: 76) # reserve of token1 in token units
+  totalLiquidityUSD: BigInt! @config(precision: 76) # total liquidity of the swap pool in USD
+  totalVolume0: BigInt! @config(precision: 76) # total swap volume of token0 in token units
+  totalVolume1: BigInt! @config(precision: 76) # total swap volume of token1 in token units
+  totalVolumeUSD: BigInt! @config(precision: 76) # total swap volume of the pool in USD
+  totalFees0: BigInt! @config(precision: 76) # total fees collected in token0 units
+  totalFees1: BigInt! @config(precision: 76) # total fees collected in token1 units
+  totalFeesUSD: BigInt! @config(precision: 76) # total fees collected in USD
+  numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps in the pool
+  token0Price: BigInt! @config(precision: 76) # price of token0 relative to token1
+  token1Price: BigInt! @config(precision: 76) # price of token1 relative to token0
+  totalEmissions: BigInt! @config(precision: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
+  totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
+  totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
   lastUpdatedTimestamp: Timestamp! # timestamp of last update
 }
 
@@ -116,9 +115,9 @@ type Token {
   id: ID! # token address
   symbol: String! # token symbol
   name: String! # token name
-  chainID: BigInt! @precision(digits: 76) # chain id of the token
-  decimals: BigInt! @precision(digits: 76) # number of decimals
-  pricePerUSDNew: BigInt! @precision(digits: 76) # price of token per USD
+  chainID: BigInt! @config(precision: 76) # chain id of the token
+  decimals: BigInt! @config(precision: 76) # number of decimals
+  pricePerUSDNew: BigInt! @config(precision: 76) # price of token per USD
   lastUpdatedTimestamp: Timestamp! # timestamp of last update
   tokenHourlySnapshots: [TokenHourlySnapshot!]! @derivedFrom(field: "token") # hourly snapshots of the token
   tokenDailySnapshots: [TokenDailySnapshot!]! @derivedFrom(field: "token") # daily snapshots of the token
@@ -130,9 +129,9 @@ type TokenHourlySnapshot {
   id: ID! # address of the token - number of weeks since unix epoch time
   symbol: String! # token symbol
   name: String! # token name
-  chainID: BigInt! @precision(digits: 76) # chain id of the token
+  chainID: BigInt! @config(precision: 76) # chain id of the token
   token: String! # token address
-  pricePerUSDNew: BigInt! @precision(digits: 76) # price of token per USD
+  pricePerUSDNew: BigInt! @config(precision: 76) # price of token per USD
   lastUpdatedTimestamp: Timestamp! # timestamp of last update
 }
 
@@ -141,9 +140,9 @@ type TokenDailySnapshot {
   id: ID! # address of the token - number of weeks since unix epoch time
   symbol: String! # token symbol
   name: String! # token name
-  chainID: BigInt! @precision(digits: 76) # chain id of the token
+  chainID: BigInt! @config(precision: 76) # chain id of the token
   token: String! # token address
-  pricePerUSDNew: BigInt! @precision(digits: 76) # price of token per USD
+  pricePerUSDNew: BigInt! @config(precision: 76) # price of token per USD
   lastUpdatedTimestamp: Timestamp! # timestamp of last update
 }
 
@@ -152,9 +151,9 @@ type TokenWeeklySnapshot {
   id: ID! # address of the token - number of weeks since unix epoch time
   symbol: String! # token symbol
   name: String! # token name
-  chainID: BigInt! @precision(digits: 76) # chain id of the token
+  chainID: BigInt! @config(precision: 76) # chain id of the token
   token: String! # token address
-  pricePerUSDNew: BigInt! @precision(digits: 76) # price of token per USD
+  pricePerUSDNew: BigInt! @config(precision: 76) # price of token per USD
   lastUpdatedTimestamp: Timestamp! # timestamp of last update
 }
 
@@ -162,7 +161,7 @@ type CLFactory_PoolCreated {
   id: ID!
   token0: String!
   token1: String!
-  tickSpacing: BigInt! @precision(digits: 76)
+  tickSpacing: BigInt! @config(precision: 76)
   pool: String!
   timestamp: Timestamp!
   chainId: Int!
@@ -171,7 +170,7 @@ type CLFactory_PoolCreated {
 type Gauge_NotifyReward {
   id: ID!
   from: String!
-  amount: BigInt! @precision(digits: 76)
+  amount: BigInt! @config(precision: 76)
   sourceAddress: String!
   timestamp: Timestamp!
   chainId: Int!
@@ -181,8 +180,8 @@ type VotingReward_NotifyReward {
   id: ID!
   from: String!
   reward: String!
-  epoch: BigInt! @precision(digits: 76)
-  amount: BigInt! @precision(digits: 76)
+  epoch: BigInt! @config(precision: 76)
+  amount: BigInt! @config(precision: 76)
   sourceAddress: String!
   timestamp: Timestamp!
   chainId: Int!
@@ -192,10 +191,10 @@ type Pool_Swap {
   id: ID!
   sender: String!
   to: String!
-  amount0In: BigInt! @precision(digits: 76)
-  amount1In: BigInt! @precision(digits: 76)
-  amount0Out: BigInt! @precision(digits: 76)
-  amount1Out: BigInt! @precision(digits: 76)
+  amount0In: BigInt! @config(precision: 76)
+  amount1In: BigInt! @config(precision: 76)
+  amount0Out: BigInt! @config(precision: 76)
+  amount1Out: BigInt! @config(precision: 76)
   sourceAddress: String!
   timestamp: Timestamp!
   chainId: Int!
@@ -206,8 +205,8 @@ type Pool_Burn {
   sourceAddress: String!
   sender: String!
   to: String!
-  amount0: BigInt! @precision(digits: 76)
-  amount1: BigInt! @precision(digits: 76)
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
   timestamp: Timestamp!
   chainId: Int!
 }
@@ -216,16 +215,16 @@ type Pool_Mint {
   id: ID!
   sourceAddress: String!
   sender: String!
-  amount0: BigInt! @precision(digits: 76)
-  amount1: BigInt! @precision(digits: 76)
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
   timestamp: Timestamp!
   chainId: Int!
 }
 
 type Pool_Sync {
   id: ID!
-  reserve0: BigInt! @precision(digits: 76)
-  reserve1: BigInt! @precision(digits: 76)
+  reserve0: BigInt! @config(precision: 76)
+  reserve1: BigInt! @config(precision: 76)
   sourceAddress: String!
   timestamp: Timestamp!
   chainId: Int!
@@ -238,8 +237,8 @@ type Voter {
 type VotingReward_Deposit {
   id: ID!
   from: String!
-  tokenId: BigInt! @precision(digits: 76)
-  amount: BigInt! @precision(digits: 76)
+  tokenId: BigInt! @config(precision: 76)
+  amount: BigInt! @config(precision: 76)
   sourceAddress: String!
   timestamp: Timestamp!
   chainId: Int!
@@ -248,8 +247,8 @@ type VotingReward_Deposit {
 type VotingReward_Withdraw {
   id: ID!
   from: String!
-  tokenId: BigInt! @precision(digits: 76)
-  amount: BigInt! @precision(digits: 76)
+  tokenId: BigInt! @config(precision: 76)
+  amount: BigInt! @config(precision: 76)
   sourceAddress: String!
   timestamp: Timestamp!
   chainId: Int!
@@ -259,9 +258,9 @@ type Voter_Voted {
   id: ID!
   sender: String!
   pool: String!
-  tokenId: BigInt! @precision(digits: 76)
-  weight: BigInt! @precision(digits: 76)
-  totalWeight: BigInt! @precision(digits: 76)
+  tokenId: BigInt! @config(precision: 76)
+  weight: BigInt! @config(precision: 76)
+  totalWeight: BigInt! @config(precision: 76)
   timestamp: Timestamp!
   chainId: Int!
 }
@@ -283,20 +282,19 @@ type Voter_GaugeCreated {
 type PoolFactory_SetCustomFee {
   id: ID!
   pool: String!
-  fee: BigInt! @precision(digits: 76)
+  fee: BigInt! @config(precision: 76)
   timestamp: Timestamp!
   chainId: Int!
 }
 
-
 type CLPool_Burn {
   id: ID!
   owner: String!
-  tickLower: BigInt! @precision(digits: 76)
-  tickUpper: BigInt! @precision(digits: 76)
-  amount: BigInt! @precision(digits: 76)
-  amount0: BigInt! @precision(digits: 76)
-  amount1: BigInt! @precision(digits: 76)
+  tickLower: BigInt! @config(precision: 76)
+  tickUpper: BigInt! @config(precision: 76)
+  amount: BigInt! @config(precision: 76)
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
   chainId: Int! @index
@@ -306,10 +304,10 @@ type CLPool_Collect {
   id: ID!
   owner: String!
   recipient: String!
-  tickLower: BigInt! @precision(digits: 76)
-  tickUpper: BigInt! @precision(digits: 76)
-  amount0: BigInt! @precision(digits: 76)
-  amount1: BigInt! @precision(digits: 76)
+  tickLower: BigInt! @config(precision: 76)
+  tickUpper: BigInt! @config(precision: 76)
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
   chainId: Int! @index
@@ -318,8 +316,8 @@ type CLPool_Collect {
 type CLPool_CollectFees {
   id: ID!
   recipient: String!
-  amount0: BigInt! @precision(digits: 76)
-  amount1: BigInt! @precision(digits: 76)
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
   chainId: Int! @index
@@ -329,10 +327,10 @@ type CLPool_Flash {
   id: ID!
   sender: String!
   recipient: String!
-  amount0: BigInt! @precision(digits: 76)
-  amount1: BigInt! @precision(digits: 76)
-  paid0: BigInt! @precision(digits: 76)
-  paid1: BigInt! @precision(digits: 76)
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
+  paid0: BigInt! @config(precision: 76)
+  paid1: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
   chainId: Int! @index
@@ -340,8 +338,8 @@ type CLPool_Flash {
 
 type CLPool_IncreaseObservationCardinalityNext {
   id: ID!
-  observationCardinalityNextOld: BigInt! @precision(digits: 76)
-  observationCardinalityNextNew: BigInt! @precision(digits: 76)
+  observationCardinalityNextOld: BigInt! @config(precision: 76)
+  observationCardinalityNextNew: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
   chainId: Int! @index
@@ -349,8 +347,8 @@ type CLPool_IncreaseObservationCardinalityNext {
 
 type CLPool_Initialize {
   id: ID!
-  sqrtPriceX96: BigInt! @precision(digits: 76)
-  tick: BigInt! @precision(digits: 76)
+  sqrtPriceX96: BigInt! @config(precision: 76)
+  tick: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
   chainId: Int! @index
@@ -360,11 +358,11 @@ type CLPool_Mint {
   id: ID!
   sender: String!
   owner: String!
-  tickLower: BigInt! @precision(digits: 76)
-  tickUpper: BigInt! @precision(digits: 76)
-  amount: BigInt! @precision(digits: 76)
-  amount0: BigInt! @precision(digits: 76)
-  amount1: BigInt! @precision(digits: 76)
+  tickLower: BigInt! @config(precision: 76)
+  tickUpper: BigInt! @config(precision: 76)
+  amount: BigInt! @config(precision: 76)
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
   chainId: Int! @index
@@ -372,10 +370,10 @@ type CLPool_Mint {
 
 type CLPool_SetFeeProtocol {
   id: ID!
-  feeProtocol0Old: BigInt! @precision(digits: 76)
-  feeProtocol1Old: BigInt! @precision(digits: 76)
-  feeProtocol0New: BigInt! @precision(digits: 76)
-  feeProtocol1New: BigInt! @precision(digits: 76)
+  feeProtocol0Old: BigInt! @config(precision: 76)
+  feeProtocol1Old: BigInt! @config(precision: 76)
+  feeProtocol0New: BigInt! @config(precision: 76)
+  feeProtocol1New: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
   chainId: Int! @index
@@ -385,11 +383,11 @@ type CLPool_Swap {
   id: ID!
   sender: String!
   recipient: String!
-  amount0: BigInt! @precision(digits: 76)
-  amount1: BigInt! @precision(digits: 76)
-  sqrtPriceX96: BigInt! @precision(digits: 76)
-  liquidity: BigInt! @precision(digits: 76)
-  tick: BigInt! @precision(digits: 76)
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
+  sqrtPriceX96: BigInt! @config(precision: 76)
+  liquidity: BigInt! @config(precision: 76)
+  tick: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
   chainId: Int! @index
