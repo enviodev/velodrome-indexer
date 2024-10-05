@@ -8,7 +8,7 @@ import {
   CLPool_Initialize,
   CLPool_Mint,
   CLPool_SetFeeProtocol,
-  CLPool_Swap,
+  CLPool_Swap
 } from "generated";
 
 CLPool.Burn.handler(async ({ event, context }) => {
@@ -105,9 +105,11 @@ CLPool.Initialize.handler(async ({ event, context }) => {
 });
 
 CLPool.Mint.handler(async ({ event, context }) => {
+
   const entity: CLPool_Mint = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     sender: event.params.sender,
+    transactionHash: event.transaction.hash,
     owner: event.params.owner,
     tickLower: event.params.tickLower,
     tickUpper: event.params.tickUpper,

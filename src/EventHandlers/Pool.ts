@@ -19,6 +19,7 @@ Pool.Mint.handler(async ({ event, context }) => {
   const entity: Pool_Mint = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     sender: event.params.sender,
+    transactionHash: event.transaction.hash,
     amount0: event.params.amount0,
     amount1: event.params.amount1,
     sourceAddress: event.srcAddress,
