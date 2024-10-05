@@ -370,11 +370,11 @@ type CLPool_Mint {
   sender: String!
   owner: String!
   transactionHash: String!
-  tickLower: BigInt! @precision(digits: 76)
-  tickUpper: BigInt! @precision(digits: 76)
-  amount: BigInt! @precision(digits: 76)
-  amount0: BigInt! @precision(digits: 76)
-  amount1: BigInt! @precision(digits: 76)
+  tickLower: BigInt! @config(digits: 76)
+  tickUpper: BigInt! @config(digits: 76)
+  amount: BigInt! @config(digits: 76)
+  amount0: BigInt! @config(digits: 76)
+  amount1: BigInt! @config(digits: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
   chainId: Int! @index
