@@ -4,7 +4,9 @@ description: Multi-chain indexer for Velodrome V2 on Optimism and Aerodrome on B
 unordered_multichain_mode: true
 rollback_on_reorg: false
 event_decoder: hypersync-client
-
+field_selection:
+  transaction_fields:
+    - "hash"
 contracts:
   - name: PoolFactory
     handler: src/EventHandlers/PoolFactory.ts
@@ -27,6 +29,10 @@ contracts:
       - event: Mint(address sender, address indexed owner, int24 indexed tickLower, int24 indexed tickUpper, uint128 amount, uint256 amount0, uint256 amount1)
       - event: SetFeeProtocol(uint8 feeProtocol0Old, uint8 feeProtocol1Old, uint8 feeProtocol0New, uint8 feeProtocol1New)
       - event: Swap(address indexed sender, address indexed recipient, int256 amount0, int256 amount1, uint160 sqrtPriceX96, uint128 liquidity, int24 tick)
+  - name: NFPM 
+    handler: src/EventHandlers/NFPM.ts
+    events:
+      - event: Transfer(address indexed from, address indexed to, uint256 indexed tokenId)
   - name: Pool
     handler: src/EventHandlers/Pool.ts
     events:
@@ -59,6 +65,9 @@ networks:
   - id: 10 # Optimism
     start_block: 0
     contracts:
+      - name: NFPM
+        address:
+          - 0x416b433906b1b72fa758e166e239c43d68dc6f29
       - name: PoolFactory
         address:
           - 0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a
@@ -1074,6 +1083,9 @@ networks:
   - id: 8453 # Base
     start_block: 0
     contracts:
+      - name: NFPM
+        address:
+          - 0x827922686190790b37229fd06084350e74485b72
       - name: PoolFactory
         address:
           - 0x420DD381b31aEf6683db6B902084cB0FFECe40Da
