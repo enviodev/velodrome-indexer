@@ -214,6 +214,7 @@ type Pool_Burn {
 type Pool_Mint {
   id: ID!
   sourceAddress: String!
+  transactionHash: String!
   sender: String!
   amount0: BigInt! @config(precision: 76)
   amount1: BigInt! @config(precision: 76)
@@ -226,6 +227,16 @@ type Pool_Sync {
   reserve0: BigInt! @config(precision: 76)
   reserve1: BigInt! @config(precision: 76)
   sourceAddress: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type NFPM_Transfer {
+  id: ID!
+  transactionHash: String!
+  from: String!
+  to: String!
+  tokenId: BigInt! @config(precision: 76)
   timestamp: Timestamp!
   chainId: Int!
 }
@@ -358,6 +369,7 @@ type CLPool_Mint {
   id: ID!
   sender: String!
   owner: String!
+  transactionHash: String!
   tickLower: BigInt! @config(precision: 76)
   tickUpper: BigInt! @config(precision: 76)
   amount: BigInt! @config(precision: 76)
