@@ -408,6 +408,9 @@ type CLPool_Swap {
 type NFPM_PositionData {
   id: ID!
   transactionHash: String!
+  sourceAddress: String! @index
+  timestamp: Timestamp! @index
+  chainId: Int! @index
   nonce: BigInt! @config(precision: 76) # uint96, represented as a BigInt
   operator: String! # Ethereum address
   token0: String! # Ethereum address
@@ -420,7 +423,4 @@ type NFPM_PositionData {
   feeGrowthInside1LastX128: BigInt! @config(precision: 76) # uint256, represented as a BigInt
   tokensOwed0: BigInt! @config(precision: 76) # uint128, represented as a BigInt
   tokensOwed1: BigInt! @config(precision: 76) # uint128, represented as a BigInt
-  sourceAddress: String! @index
-  timestamp: Timestamp! @index
-  chainId: Int! @index
 }

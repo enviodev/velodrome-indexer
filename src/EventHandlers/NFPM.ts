@@ -46,7 +46,7 @@ NFPM.Transfer.handler(async ({ event, context }) => {
         ...positionData
       });
     } catch (error) {
-      console.log(`[getNFPMPositionDetails] Fetching token details for index: ${event.params.tokenId}`);
+      console.log(`[getNFPMPositionDetails] Failed to fetch token details for index: ${event.params.tokenId} chainId: ${event.chainId}`);
     }
   }
 });

@@ -40,7 +40,20 @@ export async function getNFTPositionInfo(
 
   const contract = new web3.eth.Contract(contractABI, contractAddress);
 
-  const position: unknown = await contract.methods.positions(tokenId.toString()).call();
-  const positionData = position as PositionData;
+  const position: any = await contract.methods.positions(tokenId.toString()).call();
+  const positionData: PositionData = {
+    nonce: BigInt(position.nonce),
+    operator: position.operator,
+    token0: position.token0,
+    token1: position.token1,
+    tickSpacing: Number(position.tickSpacing),
+    tickLower: Number(position.tickLower),
+    tickUpper: Number(position.tickUpper),
+    liquidity: BigInt(position.liquidity),
+    feeGrowthInside0LastX128: BigInt(position.feeGrowthInside0LastX128),
+    feeGrowthInside1LastX128: BigInt(position.feeGrowthInside1LastX128),
+    tokensOwed0: BigInt(position.tokensOwed0),
+    tokensOwed1: BigInt(position.tokensOwed1),
+  };
   return positionData;
 }
