@@ -1,7 +1,9 @@
 import {
     NFPM,
-    NFPM_Transfer
- } from "generated";
+    NFPM_Transfer,
+    NFPM_PositionData 
+} from "generated";
+import { getNFTPositionInfo } from "../models/NonFungiblePositionManager";
 
 /**
  * @title NonfungiblePositionManager
@@ -30,4 +32,21 @@ NFPM.Transfer.handler(async ({ event, context }) => {
   };
 
   context.NFPM_Transfer.set(entity);
+
+  // Check if the transfer is a mint
+  if (event.params.from === "0x0000000000000000000000000000000000000000") {
+    try {
+      const positionData = await getNFTPositionInfo(event.params.tokenId, event.chainId);
+      context.NFPM_PositionData.set({
+        id: `${event.chainId}_${event.params.tokenId}`,
+        transactionHash: event.transaction.hash,
+        sourceAddress: event.srcAddress,
+        timestamp: new Date(event.block.timestamp * 1000),
+        chainId: event.chainId,
+        ...positionData
+      });
+    } catch (error) {
+      console.log(`[getNFPMPositionDetails] Fetching token details for index: ${event.params.tokenId}`);
+    }
+  }
 });

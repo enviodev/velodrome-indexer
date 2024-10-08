@@ -137,6 +137,7 @@ type chainConstants = {
   firstPriceFetchedBlockNumber: number;
   rewardToken: TokenInfo;
   rpcURL: string;
+  nonFungiblePositionManager: string;
   stablecoinPools: Pool[];
   stablecoinPoolAddresses: string[];
   testingPoolAddresses: string[];
@@ -150,6 +151,7 @@ const OPTIMISM_CONSTANTS: chainConstants = {
   usdc: USDC,
   firstPriceFetchedBlockNumber: 106247807,
   rewardToken: VELO,
+  nonFungiblePositionManager: "0x416b433906b1B72FA758e166e239c43d68dC6F29",
   rpcURL: process.env.OPTIMISM_RPC_URL || "https://rpc.ankr.com/optimism",
   stablecoinPools: OPTIMISM_STABLECOIN_POOLS,
   stablecoinPoolAddresses: OPTIMISM_STABLECOIN_POOLS.map(
@@ -170,6 +172,7 @@ const BASE_CONSTANTS: chainConstants = {
   rewardToken: AERO,
   rpcURL: process.env.BASE_RPC_URL || "https://base.publicnode.com",
   stablecoinPools: BASE_STABLECOIN_POOLS,
+  nonFungiblePositionManager: "0x827922686190790b37229fd06084350e74485b72",
   stablecoinPoolAddresses: BASE_STABLECOIN_POOLS.map((pool) => pool.address),
   testingPoolAddresses: BASE_TESTING_POOL_ADDRESSES,
   whitelistedTokens: BASE_WHITELISTED_TOKENS,
