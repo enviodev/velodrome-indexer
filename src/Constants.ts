@@ -16,11 +16,11 @@ export type PriceOracleKeys = keyof typeof PRICE_ORACLE;
 export const PRICE_ORACLE = {
   10: {
     startBlock: 120445435,
-    updateDelta: 43200 // 12 hours
+    updateDelta:  60 * 60 // 1 hour
   },
   8453: {
     startBlock: 20250164, 
-    updateDelta: 43200 // 12 hours
+    updateDelta: 60 * 60 // 1 hour
   }
 };
 
