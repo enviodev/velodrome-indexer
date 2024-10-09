@@ -113,6 +113,7 @@ type LiquidityPoolWeeklySnapshot {
 # By nature this entity saves the latest state of the token, and its state at different times should be attained from the snapshot entities
 type Token {
   id: ID! # token address
+  address: String! # token address
   symbol: String! # token symbol
   name: String! # token name
   chainID: BigInt! @config(precision: 76) # chain id of the token

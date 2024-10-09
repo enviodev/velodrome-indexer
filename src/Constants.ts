@@ -11,6 +11,8 @@ export const SECONDS_IN_AN_HOUR = BigInt(3600);
 export const SECONDS_IN_A_DAY = BigInt(86400);
 export const SECONDS_IN_A_WEEK = BigInt(604800);
 
+export type PriceOracleKeys = keyof typeof PRICE_ORACLE;
+
 export const PRICE_ORACLE = {
   10: {
     startBlock: 120445435,
@@ -105,7 +107,8 @@ export const OPTIMISM_WHITELISTED_TOKENS: TokenInfo[] = [
   OP,
   LUSD,
   WETH,
-  USDC
+  USDC,
+  NATIVE_USDC
 ];
 
 export const BASE_WHITELISTED_TOKENS: TokenInfo[] = [
@@ -183,7 +186,7 @@ type chainConstants = {
 // Constants for Optimism
 const OPTIMISM_CONSTANTS: chainConstants = {
   eth: WETH,
-  usdc: USDC,
+  usdc: NATIVE_USDC,
   firstPriceFetchedBlockNumber: 106247807,
   priceOracle: "0x6a3af44e23395d2470f7c81331add6ede8597306",
   rewardToken: VELO,
@@ -202,7 +205,7 @@ const OPTIMISM_CONSTANTS: chainConstants = {
 // Constants for Base
 const BASE_CONSTANTS: chainConstants = {
   eth: WETH,
-  usdc: USDbC,
+  usdc: NATIVE_USDC_BASE,
   firstPriceFetchedBlockNumber: 3347620,
   priceOracle: "0xcbf5b6abf55fb87271338097fdd03e9d82a9d63f",
   rewardToken: AERO,

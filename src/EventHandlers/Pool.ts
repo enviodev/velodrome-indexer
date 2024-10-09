@@ -14,6 +14,8 @@ import {
   getTokenSnapshotByInterval,
 } from "./../IntervalSnapshots";
 import { SnapshotInterval } from "./../CustomTypes";
+import { PRICE_ORACLE, PriceOracleKeys } from "../Constants";
+import { get_token_price } from "../PriceOracle/controller";
 
 Pool.Mint.handler(async ({ event, context }) => {
   const entity: Pool_Mint = {
@@ -180,12 +182,8 @@ Pool.Swap.handlerWithLoader({
         Number(token1Instance.decimals)
       );
 
-      let token0Price = 0n;
-      let token1Price = 0n;
-      if (netAmount0 != 0n && netAmount1 != 0n) {
-        token0Price = divideBase1e18(netAmount1, netAmount0);
-        token1Price = divideBase1e18(netAmount0, netAmount1);
-      }
+      let token0Price = token0Instance.pricePerUSDNew;
+      let token1Price = token1Instance.pricePerUSDNew;
 
       // Calculate amounts in USD
       // We don't double count volume, we use USD of first token if possible to
@@ -233,12 +231,8 @@ Pool.Swap.handlerWithLoader({
         totalVolume0: liquidityPoolNew.totalVolume0 + netAmount0,
         totalVolume1: liquidityPoolNew.totalVolume1 + netAmount1,
         totalVolumeUSD: liquidityPoolNew.totalVolumeUSD + volumeInUSD,
-        token0Price: liquidityPoolNew.isStable
-          ? token0Price
-          : liquidityPoolNew.token0Price,
-        token1Price: liquidityPoolNew.isStable
-          ? token1Price
-          : liquidityPoolNew.token1Price,
+        token0Price,
+        token1Price,
         numberOfSwaps: liquidityPoolNew.numberOfSwaps + 1n,
         lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       };
@@ -291,21 +285,31 @@ Pool.Sync.handlerWithLoader({
         Number(token1Instance.decimals)
       );
 
-      let token0Price = liquidityPoolNew.token0Price;
-      let token1Price = liquidityPoolNew.token1Price;
+      let token0Price = token0Instance.pricePerUSDNew;
+      let token1Price = token1Instance.pricePerUSDNew;
+      // Only fetch prices if the pool was updated more than updateDelta seconds ago
+      const timeDelta =  PRICE_ORACLE[event.chainId as PriceOracleKeys].updateDelta * 1000;
 
-      // Only if the pool is not stable does this token price hold, otherwise uses previous price
-      if (
-        normalizedReserve0 != 0n &&
-        normalizedReserve1 != 0n &&
-        !liquidityPoolNew.isStable
-      ) {
-        token0Price = divideBase1e18(normalizedReserve1, normalizedReserve0);
-        token1Price = divideBase1e18(normalizedReserve0, normalizedReserve1);
+      const tokensNeedUpdate = !token0Instance.lastUpdatedTimestamp ||
+        !token1Instance.lastUpdatedTimestamp ||
+        (new Date().getTime() - token0Instance.lastUpdatedTimestamp.getTime()) > timeDelta ||
+        (new Date().getTime() - token1Instance.lastUpdatedTimestamp.getTime()) > timeDelta;
+
+      if (tokensNeedUpdate) {
+        try {
+          const token0FetchedPrice = await get_token_price(token0Instance.address, event.chainId);
+          const token1FetchedPrice = await get_token_price(token1Instance.address, event.chainId);
+          token0Price = BigInt(token0FetchedPrice);
+          token1Price = BigInt(token1FetchedPrice);
+        } catch (error) {
+          console.log("Error fetching prices", error);
+          return;
+        }
       }
 
-      let token0PricePerUSDNew = token0Instance.pricePerUSDNew;
-      let token1PricePerUSDNew = token1Instance.pricePerUSDNew;
+
+      let token0PricePerUSDNew = BigInt(token0Price);
+      let token1PricePerUSDNew = BigInt(token1Price);
 
       let totalLiquidityUSD = 0n;
       // Only non-zero this figure if we don't have a price for both tokens(?)
@@ -319,8 +323,8 @@ Pool.Sync.handlerWithLoader({
         reserve0: normalizedReserve0,
         reserve1: normalizedReserve1,
         totalLiquidityUSD: totalLiquidityUSD,
-        token0Price: token0Price,
-        token1Price: token1Price,
+        token0Price: BigInt(token0Price),
+        token1Price: BigInt(token1Price),
         lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       };
 

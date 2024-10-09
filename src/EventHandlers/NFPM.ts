@@ -5,7 +5,7 @@ import {
 } from "generated";
 
 import { setPricesLastUpdated, getPricesLastUpdated, get_whitelisted_prices } from "../PriceOracle/controller";
-import { PRICE_ORACLE } from "../Constants";
+import { PRICE_ORACLE, PriceOracleKeys } from "../Constants";
 
 /**
  * @title NonfungiblePositionManager
@@ -39,8 +39,6 @@ NFPM.Transfer.handler(async ({ event, context }) => {
 
   const currentDatetime = entity.timestamp;
 
-
-  type PriceOracleKeys = keyof typeof PRICE_ORACLE;
 
   // Check if the chainId is in the PRICE_ORACLE settings and has been deployed.
   if (!(event.chainId in PRICE_ORACLE)) {

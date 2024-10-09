@@ -85,6 +85,7 @@ export function getTokenSnapshotByInterval(
   const tokenSnapshotByIntervalEntity = {
     id: intervalId,
     chainID: tokenEntity.chainID,
+    address: tokenEntity.address,
     decimals: tokenEntity.decimals,
     symbol: tokenEntity.symbol,
     name: tokenEntity.name,

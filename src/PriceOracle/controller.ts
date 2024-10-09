@@ -22,6 +22,9 @@ export function getPricesLastUpdated(chainId: number): Date | null {
  * This function interacts with a blockchain price oracle to fetch the current
  * prices of a list of token addresses. It converts the prices from Wei to the
  * specified units and returns them as an array of numbers.
+ * 
+ * @note: See https://github.com/ethzoomer/optimism-prices for underlying smart contract
+ * implementation.
  *
  * @param {string[]} addrs - An array of token addresses for which to fetch prices.
  * @param {validUnit[]} units - An array of units corresponding to each token address,
@@ -34,7 +37,7 @@ export function getPricesLastUpdated(chainId: number): Date | null {
  * @throws {Error} Throws an error if the price fetching process fails or if there
  *                 is an issue with the contract call.
  */
-export async function read_prices(addrs: string[], units: validUnit[], chainId: number): Promise<number[]> {
+export async function read_prices(addrs: string[], chainId: number): Promise<string[]> {
     const contractAddress = CHAIN_CONSTANTS[chainId].priceOracle;
     const rpcURL = CHAIN_CONSTANTS[chainId].rpcURL;
     const web3 = new Web3(rpcURL);
@@ -43,11 +46,7 @@ export async function read_prices(addrs: string[], units: validUnit[], chainId: 
     const numAddrs = addrs.length - 1;
     const prices: string[] = await contract.methods.getManyRatesWithConnectors(numAddrs, addrs).call();
 
-    const pricesWithUnits = prices.map((price, index) => 
-        Number(utils.fromWei(price, units[index]))
-    );
-
-    return pricesWithUnits;
+    return prices;
 }
 
 /**
@@ -67,18 +66,62 @@ export async function read_prices(addrs: string[], units: validUnit[], chainId: 
  * @throws {Error} Throws an error if the price fetching process fails.
  */
 export async function get_whitelisted_prices(chainId: number): Promise<PricedTokenInfo[]> {
+
     const tokenData = chainId === 10 ? OPTIMISM_WHITELISTED_TOKENS : BASE_WHITELISTED_TOKENS;
+
     const addresses = tokenData.map(token => token.address);
     const units = tokenData.map(token => token.unit as validUnit);
+    const prices = await read_prices(addresses, chainId);
 
-    const prices = await read_prices(addresses, units, chainId);
+    const pricesByAddress = new Map<string, number>();
+    pricesByAddress.set(CHAIN_CONSTANTS[chainId].usdc.address, 1);
+
+    prices.forEach((price, index) => {
+        pricesByAddress.set(addresses[index], Number(utils.fromWei(price, units[index])));
+    });
     
-    const tokenPrices: PricedTokenInfo[] = tokenData.map((token, index) => ({
+    const tokenPrices: PricedTokenInfo[] = tokenData.map((token) => ({
         address: token.address,
         symbol: token.symbol,
         unit: token.unit,
-        price: prices[index]
+        price: pricesByAddress.get(token.address) || 0
     }));
 
     return tokenPrices;
+}
+
+/**
+ * Fetches the price of a single token in terms of a specified base token.
+ *
+ * This function retrieves the price of a token in terms of a specified base token
+ * by reading the prices from a price oracle contract. It handles the special case
+ * where the token is USDC itself, returning a price of "1".
+ *
+ * @param {string} tokenAddress - The address of the token for which to fetch the price.
+ * @param {number} chainId - The ID of the blockchain network where the price oracle
+ *                           contract is deployed.
+ * @returns {Promise<string>} A promise that resolves to the price of the token in terms
+ *                            of the specified base token.
+ *
+ * @throws {Error} Throws an error if the price fetching process fails.
+ */
+export async function get_token_price(tokenAddress: string, chainId: number): Promise<string> {
+    const weth = CHAIN_CONSTANTS[chainId].eth;
+    const usdc = CHAIN_CONSTANTS[chainId].usdc;
+
+    let restTokens = [weth.address, usdc.address];
+
+    console.log("tokenAddress", tokenAddress);
+    console.log("weth.address", weth.address);
+    console.log("usdc.address", usdc.address);
+    if (tokenAddress === weth.address) {
+        console.log("Hit weth")
+        restTokens = [usdc.address];
+    } else if (tokenAddress === usdc.address) {
+        console.log("Hit usdc")
+        return "1";
+    }
+
+    const tokenPrices = await read_prices([tokenAddress, ...restTokens], chainId);
+    return tokenPrices[0];
 }
