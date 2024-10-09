@@ -11,75 +11,110 @@ export const SECONDS_IN_AN_HOUR = BigInt(3600);
 export const SECONDS_IN_A_DAY = BigInt(86400);
 export const SECONDS_IN_A_WEEK = BigInt(604800);
 
+export const PRICE_ORACLE = {
+  10: {
+    startBlock: 120445435,
+    updateDelta: 43200 // 12 hours
+  },
+  8453: {
+    startBlock: 20250164, 
+    updateDelta: 43200 // 12 hours
+  }
+};
+
 // export const STATE_STORE_ID = "STATE";
 
 // Hardcoded WETH, USDC and OP token addresses with decimals
 export const WETH: TokenInfo = {
   address: "0x4200000000000000000000000000000000000006",
   symbol: "WETH",
+  unit: "ether"
 };
 
 // TODO change this name to usdc.e and import native usdc from base
 export const USDC: TokenInfo = {
   address: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
   symbol: "USDC.e",
+  unit: "ether"
 };
 
 export const NATIVE_USDC: TokenInfo = {
   address: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
   symbol: "USDC",
+  unit: "ether"
+};
+
+export const NATIVE_USDC_BASE: TokenInfo = {
+  address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  symbol: "USDC",
+  unit: "ether"
 };
 
 const USDC_BASE: TokenInfo = {
   address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   symbol: "USDC",
+  unit: "ether"
 };
 
 export const OP: TokenInfo = {
   address: "0x4200000000000000000000000000000000000042",
   symbol: "OP",
+  unit: "ether"
 };
 
 // beware not checksummed.
 const LUSD: TokenInfo = {
   address: "0xc40f949f8a4e094d1b49a23ea9241d289b7b2819",
   symbol: "LUSD",
+  unit: "ether"
 };
 
 export const VELO: TokenInfo = {
   address: "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db",
   symbol: "VELO",
+  unit: "ether"
 };
 
 const USDbC: TokenInfo = {
   address: "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
   symbol: "USCbC",
+  unit: "ether"
 };
 
 // NB issue!! DAI address on base, Lyra address on optimism!!
 const DAI: TokenInfo = {
   address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
   symbol: "DAI",
+  unit: "ether"
 };
 
 const AERO: TokenInfo = {
   address: "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
   symbol: "AERO",
+  unit: "ether"
 };
 
 const DOLA: TokenInfo = {
   address: "0x4621b7A9c75199271F773Ebd9A499dbd165c3191",
   symbol: "DOLA",
+  unit: "ether"
 };
 // list of WHITELISTED tokens with their symbol and decimals to be used in pricing
-const OPTIMISM_WHITELISTED_TOKENS: TokenInfo[] = [WETH, USDC, VELO, OP, LUSD];
-
-const BASE_WHITELISTED_TOKENS: TokenInfo[] = [
+export const OPTIMISM_WHITELISTED_TOKENS: TokenInfo[] = [
+  VELO,
+  OP,
+  LUSD,
   WETH,
+  USDC
+];
+
+export const BASE_WHITELISTED_TOKENS: TokenInfo[] = [
   USDbC,
-  USDC_BASE,
   DAI,
   DOLA,
+  WETH,
+  USDC_BASE,
+  NATIVE_USDC_BASE
 ];
 
 // List of stablecoin pools with their token0, token1 and name
@@ -135,6 +170,7 @@ type chainConstants = {
   eth: TokenInfo;
   usdc: TokenInfo;
   firstPriceFetchedBlockNumber: number;
+  priceOracle: string;
   rewardToken: TokenInfo;
   rpcURL: string;
   stablecoinPools: Pool[];
@@ -149,6 +185,7 @@ const OPTIMISM_CONSTANTS: chainConstants = {
   eth: WETH,
   usdc: USDC,
   firstPriceFetchedBlockNumber: 106247807,
+  priceOracle: "0x6a3af44e23395d2470f7c81331add6ede8597306",
   rewardToken: VELO,
   rpcURL: process.env.OPTIMISM_RPC_URL || "https://rpc.ankr.com/optimism",
   stablecoinPools: OPTIMISM_STABLECOIN_POOLS,
@@ -167,6 +204,7 @@ const BASE_CONSTANTS: chainConstants = {
   eth: WETH,
   usdc: USDbC,
   firstPriceFetchedBlockNumber: 3347620,
+  priceOracle: "0xcbf5b6abf55fb87271338097fdd03e9d82a9d63f",
   rewardToken: AERO,
   rpcURL: process.env.BASE_RPC_URL || "https://base.publicnode.com",
   stablecoinPools: BASE_STABLECOIN_POOLS,

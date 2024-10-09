@@ -404,3 +404,14 @@ type CLPool_Swap {
   timestamp: Timestamp! @index
   chainId: Int! @index
 }
+
+scalar Decimal
+
+type TokenPrice {
+  id: ID! # Unique identifier for the record, could be a combination of token address and chain ID
+  name: String! # Name of the token
+  address: String! @index # Address of the token
+  price: Float! # Price of the token
+  chainID: Int! @index # Chain ID where the token is located
+  lastUpdatedTimestamp: Timestamp! @index # Timestamp of the last update
+}
