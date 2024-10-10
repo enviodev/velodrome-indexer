@@ -56,6 +56,7 @@ PoolFactory.PoolCreated.handlerWithLoader({
         // Create new instances of Token to be updated in the DB
         const tokenInstance: Token = {
           id: poolTokenAddressMapping.address + "-" + event.chainId.toString(),
+          address: poolTokenAddressMapping.address,
           symbol: tokenSymbol,
           name: tokenName,
           decimals: BigInt(tokenDecimals),
