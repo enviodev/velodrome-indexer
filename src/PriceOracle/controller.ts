@@ -37,14 +37,15 @@ export function getPricesLastUpdated(chainId: number): Date | null {
  * @throws {Error} Throws an error if the price fetching process fails or if there
  *                 is an issue with the contract call.
  */
-export async function read_prices(addrs: string[], chainId: number): Promise<string[]> {
+export async function read_prices(addrs: string[], chainId: number, blockNumber?: number): Promise<string[]> {
     const contractAddress = CHAIN_CONSTANTS[chainId].priceOracle;
     const rpcURL = CHAIN_CONSTANTS[chainId].rpcURL;
     const web3 = new Web3(rpcURL);
     const contract = new web3.eth.Contract(contractABI, contractAddress);
 
     const numAddrs = addrs.length - 1;
-    const prices: string[] = await contract.methods.getManyRatesWithConnectors(numAddrs, addrs).call();
+    const prices: string[] = await contract.methods.getManyRatesWithConnectors(numAddrs, addrs)
+        .call({}, blockNumber);
 
     return prices;
 }
@@ -65,13 +66,13 @@ export async function read_prices(addrs: string[], chainId: number): Promise<str
  *
  * @throws {Error} Throws an error if the price fetching process fails.
  */
-export async function get_whitelisted_prices(chainId: number): Promise<PricedTokenInfo[]> {
+export async function get_whitelisted_prices(chainId: number, blockNumber?: number): Promise<PricedTokenInfo[]> {
 
     const tokenData = chainId === 10 ? OPTIMISM_WHITELISTED_TOKENS : BASE_WHITELISTED_TOKENS;
 
     const addresses = tokenData.map(token => token.address);
     const units = tokenData.map(token => token.unit as validUnit);
-    const prices = await read_prices(addresses, chainId);
+    const prices = await read_prices(addresses, chainId, blockNumber);
 
     const pricesByAddress = new Map<string, number>();
     pricesByAddress.set(CHAIN_CONSTANTS[chainId].usdc.address, 1);
@@ -105,23 +106,18 @@ export async function get_whitelisted_prices(chainId: number): Promise<PricedTok
  *
  * @throws {Error} Throws an error if the price fetching process fails.
  */
-export async function get_token_price(tokenAddress: string, chainId: number): Promise<string> {
+export async function get_token_price(tokenAddress: string, chainId: number, blockNumber?: number): Promise<string> {
     const weth = CHAIN_CONSTANTS[chainId].eth;
     const usdc = CHAIN_CONSTANTS[chainId].usdc;
 
     let restTokens = [weth.address, usdc.address];
 
-    console.log("tokenAddress", tokenAddress);
-    console.log("weth.address", weth.address);
-    console.log("usdc.address", usdc.address);
     if (tokenAddress === weth.address) {
-        console.log("Hit weth")
         restTokens = [usdc.address];
     } else if (tokenAddress === usdc.address) {
-        console.log("Hit usdc")
         return "1";
     }
 
-    const tokenPrices = await read_prices([tokenAddress, ...restTokens], chainId);
+    const tokenPrices = await read_prices([tokenAddress, ...restTokens], chainId, blockNumber);
     return tokenPrices[0];
 }

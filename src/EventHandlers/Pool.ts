@@ -292,13 +292,15 @@ Pool.Sync.handlerWithLoader({
 
       const tokensNeedUpdate = !token0Instance.lastUpdatedTimestamp ||
         !token1Instance.lastUpdatedTimestamp ||
-        (new Date().getTime() - token0Instance.lastUpdatedTimestamp.getTime()) > timeDelta ||
-        (new Date().getTime() - token1Instance.lastUpdatedTimestamp.getTime()) > timeDelta;
+        (entity.timestamp.getTime() - token0Instance.lastUpdatedTimestamp.getTime()) > timeDelta ||
+        (entity.timestamp.getTime() - token1Instance.lastUpdatedTimestamp.getTime()) > timeDelta;
 
-      if (tokensNeedUpdate) {
+      const oracleAvailable = PRICE_ORACLE[event.chainId as PriceOracleKeys].startBlock < event.block.number;
+
+      if (tokensNeedUpdate && oracleAvailable) {
         try {
-          const token0FetchedPrice = await get_token_price(token0Instance.address, event.chainId);
-          const token1FetchedPrice = await get_token_price(token1Instance.address, event.chainId);
+          const token0FetchedPrice = await get_token_price(token0Instance.address, event.chainId, event.block.number);
+          const token1FetchedPrice = await get_token_price(token1Instance.address, event.chainId, event.block.number);
           token0Price = BigInt(token0FetchedPrice);
           token1Price = BigInt(token1FetchedPrice);
         } catch (error) {

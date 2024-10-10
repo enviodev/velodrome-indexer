@@ -59,7 +59,7 @@ NFPM.Transfer.handler(async ({ event, context }) => {
   if (!lastUpdated || (currentDatetime.getTime() - lastUpdated.getTime()) > timeDelta) {
     let tokenData: any[] = [];
     try {
-      tokenData = await get_whitelisted_prices(event.chainId);
+      tokenData = await get_whitelisted_prices(event.chainId, event.block.number);
     } catch (error) {
       console.error("Error fetching whitelisted prices:", error);
     }
