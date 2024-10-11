@@ -250,6 +250,14 @@ Pool.Sync.handlerWithLoader({
 
     if (liquidityPoolNew == undefined) return null;
 
+    const blockDatetime = new Date(event.block.timestamp * 1000);
+
+    try {
+      await set_whitelisted_prices(event.chainId, event.block.number, blockDatetime, context);
+    } catch (error) {
+      console.log("Error updating token prices on pool sync:", error);
+    }
+
     const token0Instance = await context.Token.get(liquidityPoolNew.token0_id);
     const token1Instance = await context.Token.get(liquidityPoolNew.token1_id);
 
@@ -285,36 +293,8 @@ Pool.Sync.handlerWithLoader({
         Number(token1Instance.decimals)
       );
 
-      let token0Price = token0Instance.pricePerUSDNew;
-      let token1Price = token1Instance.pricePerUSDNew;
-
-      const lastUpdated = getPricesLastUpdated(event.chainId);
-      const blockDatetime = new Date(event.block.timestamp * 1000);
-      const timeDelta = CHAIN_CONSTANTS[event.chainId].oracle.updateDelta * 1000;
-
-      const tokensNeedUpdate = !lastUpdated || (blockDatetime.getTime() - lastUpdated.getTime()) > timeDelta;
-
-      const oracleAvailable = CHAIN_CONSTANTS[event.chainId].oracle.startBlock < event.block.number;
-
-      if (tokensNeedUpdate && oracleAvailable) {
-        try {
-          await set_whitelisted_prices(event.chainId, event.block.number, blockDatetime, context);
-          
-          // Refresh token instances after update
-          const updatedToken0 = await context.Token.get(token0Instance.id);
-          const updatedToken1 = await context.Token.get(token1Instance.id);
-          
-          if (updatedToken0 && updatedToken1) {
-            token0Price = updatedToken0.pricePerUSDNew;
-            token1Price = updatedToken1.pricePerUSDNew;
-          }
-        } catch (error) {
-          console.log("Error updating token prices", error);
-        }
-      }
-
-      let token0PricePerUSDNew = BigInt(token0Price);
-      let token1PricePerUSDNew = BigInt(token1Price);
+      let token0PricePerUSDNew = token0Instance.pricePerUSDNew;
+      let token1PricePerUSDNew = token1Instance.pricePerUSDNew;
 
       let totalLiquidityUSD = 0n;
       // Only non-zero this figure if we don't have a price for both tokens(?)
@@ -328,8 +308,8 @@ Pool.Sync.handlerWithLoader({
         reserve0: normalizedReserve0,
         reserve1: normalizedReserve1,
         totalLiquidityUSD: totalLiquidityUSD,
-        token0Price: BigInt(token0Price),
-        token1Price: BigInt(token1Price),
+        token0Price: token0PricePerUSDNew,
+        token1Price: token1PricePerUSDNew,
         lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       };
 

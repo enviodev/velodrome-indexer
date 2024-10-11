@@ -70,6 +70,11 @@ export async function set_whitelisted_prices(chainId: number, blockNumber: numbe
     let startBlock = CHAIN_CONSTANTS[chainId].oracle.startBlock || Number.MAX_SAFE_INTEGER;
     if (blockNumber < startBlock) return;
 
+    const lastUpdated = getPricesLastUpdated(chainId);
+    const timeDelta = CHAIN_CONSTANTS[chainId].oracle.updateDelta * 1000;
+    const tokensNeedUpdate = !lastUpdated || (blockDatetime.getTime() - lastUpdated.getTime()) > timeDelta;
+    if (!tokensNeedUpdate) return;
+
     // Get token data for chain
     const tokenData = chainId === 10 ? OPTIMISM_WHITELISTED_TOKENS : BASE_WHITELISTED_TOKENS;
 
