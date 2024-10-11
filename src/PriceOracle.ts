@@ -57,8 +57,8 @@ export async function read_prices(
     return prices;
   } catch (error) {
     console.error("Error fetching prices:", error);
-    console.error("Setting a zero price and caching.");
-    return addrs.map(() => "0");
+    console.error("Setting a -1 price and caching.");
+    return addrs.map(() => "-1");
   }
 }
 
