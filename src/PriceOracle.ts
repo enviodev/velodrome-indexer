@@ -1,20 +1,22 @@
 import { Web3, utils } from "web3";
 import { validUnit } from "./CustomTypes";
 import {
-    OPTIMISM_WHITELISTED_TOKENS,
-    BASE_WHITELISTED_TOKENS,
-    CHAIN_CONSTANTS,
+  OPTIMISM_WHITELISTED_TOKENS,
+  BASE_WHITELISTED_TOKENS,
+  CHAIN_CONSTANTS,
+  CacheCategory,
 } from "./Constants";
 import contractABI from "../abis/VeloPriceOracleABI.json";
 import { Token, TokenPrice } from "./src/Types.gen";
+import { Cache } from "./cache";
 
 let pricesLastUpdated: { [chainId: number]: Date } = {};
 export function setPricesLastUpdated(chainId: number, date: Date) {
-    pricesLastUpdated[chainId] = date;
+  pricesLastUpdated[chainId] = date;
 }
 
 export function getPricesLastUpdated(chainId: number): Date | null {
-    return pricesLastUpdated[chainId] || null;
+  return pricesLastUpdated[chainId] || null;
 }
 
 /**
@@ -22,7 +24,7 @@ export function getPricesLastUpdated(chainId: number): Date | null {
  *
  * This function interacts with a blockchain price oracle to fetch the current
  * prices of a list of token addresses. It returns them as an array of strings.
- * 
+ *
  * @note: See https://github.com/ethzoomer/optimism-prices for underlying smart contract
  * implementation.
  *
@@ -36,16 +38,22 @@ export function getPricesLastUpdated(chainId: number): Date | null {
  * @throws {Error} Throws an error if the price fetching process fails or if there
  *                 is an issue with the contract call.
  */
-export async function read_prices(addrs: string[], chainId: number, blockNumber: number): Promise<string[]> {
-    const contractAddress = CHAIN_CONSTANTS[chainId].oracle.getAddress(blockNumber);
-    const rpcURL = CHAIN_CONSTANTS[chainId].rpcURL;
-    const web3 = new Web3(rpcURL);
-    const contract = new web3.eth.Contract(contractABI, contractAddress);
+export async function read_prices(
+  addrs: string[],
+  chainId: number,
+  blockNumber: number
+): Promise<string[]> {
+  const contractAddress =
+    CHAIN_CONSTANTS[chainId].oracle.getAddress(blockNumber);
+  const rpcURL = CHAIN_CONSTANTS[chainId].rpcURL;
+  const web3 = new Web3(rpcURL);
+  const contract = new web3.eth.Contract(contractABI, contractAddress);
 
-    const numAddrs = addrs.length - 1;
-    const prices: string[] = await contract.methods.getManyRatesWithConnectors(numAddrs, addrs)
-        .call({}, blockNumber);
-    return prices;
+  const numAddrs = addrs.length - 1;
+  const prices: string[] = await contract.methods
+    .getManyRatesWithConnectors(numAddrs, addrs)
+    .call({}, blockNumber);
+  return prices;
 }
 
 /**
@@ -65,74 +73,138 @@ export async function read_prices(addrs: string[], chainId: number, blockNumber:
  *
  * @throws {Error} Throws an error if the price fetching process fails.
  */
-export async function set_whitelisted_prices(chainId: number, blockNumber: number, blockDatetime: Date, context: any): Promise<void> {
-    // Skip if not yet available
-    let startBlock = CHAIN_CONSTANTS[chainId].oracle.startBlock || Number.MAX_SAFE_INTEGER;
-    if (blockNumber < startBlock) return;
+export async function set_whitelisted_prices(
+  chainId: number,
+  blockNumber: number,
+  blockDatetime: Date,
+  context: any
+): Promise<void> {
+  // Skip if not yet available
+  let startBlock =
+    CHAIN_CONSTANTS[chainId].oracle.startBlock || Number.MAX_SAFE_INTEGER;
+  if (blockNumber < startBlock) return;
 
-    const lastUpdated = getPricesLastUpdated(chainId);
-    const timeDelta = CHAIN_CONSTANTS[chainId].oracle.updateDelta * 1000;
-    const tokensNeedUpdate = !lastUpdated || (blockDatetime.getTime() - lastUpdated.getTime()) > timeDelta;
-    if (!tokensNeedUpdate) return;
+  const lastUpdated = getPricesLastUpdated(chainId);
+  const timeDelta = CHAIN_CONSTANTS[chainId].oracle.updateDelta * 1000;
+  const tokensNeedUpdate =
+    !lastUpdated || blockDatetime.getTime() - lastUpdated.getTime() > timeDelta;
+  if (!tokensNeedUpdate) return;
 
-    // Get token data for chain
-    const tokenData = chainId === 10 ? OPTIMISM_WHITELISTED_TOKENS : BASE_WHITELISTED_TOKENS;
+  // Get token data for chain
+  const tokenData =
+    chainId === 10 ? OPTIMISM_WHITELISTED_TOKENS : BASE_WHITELISTED_TOKENS;
 
-    // Get prices from oracle
-    const addresses = tokenData
-        .filter(token => token.createdBlock <= blockNumber)
-        .map(token => token.address);
+  // Get prices from oracle
+  const addresses = tokenData
+    .filter((token) => token.createdBlock <= blockNumber)
+    .map((token) => token.address);
 
-    if (addresses.length === 0) return;
-    const units = tokenData.map(token => token.unit as validUnit);
-    const prices = await read_prices(addresses, chainId, blockNumber);
+  if (addresses.length === 0) return;
+  const units = tokenData.map((token) => token.unit as validUnit);
 
-    // Map prices to token addresses
-    const pricesByAddress = new Map<string, number>();
-    pricesByAddress.set(CHAIN_CONSTANTS[chainId].usdc.address, 1);
+  // Initialize the token price cache
+  const tokenPriceCache = Cache.init(CacheCategory.TokenPrice, chainId);
 
-    prices.forEach((price, index) => {
-        pricesByAddress.set(addresses[index], Number(utils.fromWei(price, units[index])));
-    });
-    
-    for (const token of tokenData) {
-        const price = pricesByAddress.get(token.address) || 0;
-        
-        // Get or create Token entity
-        let tokenEntity = await context.Token.get(token.address);
-        if (!tokenEntity) {
-            // Create a new token entity if it doesn't exist
-            tokenEntity = {
-                id: token.address,
-                address: token.address,
-                symbol: token.symbol,
-                name: token.symbol, // Using symbol as name, update if you have a separate name field
-                chainID: BigInt(chainId),
-                decimals: BigInt(18), // Assuming 18 decimals, update if you have specific decimal information
-                pricePerUSDNew: BigInt(0),
-                lastUpdatedTimestamp: new Date(0)
-            };
-        }
+  // Check cache for existing prices
+  const cachedPrices: string[] = [];
+  const addressesToFetch: string[] = [];
+  addresses.forEach((address, index) => {
+    const cacheKey = `${chainId}_${address}_${blockNumber}`;
+    const cachedPrice = tokenPriceCache.read(cacheKey);
+    if (
+      cachedPrice &&
+      typeof cachedPrice === "object" &&
+      "price" in cachedPrice
+    ) {
+      cachedPrices[index] = cachedPrice.price;
+    } else {
+      addressesToFetch.push(address);
+    }
+  });
 
-        // Update Token entity
-        const updatedToken: Token = {
-            ...tokenEntity,
-            pricePerUSDNew: BigInt(Math.floor(price * 1e18)),
-            lastUpdatedTimestamp: blockDatetime
-        };
-        context.Token.set(updatedToken);
+  // Fetch prices for addresses not in cache
+  let fetchedPrices: string[] = [];
+  if (addressesToFetch.length > 0) {
+    fetchedPrices = await read_prices(addressesToFetch, chainId, blockNumber);
+  }
 
-        // Create new TokenPrice entity
-        const tokenPrice: TokenPrice = {
-            id: `${chainId}_${token.address}_${blockNumber}`,
-            name: token.symbol,
-            address: token.address,
-            price: price,
-            chainID: chainId,
-            lastUpdatedTimestamp: blockDatetime,
-        };
-        context.TokenPrice.set(tokenPrice);
+  // Combine cached and fetched prices
+  const prices = addresses.map((address, index) => {
+    if (cachedPrices[index]) {
+      return cachedPrices[index];
+    } else {
+      const fetchedIndex = addressesToFetch.indexOf(address);
+      return fetchedPrices[fetchedIndex];
+    }
+  });
+
+  // Update cache with fetched prices
+  addressesToFetch.forEach((address, index) => {
+    if (fetchedPrices[index] !== undefined) {
+      const cacheKey = `${chainId}_${address}_${blockNumber}`;
+      tokenPriceCache.add({ [cacheKey]: { price: fetchedPrices[index] } });
+    } else {
+      console.log(`Skipping caching undefined price for address: ${address}`);
+    }
+  });
+
+  // Map prices to token addresses
+  const pricesByAddress = new Map<string, number>();
+  pricesByAddress.set(CHAIN_CONSTANTS[chainId].usdc.address, 1);
+
+  prices.forEach((price, index) => {
+    if (price !== undefined) {
+      pricesByAddress.set(
+        addresses[index],
+        Number(utils.fromWei(price, units[index]))
+      );
+    } else {
+      console.log(
+        `Setting 0 for undefined price for address: ${addresses[index]}`
+      );
+      // Optionally, set price to 0 instead of skipping:
+      pricesByAddress.set(addresses[index], 0);
+    }
+  });
+
+  for (const token of tokenData) {
+    const price = pricesByAddress.get(token.address) || 0;
+
+    // Get or create Token entity
+    let tokenEntity = await context.Token.get(token.address);
+    if (!tokenEntity) {
+      // Create a new token entity if it doesn't exist
+      tokenEntity = {
+        id: token.address,
+        address: token.address,
+        symbol: token.symbol,
+        name: token.symbol, // Using symbol as name, update if you have a separate name field
+        chainID: BigInt(chainId),
+        decimals: BigInt(18), // Assuming 18 decimals, update if you have specific decimal information
+        pricePerUSDNew: BigInt(0),
+        lastUpdatedTimestamp: new Date(0),
+      };
     }
 
-    setPricesLastUpdated(chainId, blockDatetime);
+    // Update Token entity
+    const updatedToken: Token = {
+      ...tokenEntity,
+      pricePerUSDNew: BigInt(Math.floor(price * 1e18)),
+      lastUpdatedTimestamp: blockDatetime,
+    };
+    context.Token.set(updatedToken);
+
+    // Create new TokenPrice entity
+    const tokenPrice: TokenPrice = {
+      id: `${chainId}_${token.address}_${blockNumber}`,
+      name: token.symbol,
+      address: token.address,
+      price: price,
+      chainID: chainId,
+      lastUpdatedTimestamp: blockDatetime,
+    };
+    context.TokenPrice.set(tokenPrice);
+  }
+
+  setPricesLastUpdated(chainId, blockDatetime);
 }
