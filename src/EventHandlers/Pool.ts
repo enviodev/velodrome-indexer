@@ -8,14 +8,14 @@ import {
 
 import { Token, LiquidityPoolNew, User } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18, } from "./../Helpers";
-import { divideBase1e18, multiplyBase1e18 } from "./../Maths";
+import { multiplyBase1e18 } from "./../Maths";
 import {
   getLiquidityPoolSnapshotByInterval,
   getTokenSnapshotByInterval,
 } from "./../IntervalSnapshots";
 import { SnapshotInterval } from "./../CustomTypes";
-import { PRICE_ORACLE, PriceOracleKeys } from "../Constants";
-import { get_token_price } from "../PriceOracle/controller";
+import { CHAIN_CONSTANTS } from "../Constants";
+import { getPricesLastUpdated, set_whitelisted_prices } from "../PriceOracle";
 
 Pool.Mint.handler(async ({ event, context }) => {
   const entity: Pool_Mint = {
@@ -287,28 +287,31 @@ Pool.Sync.handlerWithLoader({
 
       let token0Price = token0Instance.pricePerUSDNew;
       let token1Price = token1Instance.pricePerUSDNew;
-      // Only fetch prices if the pool was updated more than updateDelta seconds ago
-      const timeDelta =  PRICE_ORACLE[event.chainId as PriceOracleKeys].updateDelta * 1000;
 
-      const tokensNeedUpdate = !token0Instance.lastUpdatedTimestamp ||
-        !token1Instance.lastUpdatedTimestamp ||
-        (entity.timestamp.getTime() - token0Instance.lastUpdatedTimestamp.getTime()) > timeDelta ||
-        (entity.timestamp.getTime() - token1Instance.lastUpdatedTimestamp.getTime()) > timeDelta;
+      const lastUpdated = getPricesLastUpdated(event.chainId);
+      const blockDatetime = new Date(event.block.timestamp * 1000);
+      const timeDelta = CHAIN_CONSTANTS[event.chainId].oracle.updateDelta * 1000;
 
-      const oracleAvailable = PRICE_ORACLE[event.chainId as PriceOracleKeys].startBlock < event.block.number;
+      const tokensNeedUpdate = !lastUpdated || (blockDatetime.getTime() - lastUpdated.getTime()) > timeDelta;
+
+      const oracleAvailable = CHAIN_CONSTANTS[event.chainId].oracle.startBlock < event.block.number;
 
       if (tokensNeedUpdate && oracleAvailable) {
         try {
-          const token0FetchedPrice = await get_token_price(token0Instance.address, event.chainId, event.block.number);
-          const token1FetchedPrice = await get_token_price(token1Instance.address, event.chainId, event.block.number);
-          token0Price = BigInt(token0FetchedPrice);
-          token1Price = BigInt(token1FetchedPrice);
+          await set_whitelisted_prices(event.chainId, event.block.number, blockDatetime, context);
+          
+          // Refresh token instances after update
+          const updatedToken0 = await context.Token.get(token0Instance.id);
+          const updatedToken1 = await context.Token.get(token1Instance.id);
+          
+          if (updatedToken0 && updatedToken1) {
+            token0Price = updatedToken0.pricePerUSDNew;
+            token1Price = updatedToken1.pricePerUSDNew;
+          }
         } catch (error) {
-          console.log("Error fetching prices", error);
-          return;
+          console.log("Error updating token prices", error);
         }
       }
-
 
       let token0PricePerUSDNew = BigInt(token0Price);
       let token1PricePerUSDNew = BigInt(token1Price);

@@ -11,6 +11,7 @@ export type TokenInfo = {
   address: string;
   symbol: string;
   unit: validUnit;
+  createdBlock: number;
 };
 
 export type PricedTokenInfo = TokenInfo & {

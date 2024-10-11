@@ -57,10 +57,6 @@ contracts:
     handler: src/EventHandlers/Gauge.ts
     events:
       - event: NotifyReward(address indexed from, uint256 amount)
-  - name: PriceFetcher
-    handler: src/EventHandlers/PriceFetcher.ts
-    events:
-      - event: PriceFetched(address indexed token, uint256 price)
 networks:
   - id: 10 # Optimism
     start_block: 0
@@ -1073,11 +1069,6 @@ networks:
           - 0x164690E531f108d7637f8CEdB3b7E20cafa9d6D2
           - 0x0c34ad80a50cef903c66e7562F17CF92e552e37d
           - 0x9aAD5FC65E249bEdcedDC5c38101071b1266F2A4
-      - name: PriceFetcher
-        address:
-          - 0x11BbF869250424BEDC5f162094afF8b4A45bE841
-          - 0xe255e0774416604dd53f75ea8301157dcce6eb03
-          - 0x6777E70fe05daeD585Fbed3c2fcd2Cd8fb0b4E38
       - name: CLPool
         address:
   - id: 8453 # Base
@@ -1646,9 +1637,5 @@ networks:
           - 0x0B681EdA2cAC584064Ee5bFFD4C820E9C6276883
           - 0xD8B435840b8223Ab194A5571A6058a3989F4a586
           - 0x43f3c1fca1Ea82f5d81bad06a9a8dC6F12ae5e9c
-      - name: PriceFetcher
-        address:
-          - 0x593d092bb28ccefe33bfdd3d9457e77bd3084271
-          - 0x2910942669b9F0118d025be31B1A82E36bF88880
       - name: CLPool
         address:

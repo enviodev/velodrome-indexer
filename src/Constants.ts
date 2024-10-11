@@ -15,12 +15,8 @@ export type PriceOracleKeys = keyof typeof PRICE_ORACLE;
 
 export const PRICE_ORACLE = {
   10: {
-    startBlock: 120445435,
-    updateDelta:  60 * 60 // 1 hour
   },
   8453: {
-    startBlock: 20250164, 
-    updateDelta: 60 * 60 // 1 hour
   }
 };
 
@@ -30,84 +26,95 @@ export const PRICE_ORACLE = {
 export const WETH: TokenInfo = {
   address: "0x4200000000000000000000000000000000000006",
   symbol: "WETH",
-  unit: "ether"
+  unit: "ether",
+  createdBlock: 0
 };
 
 // TODO change this name to usdc.e and import native usdc from base
 export const USDC: TokenInfo = {
   address: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
   symbol: "USDC.e",
-  unit: "ether"
+  unit: "ether",
+  createdBlock: 0
 };
 
 export const NATIVE_USDC: TokenInfo = {
   address: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
   symbol: "USDC",
-  unit: "ether"
+  unit: "ether",
+  createdBlock: 38198364
 };
 
 export const NATIVE_USDC_BASE: TokenInfo = {
   address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   symbol: "USDC",
-  unit: "ether"
+  unit: "ether",
+  createdBlock: 2797221
 };
 
 const USDC_BASE: TokenInfo = {
   address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   symbol: "USDC",
-  unit: "ether"
+  unit: "ether",
+  createdBlock: 2797221
 };
 
 export const OP: TokenInfo = {
   address: "0x4200000000000000000000000000000000000042",
   symbol: "OP",
-  unit: "ether"
+  unit: "ether",
+  createdBlock: 6490467
 };
 
-// beware not checksummed.
 const LUSD: TokenInfo = {
-  address: "0xc40f949f8a4e094d1b49a23ea9241d289b7b2819",
+  address: "0xc40F949F8a4e094D1b49a23ea9241D289B7b2819",
   symbol: "LUSD",
-  unit: "ether"
+  unit: "ether",
+  createdBlock: 0
 };
 
 export const VELO: TokenInfo = {
   address: "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db",
   symbol: "VELO",
-  unit: "ether"
+  unit: "ether",
+  createdBlock: 105896796
 };
 
 const USDbC: TokenInfo = {
   address: "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
   symbol: "USCbC",
-  unit: "ether"
+  unit: "ether",
+  createdBlock: 2062407
 };
 
 // NB issue!! DAI address on base, Lyra address on optimism!!
 const DAI: TokenInfo = {
   address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
   symbol: "DAI",
-  unit: "ether"
+  unit: "ether",
+  createdBlock: 1569598
 };
 
 const AERO: TokenInfo = {
   address: "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
   symbol: "AERO",
-  unit: "ether"
+  unit: "ether",
+  createdBlock: 3200550
 };
 
 const DOLA: TokenInfo = {
   address: "0x4621b7A9c75199271F773Ebd9A499dbd165c3191",
   symbol: "DOLA",
-  unit: "ether"
+  unit: "ether",
+  createdBlock: 2361818
 };
 // list of WHITELISTED tokens with their symbol and decimals to be used in pricing
 export const OPTIMISM_WHITELISTED_TOKENS: TokenInfo[] = [
   VELO,
   OP,
   LUSD,
-  WETH,
   USDC,
+  WETH,
   NATIVE_USDC
 ];
 
@@ -116,7 +123,6 @@ export const BASE_WHITELISTED_TOKENS: TokenInfo[] = [
   DAI,
   DOLA,
   WETH,
-  USDC_BASE,
   NATIVE_USDC_BASE
 ];
 
@@ -172,8 +178,11 @@ const BASE_TESTING_POOL_ADDRESSES: string[] = [
 type chainConstants = {
   eth: TokenInfo;
   usdc: TokenInfo;
-  firstPriceFetchedBlockNumber: number;
-  priceOracle: string;
+  oracle: {
+    getAddress: (blockNumber: number) => string;
+    startBlock: number;
+    updateDelta: number;
+  };
   rewardToken: TokenInfo;
   rpcURL: string;
   stablecoinPools: Pool[];
@@ -187,8 +196,15 @@ type chainConstants = {
 const OPTIMISM_CONSTANTS: chainConstants = {
   eth: WETH,
   usdc: NATIVE_USDC,
-  firstPriceFetchedBlockNumber: 106247807,
-  priceOracle: "0x6a3af44e23395d2470f7c81331add6ede8597306",
+  oracle: {
+    getAddress: (blockNumber: number) => {
+      return blockNumber < 124076662 ?
+        "0x395942C2049604a314d39F370Dfb8D87AAC89e16" :
+        "0x6a3af44e23395d2470f7c81331add6ede8597306";
+    },
+    startBlock: 107676013,
+    updateDelta:  60 * 60 // 1 hour
+  },
   rewardToken: VELO,
   rpcURL: process.env.OPTIMISM_RPC_URL || "https://rpc.ankr.com/optimism",
   stablecoinPools: OPTIMISM_STABLECOIN_POOLS,
@@ -206,8 +222,15 @@ const OPTIMISM_CONSTANTS: chainConstants = {
 const BASE_CONSTANTS: chainConstants = {
   eth: WETH,
   usdc: NATIVE_USDC_BASE,
-  firstPriceFetchedBlockNumber: 3347620,
-  priceOracle: "0xcbf5b6abf55fb87271338097fdd03e9d82a9d63f",
+  oracle: {
+    getAddress: (blockNumber: number) => {
+      return blockNumber < 18480097 ?
+        "0xe58920a8c684CD3d6dCaC2a41b12998e4CB17EfE" :
+        "0xcbf5b6abf55fb87271338097fdd03e9d82a9d63f";
+    },
+    startBlock: 3219857, 
+    updateDelta: 60 * 60 // 1 hour
+  },
   rewardToken: AERO,
   rpcURL: process.env.BASE_RPC_URL || "https://base.publicnode.com",
   stablecoinPools: BASE_STABLECOIN_POOLS,
