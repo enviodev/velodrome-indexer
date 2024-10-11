@@ -4,7 +4,7 @@ import {
 } from "generated";
 
 import { getPricesLastUpdated, set_whitelisted_prices } from "../PriceOracle";
-import { CHAIN_CONSTANTS, PRICE_ORACLE, PriceOracleKeys } from "../Constants";
+import { CHAIN_CONSTANTS } from "../Constants";
 
 /**
  * @title NonfungiblePositionManager
@@ -39,9 +39,7 @@ NFPM.Transfer.handler(async ({ event, context }) => {
 
   // Check if the oracle is available and deployed
   const oracleAvailable = CHAIN_CONSTANTS[event.chainId].oracle.startBlock < event.block.number;
-  if (!(event.chainId in PRICE_ORACLE) || !oracleAvailable) {
-    return;
-  }
+  if (!oracleAvailable) return;
 
   // Only update the prices if the last update was more than updateDelta seconds ago.
   const timeDelta = CHAIN_CONSTANTS[event.chainId].oracle.updateDelta * 1000;

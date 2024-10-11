@@ -1,0 +1,38 @@
+[
+  {
+    "address": "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
+    "symbol": "USDbC",
+    "unit": "ether",
+    "createdBlock": 2062407
+  },
+  {
+    "address": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
+    "symbol": "DAI",
+    "unit": "ether",
+    "createdBlock": 1569598
+  },
+  {
+    "address": "0x4621b7A9c75199271F773Ebd9A499dbd165c3191",
+    "symbol": "DOLA",
+    "unit": "ether",
+    "createdBlock": 2361818
+  },
+  {
+    "address": "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
+    "symbol": "AERO",
+    "unit": "ether",
+    "createdBlock": 3200550
+  },
+  {
+    "address": "0x4200000000000000000000000000000000000006",
+    "symbol": "WETH",
+    "unit": "ether",
+    "createdBlock": 0
+  },
+  {
+    "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "symbol": "USDC",
+    "unit": "ether",
+    "createdBlock": 2797221
+  }
+]
