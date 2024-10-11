@@ -50,10 +50,16 @@ export async function read_prices(
   const contract = new web3.eth.Contract(contractABI, contractAddress);
 
   const numAddrs = addrs.length - 1;
-  const prices: string[] = await contract.methods
-    .getManyRatesWithConnectors(numAddrs, addrs)
-    .call({}, blockNumber);
-  return prices;
+  try {
+    const prices: string[] = await contract.methods
+      .getManyRatesWithConnectors(numAddrs, addrs)
+      .call({}, blockNumber);
+    return prices;
+  } catch (error) {
+    console.error("Error fetching prices:", error);
+    console.error("Setting a zero price and caching.");
+    return addrs.map(() => "0");
+  }
 }
 
 /**
