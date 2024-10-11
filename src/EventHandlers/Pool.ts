@@ -250,23 +250,7 @@ Pool.Sync.handlerWithLoader({
 
     if (liquidityPoolNew == undefined) return null;
 
-    const blockDatetime = new Date(event.block.timestamp * 1000);
-
-    try {
-      await set_whitelisted_prices(event.chainId, event.block.number, blockDatetime, context);
-    } catch (error) {
-      console.log("Error updating token prices on pool sync:", error);
-    }
-
-    const token0Instance = await context.Token.get(liquidityPoolNew.token0_id);
-    const token1Instance = await context.Token.get(liquidityPoolNew.token1_id);
-
-    if (token0Instance == undefined || token1Instance == undefined)
-      throw new Error(
-        "Token instances not found. They are required fields for LiquidityPoolEntity"
-      );
-
-    return { liquidityPoolNew, token0Instance, token1Instance };
+    return { liquidityPoolNew };
   },
   handler: async ({ event, context, loaderReturn }) => {
     const entity: Pool_Sync = {
@@ -281,7 +265,21 @@ Pool.Sync.handlerWithLoader({
     context.Pool_Sync.set(entity);
 
     if (loaderReturn) {
-      const { liquidityPoolNew, token0Instance, token1Instance } = loaderReturn;
+      const { liquidityPoolNew }= loaderReturn;
+      const blockDatetime = new Date(event.block.timestamp * 1000);
+
+      try {
+        await set_whitelisted_prices(event.chainId, event.block.number, blockDatetime, context);
+      } catch (error) {
+        console.log("Error updating token prices on pool sync:", error);
+      }
+      const token0Instance = await context.Token.get(liquidityPoolNew.token0_id);
+      const token1Instance = await context.Token.get(liquidityPoolNew.token1_id);
+
+      if (token0Instance == undefined || token1Instance == undefined)
+        throw new Error(
+          "Token instances not found. They are required fields for LiquidityPoolEntity"
+        );
 
       // Normalize reserve amounts to 1e18
       let normalizedReserve0 = normalizeTokenAmountTo1e18(
