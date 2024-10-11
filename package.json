@@ -22,7 +22,7 @@
   "dependencies": {
     "@types/mocha": "^10.0.6",
     "chai": "4.3.10",
-    "envio": "v2.4.1",
+    "envio": "v2.4.4",
     "mocha": "^10.2.0",
     "prettier": "^2.5.1",
     "ts-node": "^10.9.1"
