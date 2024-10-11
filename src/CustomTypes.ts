@@ -1,9 +1,21 @@
 import { Token } from "./src/Types.gen";
 
+// Ensure units is an array of valid unit types
+export type validUnit = "noether" | "wei" | "kwei" | "Kwei" | "babbage" | "femtoether" | "mwei" | "Mwei" |
+  "lovelace" | "picoether" | "gwei" | "Gwei" | "shannon" | "nanoether" | "nano" | "szabo" | "microether" |
+  "micro" | "finney" | "milliether" | "milli" | "ether" | "kether" | "grand" | "mether" | "gether" | "tether";
+
+
 // Token type to contain minimal information about a token
 export type TokenInfo = {
   address: string;
   symbol: string;
+  unit: validUnit;
+  createdBlock: number;
+};
+
+export type PricedTokenInfo = TokenInfo & {
+  price: number;
 };
 
 export type TokenEntityMapping = {

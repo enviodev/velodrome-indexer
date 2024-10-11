@@ -113,6 +113,7 @@ type LiquidityPoolWeeklySnapshot {
 # By nature this entity saves the latest state of the token, and its state at different times should be attained from the snapshot entities
 type Token {
   id: ID! # token address
+  address: String! # token address
   symbol: String! # token symbol
   name: String! # token name
   chainID: BigInt! @config(precision: 76) # chain id of the token
@@ -403,4 +404,15 @@ type CLPool_Swap {
   sourceAddress: String! @index
   timestamp: Timestamp! @index
   chainId: Int! @index
+}
+
+scalar Decimal
+
+type TokenPrice {
+  id: ID! # Unique identifier for the record, could be a combination of token address and chain ID
+  name: String! # Name of the token
+  address: String! @index # Address of the token
+  price: Float! # Price of the token
+  chainID: Int! @index # Chain ID where the token is located
+  lastUpdatedTimestamp: Timestamp! @index # Timestamp of the last update
 }

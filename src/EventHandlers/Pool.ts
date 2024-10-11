@@ -8,12 +8,14 @@ import {
 
 import { Token, LiquidityPoolNew, User } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18, } from "./../Helpers";
-import { divideBase1e18, multiplyBase1e18 } from "./../Maths";
+import { multiplyBase1e18 } from "./../Maths";
 import {
   getLiquidityPoolSnapshotByInterval,
   getTokenSnapshotByInterval,
 } from "./../IntervalSnapshots";
 import { SnapshotInterval } from "./../CustomTypes";
+import { CHAIN_CONSTANTS } from "../Constants";
+import { getPricesLastUpdated, set_whitelisted_prices } from "../PriceOracle";
 
 Pool.Mint.handler(async ({ event, context }) => {
   const entity: Pool_Mint = {
@@ -180,12 +182,8 @@ Pool.Swap.handlerWithLoader({
         Number(token1Instance.decimals)
       );
 
-      let token0Price = 0n;
-      let token1Price = 0n;
-      if (netAmount0 != 0n && netAmount1 != 0n) {
-        token0Price = divideBase1e18(netAmount1, netAmount0);
-        token1Price = divideBase1e18(netAmount0, netAmount1);
-      }
+      let token0Price = token0Instance.pricePerUSDNew;
+      let token1Price = token1Instance.pricePerUSDNew;
 
       // Calculate amounts in USD
       // We don't double count volume, we use USD of first token if possible to
@@ -233,12 +231,8 @@ Pool.Swap.handlerWithLoader({
         totalVolume0: liquidityPoolNew.totalVolume0 + netAmount0,
         totalVolume1: liquidityPoolNew.totalVolume1 + netAmount1,
         totalVolumeUSD: liquidityPoolNew.totalVolumeUSD + volumeInUSD,
-        token0Price: liquidityPoolNew.isStable
-          ? token0Price
-          : liquidityPoolNew.token0Price,
-        token1Price: liquidityPoolNew.isStable
-          ? token1Price
-          : liquidityPoolNew.token1Price,
+        token0Price,
+        token1Price,
         numberOfSwaps: liquidityPoolNew.numberOfSwaps + 1n,
         lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       };
@@ -256,15 +250,7 @@ Pool.Sync.handlerWithLoader({
 
     if (liquidityPoolNew == undefined) return null;
 
-    const token0Instance = await context.Token.get(liquidityPoolNew.token0_id);
-    const token1Instance = await context.Token.get(liquidityPoolNew.token1_id);
-
-    if (token0Instance == undefined || token1Instance == undefined)
-      throw new Error(
-        "Token instances not found. They are required fields for LiquidityPoolEntity"
-      );
-
-    return { liquidityPoolNew, token0Instance, token1Instance };
+    return { liquidityPoolNew };
   },
   handler: async ({ event, context, loaderReturn }) => {
     const entity: Pool_Sync = {
@@ -279,7 +265,21 @@ Pool.Sync.handlerWithLoader({
     context.Pool_Sync.set(entity);
 
     if (loaderReturn) {
-      const { liquidityPoolNew, token0Instance, token1Instance } = loaderReturn;
+      const { liquidityPoolNew }= loaderReturn;
+      const blockDatetime = new Date(event.block.timestamp * 1000);
+
+      try {
+        await set_whitelisted_prices(event.chainId, event.block.number, blockDatetime, context);
+      } catch (error) {
+        console.log("Error updating token prices on pool sync:", error);
+      }
+      const token0Instance = await context.Token.get(liquidityPoolNew.token0_id);
+      const token1Instance = await context.Token.get(liquidityPoolNew.token1_id);
+
+      if (token0Instance == undefined || token1Instance == undefined)
+        throw new Error(
+          "Token instances not found. They are required fields for LiquidityPoolEntity"
+        );
 
       // Normalize reserve amounts to 1e18
       let normalizedReserve0 = normalizeTokenAmountTo1e18(
@@ -290,19 +290,6 @@ Pool.Sync.handlerWithLoader({
         event.params.reserve1,
         Number(token1Instance.decimals)
       );
-
-      let token0Price = liquidityPoolNew.token0Price;
-      let token1Price = liquidityPoolNew.token1Price;
-
-      // Only if the pool is not stable does this token price hold, otherwise uses previous price
-      if (
-        normalizedReserve0 != 0n &&
-        normalizedReserve1 != 0n &&
-        !liquidityPoolNew.isStable
-      ) {
-        token0Price = divideBase1e18(normalizedReserve1, normalizedReserve0);
-        token1Price = divideBase1e18(normalizedReserve0, normalizedReserve1);
-      }
 
       let token0PricePerUSDNew = token0Instance.pricePerUSDNew;
       let token1PricePerUSDNew = token1Instance.pricePerUSDNew;
@@ -319,8 +306,8 @@ Pool.Sync.handlerWithLoader({
         reserve0: normalizedReserve0,
         reserve1: normalizedReserve1,
         totalLiquidityUSD: totalLiquidityUSD,
-        token0Price: token0Price,
-        token1Price: token1Price,
+        token0Price: token0PricePerUSDNew,
+        token1Price: token1PricePerUSDNew,
         lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       };
 

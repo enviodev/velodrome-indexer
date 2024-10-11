@@ -1,0 +1,38 @@
+[
+  {
+    "address": "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db",
+    "symbol": "VELO",
+    "unit": "ether",
+    "createdBlock": 105896796
+  },
+  {
+    "address": "0x4200000000000000000000000000000000000042",
+    "symbol": "OP",
+    "unit": "ether",
+    "createdBlock": 6490467
+  },
+  {
+    "address": "0xc40F949F8a4e094D1b49a23ea9241D289B7b2819",
+    "symbol": "LUSD",
+    "unit": "ether",
+    "createdBlock": 0
+  },
+  {
+    "address": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
+    "symbol": "USDC.e",
+    "unit": "ether",
+    "createdBlock": 0
+  },
+  {
+    "address": "0x4200000000000000000000000000000000000006",
+    "symbol": "WETH",
+    "unit": "ether",
+    "createdBlock": 0
+  },
+  {
+    "address": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+    "symbol": "USDC",
+    "unit": "ether",
+    "createdBlock": 38198364
+  }
+]
