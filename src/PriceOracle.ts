@@ -94,6 +94,8 @@ export async function set_whitelisted_prices(chainId: number, blockNumber: numbe
     prices.forEach((price, index) => {
         pricesByAddress.set(addresses[index], Number(utils.fromWei(price, units[index])));
     });
+
+    console.log(pricesByAddress);
     
     for (const token of tokenData) {
         const price = pricesByAddress.get(token.address) || 0;
