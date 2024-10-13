@@ -88,14 +88,12 @@ export async function set_whitelisted_prices(chainId: number, blockNumber: numbe
     const prices = await read_prices(addresses, chainId, blockNumber);
 
     // Map prices to token addresses
-    const pricesByAddress = new Map<string, number>();
-    pricesByAddress.set(CHAIN_CONSTANTS[chainId].usdc.address, 1);
+    const pricesByAddress = new Map<string, string>();
+    pricesByAddress.set(CHAIN_CONSTANTS[chainId].usdc.address, "1");
 
     prices.forEach((price, index) => {
-        pricesByAddress.set(addresses[index], Number(utils.fromWei(price, units[index])));
+        pricesByAddress.set(addresses[index], price == "-1" ? "0" : price);
     });
-
-    console.log(pricesByAddress);
     
     for (const token of tokenData) {
         const price = pricesByAddress.get(token.address) || 0;
@@ -119,7 +117,7 @@ export async function set_whitelisted_prices(chainId: number, blockNumber: numbe
         // Update Token entity
         const updatedToken: Token = {
             ...tokenEntity,
-            pricePerUSDNew: BigInt(Math.floor(price * 1e18)),
+            pricePerUSDNew: BigInt(price),
             lastUpdatedTimestamp: blockDatetime
         };
         context.Token.set(updatedToken);
@@ -129,7 +127,7 @@ export async function set_whitelisted_prices(chainId: number, blockNumber: numbe
             id: `${chainId}_${token.address}_${blockNumber}`,
             name: token.symbol,
             address: token.address,
-            price: price,
+            price: Number(utils.fromWei(price, token.unit as validUnit)),
             chainID: chainId,
             lastUpdatedTimestamp: blockDatetime,
         };
