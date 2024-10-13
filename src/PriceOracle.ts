@@ -84,7 +84,6 @@ export async function set_whitelisted_prices(chainId: number, blockNumber: numbe
         .map(token => token.address);
 
     if (addresses.length === 0) return;
-    const units = tokenData.map(token => token.unit as validUnit);
     const prices = await read_prices(addresses, chainId, blockNumber);
 
     // Map prices to token addresses
@@ -127,7 +126,7 @@ export async function set_whitelisted_prices(chainId: number, blockNumber: numbe
             id: `${chainId}_${token.address}_${blockNumber}`,
             name: token.symbol,
             address: token.address,
-            price: Number(utils.fromWei(price, token.unit as validUnit)),
+            price: Number(price),
             chainID: chainId,
             lastUpdatedTimestamp: blockDatetime,
         };
