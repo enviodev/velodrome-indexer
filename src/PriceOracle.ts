@@ -4,6 +4,7 @@ import {
     OPTIMISM_WHITELISTED_TOKENS,
     BASE_WHITELISTED_TOKENS,
     CHAIN_CONSTANTS,
+    TokenIdByChain,
 } from "./Constants";
 import contractABI from "../abis/VeloPriceOracleABI.json";
 import { Token, TokenPrice } from "./src/Types.gen";
@@ -98,16 +99,16 @@ export async function set_whitelisted_prices(chainId: number, blockNumber: numbe
         const price = pricesByAddress.get(token.address) || 0;
         
         // Get or create Token entity
-        let tokenEntity = await context.Token.get(token.address);
+        let tokenEntity = await context.Token.get(token.address.toLowerCase());
         if (!tokenEntity) {
             // Create a new token entity if it doesn't exist
             tokenEntity = {
-                id: token.address,
-                address: token.address,
+                id: TokenIdByChain(token.address, chainId),
+                address: token.address.toLowerCase(),
                 symbol: token.symbol,
                 name: token.symbol, // Using symbol as name, update if you have a separate name field
                 chainID: BigInt(chainId),
-                decimals: BigInt(18), // Assuming 18 decimals, update if you have specific decimal information
+                decimals: BigInt(token.decimals),
                 pricePerUSDNew: BigInt(0),
                 lastUpdatedTimestamp: new Date(0)
             };
@@ -123,9 +124,9 @@ export async function set_whitelisted_prices(chainId: number, blockNumber: numbe
 
         // Create new TokenPrice entity
         const tokenPrice: TokenPrice = {
-            id: `${chainId}_${token.address}_${blockNumber}`,
+            id: `${chainId}_${token.address.toLowerCase()}_${blockNumber}`,
             name: token.symbol,
-            address: token.address,
+            address: token.address.toLowerCase(),
             price: Number(price),
             chainID: chainId,
             lastUpdatedTimestamp: blockDatetime,

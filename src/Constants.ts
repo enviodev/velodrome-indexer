@@ -140,6 +140,8 @@ const BASE_CONSTANTS: chainConstants = {
   ),
 };
 
+export const TokenIdByChain = (address: string, chainId: number) => `${address.toLowerCase()}-${chainId}`;
+
 // Key is chain ID
 export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   10: OPTIMISM_CONSTANTS,

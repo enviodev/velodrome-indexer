@@ -14,7 +14,7 @@ import {
   getTokenSnapshotByInterval,
 } from "./../IntervalSnapshots";
 import { SnapshotInterval } from "./../CustomTypes";
-import { CHAIN_CONSTANTS } from "../Constants";
+import { CHAIN_CONSTANTS, TokenIdByChain } from "../Constants";
 import { getPricesLastUpdated, set_whitelisted_prices } from "../PriceOracle";
 
 Pool.Mint.handler(async ({ event, context }) => {
@@ -57,16 +57,24 @@ Pool.Fees.handlerWithLoader({
 
     // load the token entities
     const token0Instance = await context.Token.get(
-      currentLiquidityPool.token0_id
+      currentLiquidityPool.token0_id.toLowerCase()
     );
     const token1Instance = await context.Token.get(
-      currentLiquidityPool.token1_id
+      currentLiquidityPool.token1_id.toLowerCase()
     );
 
-    if (token0Instance == undefined || token1Instance == undefined)
-      throw new Error(
+    if (token0Instance == undefined || token1Instance == undefined) {
+      console.error("Token instances not found.", {
+        token0_id: currentLiquidityPool.token0_id,
+        token1_id: currentLiquidityPool.token1_id,
+        chainId: event.chainId,
+      });
+
+      console.error(
         "Token instances not found. They are required fields for LiquidityPoolEntity"
       );
+      return { currentLiquidityPool };
+    }
 
     return { currentLiquidityPool, token0Instance, token1Instance };
   },
@@ -75,6 +83,15 @@ Pool.Fees.handlerWithLoader({
     if (loaderReturn) {
       const { currentLiquidityPool, token0Instance, token1Instance } =
         loaderReturn;
+
+      if (token0Instance == undefined || token1Instance == undefined) {
+        console.error("Token instances not found.", {
+          token0_id: currentLiquidityPool.token0_id,
+          token1_id: currentLiquidityPool.token1_id,
+          chainId: event.chainId,
+        });
+        return;
+      }
 
       // Normalize swap amounts to 1e18
       let normalizedFeeAmount0Total = normalizeTokenAmountTo1e18(
@@ -120,8 +137,12 @@ Pool.Swap.handlerWithLoader({
 
     if (liquidityPoolNew == undefined) return null;
 
-    const token0Instance = await context.Token.get(liquidityPoolNew.token0_id);
-    const token1Instance = await context.Token.get(liquidityPoolNew.token1_id);
+    const token0Instance = await context.Token.get(
+      liquidityPoolNew.token0_id.toLowerCase()
+    );
+    const token1Instance = await context.Token.get(
+      liquidityPoolNew.token1_id.toLowerCase()
+    );
 
     if (token0Instance == undefined || token1Instance == undefined)
       throw new Error(
@@ -167,8 +188,6 @@ Pool.Swap.handlerWithLoader({
         token0Instance,
         token1Instance,
         to_address,
-        toUser,
-        isLiquidityPool,
       } = loaderReturn;
 
       // Same as above.
@@ -273,13 +292,21 @@ Pool.Sync.handlerWithLoader({
       } catch (error) {
         console.log("Error updating token prices on pool sync:", error);
       }
-      const token0Instance = await context.Token.get(liquidityPoolNew.token0_id);
-      const token1Instance = await context.Token.get(liquidityPoolNew.token1_id);
+      const token0Instance = await context.Token.get(
+        liquidityPoolNew.token0_id.toLowerCase()
+      );
+      const token1Instance = await context.Token.get(
+        liquidityPoolNew.token1_id.toLowerCase()
+      );
 
-      if (token0Instance == undefined || token1Instance == undefined)
-        throw new Error(
-          "Token instances not found. They are required fields for LiquidityPoolEntity"
-        );
+      if (token0Instance == undefined || token1Instance == undefined) {
+        console.error("Token instances not found but are required fields for LiquidityPoolEntity.", {
+          token0_id: liquidityPoolNew.token0_id,
+          token1_id: liquidityPoolNew.token1_id,
+          chainId: event.chainId,
+        });
+        return;
+      }
 
       // Normalize reserve amounts to 1e18
       let normalizedReserve0 = normalizeTokenAmountTo1e18(

@@ -8,6 +8,7 @@ import { getErc20TokenDetails } from "./../Erc20";
 import { TokenEntityMapping } from "./../CustomTypes";
 import { Token, LiquidityPoolNew } from "./../src/Types.gen";
 import { generatePoolName } from "./../Helpers";
+import { TokenIdByChain } from "../Constants";
 
 PoolFactory.PoolCreated.contractRegister(({ event, context }) => {
   context.addPool(event.params.pool);
@@ -17,10 +18,10 @@ PoolFactory.PoolCreated.handlerWithLoader({
   loader: async ({ event, context }) => {
     // load the token entities
     const poolToken0 = await context.Token.get(
-      event.params.token0 + "-" + event.chainId.toString()
+      TokenIdByChain(event.params.token0, event.chainId)
     );
     const poolToken1 = await context.Token.get(
-      event.params.token1 + "-" + event.chainId.toString()
+      TokenIdByChain(event.params.token1, event.chainId)
     );
 
     return { poolToken1, poolToken0 };
@@ -55,7 +56,7 @@ PoolFactory.PoolCreated.handlerWithLoader({
 
         // Create new instances of Token to be updated in the DB
         const tokenInstance: Token = {
-          id: poolTokenAddressMapping.address + "-" + event.chainId.toString(),
+          id: TokenIdByChain(poolTokenAddressMapping.address, event.chainId),
           address: poolTokenAddressMapping.address,
           symbol: tokenSymbol,
           name: tokenName,
@@ -85,8 +86,8 @@ PoolFactory.PoolCreated.handlerWithLoader({
         poolTokenSymbols[1],
         event.params.stable
       ),
-      token0_id: event.params.token0 + "-" + event.chainId.toString(),
-      token1_id: event.params.token1 + "-" + event.chainId.toString(),
+      token0_id: TokenIdByChain(event.params.token0, event.chainId),
+      token1_id: TokenIdByChain(event.params.token1, event.chainId),
       isStable: event.params.stable,
       reserve0: 0n,
       reserve1: 0n,
