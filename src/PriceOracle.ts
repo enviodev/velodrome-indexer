@@ -1,14 +1,26 @@
-import { Web3, utils } from "web3";
-import { validUnit } from "./CustomTypes";
+import { Web3 } from "web3";
 import {
   OPTIMISM_WHITELISTED_TOKENS,
   BASE_WHITELISTED_TOKENS,
   CHAIN_CONSTANTS,
+  TokenIdByChain,
   CacheCategory,
+  toChecksumAddress,
+  TokenIdByBlock
 } from "./Constants";
 import contractABI from "../abis/VeloPriceOracleABI.json";
 import { Token, TokenPrice } from "./src/Types.gen";
-import { Cache } from "./cache";
+import { Cache, ShapePricesList } from "./cache";
+import { createHash } from "crypto";
+
+/**
+ * Hashes a list of addresses using MD5.
+ * @param {string[]} addresses - The list of addresses to hash.
+ * @returns {string} The MD5 hash of the addresses list.
+ */
+function hashAddresses(addresses: string[]): string {
+  return createHash("md5").update(addresses.join(",")).digest("hex");
+}
 
 let pricesLastUpdated: { [chainId: number]: Date } = {};
 export function setPricesLastUpdated(chainId: number, date: Date) {
@@ -90,6 +102,7 @@ export async function set_whitelisted_prices(
     CHAIN_CONSTANTS[chainId].oracle.startBlock || Number.MAX_SAFE_INTEGER;
   if (blockNumber < startBlock) return;
 
+  // Skip if already updated recently
   const lastUpdated = getPricesLastUpdated(chainId);
   const timeDelta = CHAIN_CONSTANTS[chainId].oracle.updateDelta * 1000;
   const tokensNeedUpdate =
@@ -100,114 +113,74 @@ export async function set_whitelisted_prices(
   const tokenData =
     chainId === 10 ? OPTIMISM_WHITELISTED_TOKENS : BASE_WHITELISTED_TOKENS;
 
-  // Get prices from oracle
+  // Get prices from oracle and filter if token is not created yet
   const addresses = tokenData
     .filter((token) => token.createdBlock <= blockNumber)
-    .map((token) => token.address);
+    .map((token) => toChecksumAddress(token.address));
 
-  if (addresses.length === 0) return;
-  const units = tokenData.map((token) => token.unit as validUnit);
+  if (addresses.length === 0) return; 
 
-  // Initialize the token price cache
-  const tokenPriceCache = Cache.init(CacheCategory.TokenPrice, chainId);
+  const tokenPriceCache = Cache.init(CacheCategory.TokenPrices, chainId);
 
-  // Check cache for existing prices
-  const cachedPrices: string[] = [];
-  const addressesToFetch: string[] = [];
-  addresses.forEach((address, index) => {
-    const cacheKey = `${chainId}_${address}_${blockNumber}`;
-    const cachedPrice = tokenPriceCache.read(cacheKey);
-    if (
-      cachedPrice &&
-      typeof cachedPrice === "object" &&
-      "price" in cachedPrice
-    ) {
-      cachedPrices[index] = cachedPrice.price;
-    } else {
-      addressesToFetch.push(address);
-    }
-  });
+  // Check cache for existing prices list by hashing list of addresses.
+  // If there is any new addresses, we will need to fetch new prices.
+  const addressHash: string = hashAddresses(addresses);
+  const cacheKey = `${chainId}_${addressHash}_${blockNumber}`;
 
-  // Fetch prices for addresses not in cache
-  let fetchedPrices: string[] = [];
-  if (addressesToFetch.length > 0) {
-    fetchedPrices = await read_prices(addressesToFetch, chainId, blockNumber);
+  let cache = tokenPriceCache.read(cacheKey);
+  let prices: ShapePricesList = cache?.prices;
+
+  // If prices aren't cached, fetch and cache prices.
+  if (!prices) {
+    console.log(`[set_whitelisted_prices] Fetching prices for ${addresses.length} addresses...`);
+    prices = await read_prices(addresses, chainId, blockNumber);
+    tokenPriceCache.add({ [cacheKey]: { prices: prices } as any });
   }
 
-  // Combine cached and fetched prices
-  const prices = addresses.map((address, index) => {
-    if (cachedPrices[index]) {
-      return cachedPrices[index];
-    } else {
-      const fetchedIndex = addressesToFetch.indexOf(address);
-      return fetchedPrices[fetchedIndex];
-    }
-  });
-
-  // Update cache with fetched prices
-  addressesToFetch.forEach((address, index) => {
-    if (fetchedPrices[index] !== undefined) {
-      const cacheKey = `${chainId}_${address}_${blockNumber}`;
-      tokenPriceCache.add({ [cacheKey]: { price: fetchedPrices[index] } });
-    } else {
-      console.log(`Skipping caching undefined price for address: ${address}`);
-    }
-  });
-
-  // Map prices to token addresses
-  const pricesByAddress = new Map<string, number>();
-  pricesByAddress.set(CHAIN_CONSTANTS[chainId].usdc.address, 1);
+  const pricesByAddress = new Map<string, string>();
 
   prices.forEach((price, index) => {
-    if (price !== undefined) {
-      pricesByAddress.set(
-        addresses[index],
-        Number(utils.fromWei(price, units[index]))
-      );
-    } else {
-      console.log(
-        `Setting 0 for undefined price for address: ${addresses[index]}`
-      );
-      // Optionally, set price to 0 instead of skipping:
-      pricesByAddress.set(addresses[index], 0);
-    }
+    let p = !price || price === "-1" ? "0": price; // Clean price of undefined and -1 values
+    pricesByAddress.set(addresses[index], p);
   });
 
+  pricesByAddress.set(toChecksumAddress(CHAIN_CONSTANTS[chainId].usdc.address), "1");
+  
   for (const token of tokenData) {
-    const price = pricesByAddress.get(token.address) || 0;
-
+    const price = pricesByAddress.get(toChecksumAddress(token.address)) || 0;
+    
     // Get or create Token entity
-    let tokenEntity = await context.Token.get(token.address);
+    let tokenEntity = await context.Token.get(TokenIdByChain(token.address, chainId));
     if (!tokenEntity) {
-      // Create a new token entity if it doesn't exist
-      tokenEntity = {
-        id: token.address,
-        address: token.address,
-        symbol: token.symbol,
-        name: token.symbol, // Using symbol as name, update if you have a separate name field
-        chainID: BigInt(chainId),
-        decimals: BigInt(18), // Assuming 18 decimals, update if you have specific decimal information
-        pricePerUSDNew: BigInt(0),
-        lastUpdatedTimestamp: new Date(0),
-      };
+        // Create a new token entity if it doesn't exist
+        tokenEntity = {
+            id: TokenIdByChain(token.address, chainId),
+            address: toChecksumAddress(token.address),
+            symbol: token.symbol,
+            name: token.symbol, // Using symbol as name, update if you have a separate name field
+            chainID: BigInt(chainId),
+            decimals: BigInt(token.decimals),
+            pricePerUSDNew: BigInt(price),
+            lastUpdatedTimestamp: blockDatetime
+        };
     }
 
     // Update Token entity
     const updatedToken: Token = {
-      ...tokenEntity,
-      pricePerUSDNew: BigInt(Math.floor(price * 1e18)),
-      lastUpdatedTimestamp: blockDatetime,
+        ...tokenEntity,
+        pricePerUSDNew: BigInt(price),
+        lastUpdatedTimestamp: blockDatetime
     };
     context.Token.set(updatedToken);
 
     // Create new TokenPrice entity
     const tokenPrice: TokenPrice = {
-      id: `${chainId}_${token.address}_${blockNumber}`,
-      name: token.symbol,
-      address: token.address,
-      price: price,
-      chainID: chainId,
-      lastUpdatedTimestamp: blockDatetime,
+        id: TokenIdByBlock(token.address, chainId, blockNumber),
+        name: token.symbol,
+        address: toChecksumAddress(token.address),
+        price: Number(price),
+        chainID: chainId,
+        lastUpdatedTimestamp: blockDatetime,
     };
     context.TokenPrice.set(tokenPrice);
   }

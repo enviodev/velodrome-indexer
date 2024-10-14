@@ -2,6 +2,7 @@ import { TokenInfo, Pool } from "./CustomTypes";
 import dotenv from "dotenv";
 import optimismWhitelistedTokens from "./constants/optimismWhitelistedTokens.json";
 import baseWhitelistedTokens from "./constants/baseWhitelistedTokens.json";
+import web3 from "web3";
 
 dotenv.config();
 
@@ -18,6 +19,8 @@ export const OPTIMISM_WHITELISTED_TOKENS: TokenInfo[] =
   optimismWhitelistedTokens as TokenInfo[];
 export const BASE_WHITELISTED_TOKENS: TokenInfo[] =
   baseWhitelistedTokens as TokenInfo[];
+
+export const toChecksumAddress = (address: string) => web3.utils.toChecksumAddress(address);
 
 // Helper function to find a token by symbol
 const findToken = (tokens: TokenInfo[], symbol: string): TokenInfo => {
@@ -142,6 +145,25 @@ const BASE_CONSTANTS: chainConstants = {
   ),
 };
 
+/**
+ * Create a unique ID for a token on a specific chain. Really should only be used for Token Entities.
+ * @param address 
+ * @param chainId 
+ * @returns string Merged Token ID. 
+ */
+export const TokenIdByChain = (address: string, chainId: number) => `${toChecksumAddress(address)}-${chainId}`;
+
+/**
+ * Create a unique ID for a token on a specific chain at a specific block. Really should only be used
+ * for TokenPrice Entities.
+ * @param address 
+ * @param chainId 
+ * @param blockNumber 
+ * @returns string Merged Token ID. 
+ */
+export const TokenIdByBlock = (address: string, chainId: number, blockNumber: number) =>
+  `${chainId}_${toChecksumAddress(address)}_${blockNumber}`;
+
 // Key is chain ID
 export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   10: OPTIMISM_CONSTANTS,
@@ -154,7 +176,7 @@ export const CacheCategory = {
   BribeToPool: "bribeToPool",
   WhitelistedPoolIds: "whitelistedPoolIds",
   PoolToTokens: "poolToTokens",
-  TokenPrice: "tokenPrice",
+  TokenPrices: "tokenPrices",
 } as const;
 
 export type CacheCategory = (typeof CacheCategory)[keyof typeof CacheCategory];
