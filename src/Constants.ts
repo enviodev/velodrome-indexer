@@ -1,7 +1,7 @@
 import { TokenInfo, Pool } from "./CustomTypes";
 import dotenv from "dotenv";
-import optimismWhitelistedTokens from './constants/optimismWhitelistedTokens.json';
-import baseWhitelistedTokens from './constants/baseWhitelistedTokens.json';
+import optimismWhitelistedTokens from "./constants/optimismWhitelistedTokens.json";
+import baseWhitelistedTokens from "./constants/baseWhitelistedTokens.json";
 
 dotenv.config();
 
@@ -14,12 +14,14 @@ export const SECONDS_IN_A_DAY = BigInt(86400);
 export const SECONDS_IN_A_WEEK = BigInt(604800);
 
 // Convert imported JSON to TokenInfo type
-export const OPTIMISM_WHITELISTED_TOKENS: TokenInfo[] = optimismWhitelistedTokens as TokenInfo[];
-export const BASE_WHITELISTED_TOKENS: TokenInfo[] = baseWhitelistedTokens as TokenInfo[];
+export const OPTIMISM_WHITELISTED_TOKENS: TokenInfo[] =
+  optimismWhitelistedTokens as TokenInfo[];
+export const BASE_WHITELISTED_TOKENS: TokenInfo[] =
+  baseWhitelistedTokens as TokenInfo[];
 
 // Helper function to find a token by symbol
 const findToken = (tokens: TokenInfo[], symbol: string): TokenInfo => {
-  const token = tokens.find(t => t.symbol === symbol);
+  const token = tokens.find((t) => t.symbol === symbol);
   if (!token) throw new Error(`Token ${symbol} not found`);
   return token;
 };
@@ -96,12 +98,12 @@ const OPTIMISM_CONSTANTS: chainConstants = {
   usdc: findToken(OPTIMISM_WHITELISTED_TOKENS, "USDC"),
   oracle: {
     getAddress: (blockNumber: number) => {
-      return blockNumber < 124076662 ?
-        "0x395942C2049604a314d39F370Dfb8D87AAC89e16" :
-        "0x6a3af44e23395d2470f7c81331add6ede8597306";
+      return blockNumber < 124076662
+        ? "0x395942C2049604a314d39F370Dfb8D87AAC89e16"
+        : "0x6a3af44e23395d2470f7c81331add6ede8597306";
     },
     startBlock: 107676013,
-    updateDelta:  60 * 60 // 1 hour
+    updateDelta: 60 * 60, // 1 hour
   },
   rewardToken: findToken(OPTIMISM_WHITELISTED_TOKENS, "VELO"),
   rpcURL: process.env.OPTIMISM_RPC_URL || "https://rpc.ankr.com/optimism",
@@ -122,12 +124,12 @@ const BASE_CONSTANTS: chainConstants = {
   usdc: findToken(BASE_WHITELISTED_TOKENS, "USDC"),
   oracle: {
     getAddress: (blockNumber: number) => {
-      return blockNumber < 18480097 ?
-        "0xe58920a8c684CD3d6dCaC2a41b12998e4CB17EfE" :
-        "0xcbf5b6abf55fb87271338097fdd03e9d82a9d63f";
+      return blockNumber < 18480097
+        ? "0xe58920a8c684CD3d6dCaC2a41b12998e4CB17EfE"
+        : "0xcbf5b6abf55fb87271338097fdd03e9d82a9d63f";
     },
-    startBlock: 3219857, 
-    updateDelta: 60 * 60 // 1 hour
+    startBlock: 3219857,
+    updateDelta: 60 * 60, // 1 hour
   },
   rewardToken: findToken(BASE_WHITELISTED_TOKENS, "AERO"),
   rpcURL: process.env.BASE_RPC_URL || "https://base.publicnode.com",
@@ -154,6 +156,7 @@ export const CacheCategory = {
   BribeToPool: "bribeToPool",
   WhitelistedPoolIds: "whitelistedPoolIds",
   PoolToTokens: "poolToTokens",
+  TokenPrice: "tokenPrice",
 } as const;
 
 export type CacheCategory = (typeof CacheCategory)[keyof typeof CacheCategory];
