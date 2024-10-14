@@ -59,10 +59,10 @@ Pool.Fees.handlerWithLoader({
 
     // load the token entities
     const token0Instance = await context.Token.get(
-      TokenIdByChain(currentLiquidityPool.token0_id, event.chainId)
+      currentLiquidityPool.token0_id
     );
     const token1Instance = await context.Token.get(
-      TokenIdByChain(currentLiquidityPool.token1_id, event.chainId)
+      currentLiquidityPool.token1_id
     );
 
     if (token0Instance == undefined || token1Instance == undefined) {
@@ -140,10 +140,10 @@ Pool.Swap.handlerWithLoader({
     if (liquidityPoolNew == undefined) return null;
 
     const token0Instance = await context.Token.get(
-      TokenIdByChain(liquidityPoolNew.token0_id, event.chainId)
+      liquidityPoolNew.token0_id
     );
     const token1Instance = await context.Token.get(
-      TokenIdByChain(liquidityPoolNew.token1_id, event.chainId)
+      liquidityPoolNew.token1_id
     );
 
     if (token0Instance == undefined || token1Instance == undefined)
