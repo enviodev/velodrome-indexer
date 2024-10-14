@@ -116,7 +116,7 @@ export async function set_whitelisted_prices(
   // Get prices from oracle and filter if token is not created yet
   const addresses = tokenData
     .filter((token) => token.createdBlock <= blockNumber)
-    .map((token) => token.address);
+    .map((token) => toChecksumAddress(token.address));
 
   if (addresses.length === 0) return; 
 
@@ -144,10 +144,10 @@ export async function set_whitelisted_prices(
     pricesByAddress.set(addresses[index], p);
   });
 
-  pricesByAddress.set(CHAIN_CONSTANTS[chainId].usdc.address, "1");
+  pricesByAddress.set(toChecksumAddress(CHAIN_CONSTANTS[chainId].usdc.address), "1");
   
   for (const token of tokenData) {
-    const price = pricesByAddress.get(token.address) || 0;
+    const price = pricesByAddress.get(toChecksumAddress(token.address)) || 0;
     
     // Get or create Token entity
     let tokenEntity = await context.Token.get(TokenIdByChain(token.address, chainId));
