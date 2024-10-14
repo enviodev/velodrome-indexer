@@ -8,7 +8,17 @@ import {
 } from "./Constants";
 import contractABI from "../abis/VeloPriceOracleABI.json";
 import { Token, TokenPrice } from "./src/Types.gen";
-import { Cache } from "./cache";
+import { Cache, ShapePricesList, ShapeTokenPrices } from "./cache";
+import { createHash } from "crypto";
+
+/**
+ * Hashes a list of addresses using MD5.
+ * @param {string[]} addresses - The list of addresses to hash.
+ * @returns {string} The MD5 hash of the addresses list.
+ */
+function hashAddresses(addresses: string[]): string {
+  return createHash("md5").update(addresses.join(",")).digest("hex");
+}
 
 let pricesLastUpdated: { [chainId: number]: Date } = {};
 export function setPricesLastUpdated(chainId: number, date: Date) {
@@ -107,17 +117,21 @@ export async function set_whitelisted_prices(
 
   if (addresses.length === 0) return; 
 
-  const tokenPriceCache = Cache.init(CacheCategory.TokenPrice, chainId);
+  const tokenPriceCache = Cache.init(CacheCategory.TokenPrices, chainId);
 
-  // Check cache for existing prices
-  const addressHash: string = addresses.join(",");
+  // Check cache for existing prices list by hashing list of addresses.
+  // If there is any new addresses, we will need to fetch new prices.
+  const addressHash: string = hashAddresses(addresses);
   const cacheKey = `${chainId}_${addressHash}_${blockNumber}`;
 
-  const cache = tokenPriceCache.read(cacheKey);
-  let prices = cache?.prices;
+  let cache = tokenPriceCache.read(cacheKey);
+  let prices: ShapePricesList = cache?.prices;
+
+  // If prices aren't cached, fetch and cache prices.
   if (!prices) {
+    console.log(`[set_whitelisted_prices] Fetching prices for ${addresses.length} addresses...`);
     prices = await read_prices(addresses, chainId, blockNumber);
-    tokenPriceCache.add({ [cacheKey]: { prices } });
+    tokenPriceCache.add({ [cacheKey]: { prices: prices } as any });
   }
 
   const pricesByAddress = new Map<string, string>();

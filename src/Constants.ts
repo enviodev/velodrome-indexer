@@ -156,7 +156,7 @@ export const CacheCategory = {
   BribeToPool: "bribeToPool",
   WhitelistedPoolIds: "whitelistedPoolIds",
   PoolToTokens: "poolToTokens",
-  TokenPrice: "tokenPrice",
+  TokenPrices: "tokenPrices",
 } as const;
 
 export type CacheCategory = (typeof CacheCategory)[keyof typeof CacheCategory];
