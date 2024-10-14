@@ -14,8 +14,10 @@ import {
   getTokenSnapshotByInterval,
 } from "./../IntervalSnapshots";
 import { SnapshotInterval } from "./../CustomTypes";
-import { CHAIN_CONSTANTS, TokenIdByChain } from "../Constants";
-import { getPricesLastUpdated, set_whitelisted_prices } from "../PriceOracle";
+import { toChecksumAddress, TokenIdByChain } from "../Constants";
+import { set_whitelisted_prices } from "../PriceOracle";
+
+// Helper function to get checksum address
 
 Pool.Mint.handler(async ({ event, context }) => {
   const entity: Pool_Mint = {
@@ -50,17 +52,17 @@ Pool.Burn.handler(async ({ event, context }) => {
 Pool.Fees.handlerWithLoader({
   loader: async ({ event, context }) => {
     const currentLiquidityPool = await context.LiquidityPoolNew.get(
-      event.srcAddress.toString()
+      toChecksumAddress(event.srcAddress.toString())
     );
 
     if (currentLiquidityPool == undefined) return null;
 
     // load the token entities
     const token0Instance = await context.Token.get(
-      currentLiquidityPool.token0_id.toLowerCase()
+      TokenIdByChain(currentLiquidityPool.token0_id, event.chainId)
     );
     const token1Instance = await context.Token.get(
-      currentLiquidityPool.token1_id.toLowerCase()
+      TokenIdByChain(currentLiquidityPool.token1_id, event.chainId)
     );
 
     if (token0Instance == undefined || token1Instance == undefined) {
@@ -132,16 +134,16 @@ Pool.Fees.handlerWithLoader({
 Pool.Swap.handlerWithLoader({
   loader: async ({ event, context }) => {
     const liquidityPoolNew = await context.LiquidityPoolNew.get(
-      event.srcAddress.toString()
+      toChecksumAddress(event.srcAddress)
     );
 
     if (liquidityPoolNew == undefined) return null;
 
     const token0Instance = await context.Token.get(
-      liquidityPoolNew.token0_id.toLowerCase()
+      TokenIdByChain(liquidityPoolNew.token0_id, event.chainId)
     );
     const token1Instance = await context.Token.get(
-      liquidityPoolNew.token1_id.toLowerCase()
+      TokenIdByChain(liquidityPoolNew.token1_id, event.chainId)
     );
 
     if (token0Instance == undefined || token1Instance == undefined)
@@ -151,7 +153,7 @@ Pool.Swap.handlerWithLoader({
 
     // if the swap `to` is a liquidityPool, then we won't count
     // it as a unique user.
-    const to_address = event.params.to.toString();
+    const to_address = toChecksumAddress(event.params.to);
     const toUser = await context.User.get(to_address);
     const isLiquidityPool =
       (await context.LiquidityPoolNew.get(to_address)) != undefined;
@@ -264,7 +266,7 @@ Pool.Swap.handlerWithLoader({
 Pool.Sync.handlerWithLoader({
   loader: async ({ event, context }) => {
     const liquidityPoolNew = await context.LiquidityPoolNew.get(
-      event.srcAddress.toString()
+      toChecksumAddress(event.srcAddress)
     );
 
     if (liquidityPoolNew == undefined) return null;
@@ -293,10 +295,10 @@ Pool.Sync.handlerWithLoader({
         console.log("Error updating token prices on pool sync:", error);
       }
       const token0Instance = await context.Token.get(
-        liquidityPoolNew.token0_id.toLowerCase()
+        liquidityPoolNew.token0_id
       );
       const token1Instance = await context.Token.get(
-        liquidityPoolNew.token1_id.toLowerCase()
+        liquidityPoolNew.token1_id
       );
 
       if (token0Instance == undefined || token1Instance == undefined) {

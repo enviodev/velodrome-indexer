@@ -5,10 +5,12 @@ import {
   CHAIN_CONSTANTS,
   TokenIdByChain,
   CacheCategory,
+  toChecksumAddress,
+  TokenIdByBlock
 } from "./Constants";
 import contractABI from "../abis/VeloPriceOracleABI.json";
 import { Token, TokenPrice } from "./src/Types.gen";
-import { Cache, ShapePricesList, ShapeTokenPrices } from "./cache";
+import { Cache, ShapePricesList } from "./cache";
 import { createHash } from "crypto";
 
 /**
@@ -100,6 +102,7 @@ export async function set_whitelisted_prices(
     CHAIN_CONSTANTS[chainId].oracle.startBlock || Number.MAX_SAFE_INTEGER;
   if (blockNumber < startBlock) return;
 
+  // Skip if already updated recently
   const lastUpdated = getPricesLastUpdated(chainId);
   const timeDelta = CHAIN_CONSTANTS[chainId].oracle.updateDelta * 1000;
   const tokensNeedUpdate =
@@ -147,12 +150,12 @@ export async function set_whitelisted_prices(
     const price = pricesByAddress.get(token.address) || 0;
     
     // Get or create Token entity
-    let tokenEntity = await context.Token.get(token.address.toLowerCase());
+    let tokenEntity = await context.Token.get(TokenIdByChain(token.address, chainId));
     if (!tokenEntity) {
         // Create a new token entity if it doesn't exist
         tokenEntity = {
             id: TokenIdByChain(token.address, chainId),
-            address: token.address.toLowerCase(),
+            address: toChecksumAddress(token.address),
             symbol: token.symbol,
             name: token.symbol, // Using symbol as name, update if you have a separate name field
             chainID: BigInt(chainId),
@@ -172,9 +175,9 @@ export async function set_whitelisted_prices(
 
     // Create new TokenPrice entity
     const tokenPrice: TokenPrice = {
-        id: `${chainId}_${token.address.toLowerCase()}_${blockNumber}`,
+        id: TokenIdByBlock(token.address, chainId, blockNumber),
         name: token.symbol,
-        address: token.address.toLowerCase(),
+        address: toChecksumAddress(token.address),
         price: Number(price),
         chainID: chainId,
         lastUpdatedTimestamp: blockDatetime,
