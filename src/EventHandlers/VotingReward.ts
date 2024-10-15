@@ -2,7 +2,7 @@ import {
   VotingReward,
   VotingReward_Withdraw,
   VotingReward_Deposit,
-  VotingReward_NotifyReward
+  VotingReward_NotifyReward,
 } from "generated";
 
 import { LiquidityPoolNew } from "./../src/Types.gen";
@@ -20,30 +20,24 @@ const {
 
 VotingReward.NotifyReward.handlerWithLoader({
   loader: async ({ event, context }) => {
-    let poolAddress = getPoolAddressByBribeVotingRewardAddress(
+    const poolAddress = getPoolAddressByBribeVotingRewardAddress(
       event.chainId,
       event.srcAddress
     );
 
-    if (poolAddress) {
-      // Load the LiquidityPool entity to be updated,
-      const currentLiquidityPool = await context.LiquidityPoolNew.get(
-        poolAddress
+    if (!poolAddress) {
+      context.log.warn(
+        `No pool address found for the bribe voting address ${event.srcAddress.toString()}`
       );
-
-      // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
-      const rewardToken = await context.Token.get(
-        TokenIdByChain(event.params.reward, event.chainId)
-      );
-
-      return { currentLiquidityPool, rewardToken };
+      return null;
     }
 
-    // If there is no pool address with the particular bribe voting reward address, log the error
-    context.log.warn(
-      `No pool address found for the bribe voting address ${event.srcAddress.toString()}`
-    );
-    return null;
+    const [currentLiquidityPool, rewardToken] = await Promise.all([
+      context.LiquidityPoolNew.get(poolAddress),
+      context.Token.get(TokenIdByChain(event.params.reward, event.chainId)),
+    ]);
+
+    return { currentLiquidityPool, rewardToken };
   },
   handler: async ({ event, context, loaderReturn }) => {
     const entity: VotingReward_NotifyReward = {
@@ -52,7 +46,7 @@ VotingReward.NotifyReward.handlerWithLoader({
       reward: event.params.reward,
       epoch: event.params.epoch,
       amount: event.params.amount,
-      timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+      timestamp: new Date(event.block.timestamp * 1000),
       sourceAddress: event.srcAddress,
       chainId: event.chainId,
     };
@@ -62,8 +56,6 @@ VotingReward.NotifyReward.handlerWithLoader({
     if (loaderReturn) {
       const { currentLiquidityPool, rewardToken } = loaderReturn;
 
-      // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
-      // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point
       if (currentLiquidityPool && rewardToken) {
         let normalizedBribesAmount = normalizeTokenAmountTo1e18(
           event.params.amount,
