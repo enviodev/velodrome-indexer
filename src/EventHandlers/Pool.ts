@@ -3,9 +3,7 @@ import { Pool, Pool_Swap, Pool_Sync, Pool_Mint, Pool_Burn } from "generated";
 import { Token, LiquidityPoolNew, User } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
 import { multiplyBase1e18 } from "./../Maths";
-import {
-  getLiquidityPoolSnapshotByInterval,
-} from "./../IntervalSnapshots";
+import { getLiquidityPoolSnapshotByInterval } from "./../IntervalSnapshots";
 import { SnapshotInterval } from "./../CustomTypes";
 import { toChecksumAddress, TokenIdByChain } from "../Constants";
 import { set_whitelisted_prices } from "../PriceOracle";
@@ -42,111 +40,105 @@ Pool.Burn.handler(async ({ event, context }) => {
   context.Pool_Burn.set(entity);
 });
 
-Pool.Fees.handler(async ({ event, context }) => {
-  const currentLiquidityPool = await context.LiquidityPoolNew.get(
-    toChecksumAddress(event.srcAddress)
-  );
-
-  if (currentLiquidityPool == undefined) return;
-
-  // load the token entities
-  const token0Instance = await context.Token.get(
-    currentLiquidityPool.token0_id
-  );
-  const token1Instance = await context.Token.get(
-    currentLiquidityPool.token1_id
-  );
-
-  if (token0Instance == undefined || token1Instance == undefined) {
-    console.error("Token instances not found.", {
-      token0_id: currentLiquidityPool.token0_id,
-      token1_id: currentLiquidityPool.token1_id,
-      chainId: event.chainId,
-    });
-
-    console.error(
-      "Token instances not found. They are required fields for LiquidityPoolEntity"
-    );
-    return;
-  }
-
-  if (token0Instance == undefined || token1Instance == undefined) {
-    console.error("Token instances not found.", {
-      token0_id: currentLiquidityPool.token0_id,
-      token1_id: currentLiquidityPool.token1_id,
-      chainId: event.chainId,
-    });
-    return;
-  }
-
-  // Normalize swap amounts to 1e18
-  let normalizedFeeAmount0Total = normalizeTokenAmountTo1e18(
-    event.params.amount0,
-    Number(token0Instance.decimals)
-  );
-  let normalizedFeeAmount1Total = normalizeTokenAmountTo1e18(
-    event.params.amount1,
-    Number(token1Instance.decimals)
-  );
-
-  // Calculate amounts in USD
-  let normalizedFeeAmount0TotalUsd = multiplyBase1e18(
-    normalizedFeeAmount0Total,
-    token0Instance.pricePerUSDNew
-  );
-  let normalizedFeeAmount1TotalUsd = multiplyBase1e18(
-    normalizedFeeAmount1Total,
-    token1Instance.pricePerUSDNew
-  );
-  // Create a new instance of LiquidityPool to be updated in the DB
-  const liquidityPoolInstance: LiquidityPoolNew = {
-    ...currentLiquidityPool,
-    totalFees0: currentLiquidityPool.totalFees0 + normalizedFeeAmount0Total,
-    totalFees1: currentLiquidityPool.totalFees1 + normalizedFeeAmount1Total,
-    totalFeesUSD:
-      currentLiquidityPool.totalFeesUSD +
-      normalizedFeeAmount0TotalUsd +
-      normalizedFeeAmount1TotalUsd,
-    lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
-  };
-  // Update the LiquidityPoolEntity in the DB
-  context.LiquidityPoolNew.set(liquidityPoolInstance);
-});
-
-Pool.Swap.handlerWithLoader({
+Pool.Fees.handlerWithLoader({
   loader: async ({ event, context }) => {
-    const liquidityPoolNew = await context.LiquidityPoolNew.get(
-      toChecksumAddress(event.srcAddress)
+    const currentLiquidityPool = await context.LiquidityPoolNew.get(
+      event.srcAddress
     );
 
-    if (liquidityPoolNew == undefined) return;
+    if (currentLiquidityPool == undefined) return null;
 
-    const token0Instance = await context.Token.get(liquidityPoolNew.token0_id);
-    const token1Instance = await context.Token.get(liquidityPoolNew.token1_id);
+    const [token0Instance, token1Instance] = await Promise.all([
+      context.Token.get(currentLiquidityPool.token0_id),
+      context.Token.get(currentLiquidityPool.token1_id),
+    ]);
+
+    return { currentLiquidityPool, token0Instance, token1Instance };
+  },
+  handler: async ({ event, context, loaderReturn }) => {
+    if (!loaderReturn) return;
+
+    const { currentLiquidityPool, token0Instance, token1Instance } =
+      loaderReturn;
 
     if (token0Instance == undefined || token1Instance == undefined) {
-      console.log("Token instances not found.", {
-        token0_id: liquidityPoolNew.token0_id,
-        token1_id: liquidityPoolNew.token1_id,
+      console.error("Token instances not found.", {
+        token0_id: currentLiquidityPool.token0_id,
+        token1_id: currentLiquidityPool.token1_id,
         chainId: event.chainId,
       });
       return;
     }
 
-    // if the swap `to` is a liquidityPool, then we won't count
-    // it as a unique user.
-    const to_address = toChecksumAddress(event.params.to);
-    const toUser = await context.User.get(to_address);
-    const isLiquidityPool =
-      (await context.LiquidityPoolNew.get(to_address)) != undefined;
+    // Normalize swap amounts to 1e18
+    let normalizedFeeAmount0Total = normalizeTokenAmountTo1e18(
+      event.params.amount0,
+      Number(token0Instance.decimals)
+    );
+    let normalizedFeeAmount1Total = normalizeTokenAmountTo1e18(
+      event.params.amount1,
+      Number(token1Instance.decimals)
+    );
+
+    // Calculate amounts in USD
+    let normalizedFeeAmount0TotalUsd = multiplyBase1e18(
+      normalizedFeeAmount0Total,
+      token0Instance.pricePerUSDNew
+    );
+    let normalizedFeeAmount1TotalUsd = multiplyBase1e18(
+      normalizedFeeAmount1Total,
+      token1Instance.pricePerUSDNew
+    );
+    // Create a new instance of LiquidityPool to be updated in the DB
+    const liquidityPoolInstance: LiquidityPoolNew = {
+      ...currentLiquidityPool,
+      totalFees0: currentLiquidityPool.totalFees0 + normalizedFeeAmount0Total,
+      totalFees1: currentLiquidityPool.totalFees1 + normalizedFeeAmount1Total,
+      totalFeesUSD:
+        currentLiquidityPool.totalFeesUSD +
+        normalizedFeeAmount0TotalUsd +
+        normalizedFeeAmount1TotalUsd,
+      lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
+    };
+    // Update the LiquidityPoolEntity in the DB
+    context.LiquidityPoolNew.set(liquidityPoolInstance);
+  },
+});
+
+Pool.Swap.handlerWithLoader({
+  loader: async ({ event, context }) => {
+    const [liquidityPoolNew, toUser] = await Promise.all([
+      context.LiquidityPoolNew.get(event.srcAddress),
+      context.User.get(event.params.to),
+    ]);
+
+    if (liquidityPoolNew == undefined) return null;
+
+    const [token0Instance, token1Instance, isLiquidityPool] = await Promise.all(
+      [
+        context.Token.get(liquidityPoolNew.token0_id),
+        context.Token.get(liquidityPoolNew.token1_id),
+        context.LiquidityPoolNew.get(event.params.to),
+      ]
+    );
+
+    if (token0Instance == undefined || token1Instance == undefined) {
+      // Commenting out error as overwhelming console.
+      // console.log("Token instances not found.", {
+      //   token0_id: liquidityPoolNew.token0_id,
+      //   token1_id: liquidityPoolNew.token1_id,
+      //   chainId: event.chainId,
+      // });
+      return null;
+    }
 
     return {
       liquidityPoolNew,
       token0Instance,
       token1Instance,
-      to_address,
+      to_address: event.params.to,
       toUser,
-      isLiquidityPool,
+      isLiquidityPool: isLiquidityPool != undefined,
     };
   },
   handler: async ({ event, context, loaderReturn }) => {
@@ -243,9 +235,7 @@ Pool.Swap.handlerWithLoader({
 });
 
 Pool.Sync.handler(async ({ event, context }) => {
-  const liquidityPoolNew = await context.LiquidityPoolNew.get(
-    toChecksumAddress(event.srcAddress).toString()
-  );
+  const liquidityPoolNew = await context.LiquidityPoolNew.get(event.srcAddress);
 
   if (liquidityPoolNew == undefined) return;
 
@@ -339,5 +329,4 @@ Pool.Sync.handler(async ({ event, context }) => {
   context.LiquidityPoolHourlySnapshot.set(liquidityPoolHourlySnapshotInstance);
   context.LiquidityPoolDailySnapshot.set(liquidityPoolDailySnapshotInstance);
   context.LiquidityPoolWeeklySnapshot.set(liquidityPoolWeeklySnapshotInstance);
-
 });
