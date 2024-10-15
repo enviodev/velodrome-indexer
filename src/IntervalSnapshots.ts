@@ -3,10 +3,6 @@ import {
   LiquidityPoolHourlySnapshot,
   LiquidityPoolDailySnapshot,
   LiquidityPoolWeeklySnapshot,
-  Token,
-  TokenHourlySnapshot,
-  TokenDailySnapshot,
-  TokenWeeklySnapshot,
 } from "./src/Types.gen";
 
 import {
@@ -83,7 +79,9 @@ function getIdForEntityByInterval(
   numberOfSeconds: bigint
 ): string {
   // Convert Date to Unix timestamp in seconds
-  let lastUpdatedTimestampInSeconds = Math.floor(lastUpdatedTimestamp.getTime() / 1000);
+  let lastUpdatedTimestampInSeconds = Math.floor(
+    lastUpdatedTimestamp.getTime() / 1000
+  );
 
   // Perform interval calculation
   let interval = BigInt(lastUpdatedTimestampInSeconds) / numberOfSeconds;
