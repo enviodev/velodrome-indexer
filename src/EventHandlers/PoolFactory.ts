@@ -7,9 +7,12 @@ import { Token, LiquidityPoolNew } from "./../src/Types.gen";
 import { generatePoolName } from "./../Helpers";
 import { TokenIdByChain } from "../Constants";
 
-PoolFactory.PoolCreated.contractRegister(({ event, context }) => {
-  context.addPool(event.params.pool);
-});
+PoolFactory.PoolCreated.contractRegister(
+  ({ event, context }) => {
+    context.addPool(event.params.pool);
+  },
+  { preRegisterDynamicContracts: true }
+);
 
 PoolFactory.PoolCreated.handler(async ({ event, context }) => {
   const poolToken0 = await context.Token.get(
