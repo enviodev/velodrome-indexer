@@ -12,11 +12,7 @@ import { poolLookupStoreManager } from "./../Store";
 import { TokenIdByChain } from "../Constants";
 
 //// global state!
-const {
-  getPoolAddressByGaugeAddress,
-  getPoolAddressByBribeVotingRewardAddress,
-  addRewardAddressDetails,
-} = poolLookupStoreManager();
+const { getPoolAddressByBribeVotingRewardAddress } = poolLookupStoreManager();
 
 VotingReward.NotifyReward.handlerWithLoader({
   loader: async ({ event, context }) => {

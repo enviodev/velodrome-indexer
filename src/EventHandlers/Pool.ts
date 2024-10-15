@@ -43,7 +43,7 @@ Pool.Burn.handler(async ({ event, context }) => {
 Pool.Fees.handlerWithLoader({
   loader: async ({ event, context }) => {
     const currentLiquidityPool = await context.LiquidityPoolNew.get(
-      toChecksumAddress(event.srcAddress)
+      event.srcAddress
     );
 
     if (currentLiquidityPool == undefined) return null;
@@ -108,8 +108,8 @@ Pool.Fees.handlerWithLoader({
 Pool.Swap.handlerWithLoader({
   loader: async ({ event, context }) => {
     const [liquidityPoolNew, toUser] = await Promise.all([
-      context.LiquidityPoolNew.get(toChecksumAddress(event.srcAddress)),
-      context.User.get(toChecksumAddress(event.params.to)),
+      context.LiquidityPoolNew.get(event.srcAddress),
+      context.User.get(event.params.to),
     ]);
 
     if (liquidityPoolNew == undefined) return null;
@@ -118,7 +118,7 @@ Pool.Swap.handlerWithLoader({
       [
         context.Token.get(liquidityPoolNew.token0_id),
         context.Token.get(liquidityPoolNew.token1_id),
-        context.LiquidityPoolNew.get(toChecksumAddress(event.params.to)),
+        context.LiquidityPoolNew.get(event.params.to),
       ]
     );
 
@@ -136,7 +136,7 @@ Pool.Swap.handlerWithLoader({
       liquidityPoolNew,
       token0Instance,
       token1Instance,
-      to_address: toChecksumAddress(event.params.to),
+      to_address: event.params.to,
       toUser,
       isLiquidityPool: isLiquidityPool != undefined,
     };
@@ -235,9 +235,7 @@ Pool.Swap.handlerWithLoader({
 });
 
 Pool.Sync.handler(async ({ event, context }) => {
-  const liquidityPoolNew = await context.LiquidityPoolNew.get(
-    toChecksumAddress(event.srcAddress).toString()
-  );
+  const liquidityPoolNew = await context.LiquidityPoolNew.get(event.srcAddress);
 
   if (liquidityPoolNew == undefined) return;
 
