@@ -1,5 +1,8 @@
 import { TokenInfo, Pool } from "./CustomTypes";
 import dotenv from "dotenv";
+import optimismWhitelistedTokens from "./constants/optimismWhitelistedTokens.json";
+import baseWhitelistedTokens from "./constants/baseWhitelistedTokens.json";
+import web3 from "web3";
 
 dotenv.config();
 
@@ -11,89 +14,33 @@ export const SECONDS_IN_AN_HOUR = BigInt(3600);
 export const SECONDS_IN_A_DAY = BigInt(86400);
 export const SECONDS_IN_A_WEEK = BigInt(604800);
 
-// export const STATE_STORE_ID = "STATE";
+// Convert imported JSON to TokenInfo type
+export const OPTIMISM_WHITELISTED_TOKENS: TokenInfo[] =
+  optimismWhitelistedTokens as TokenInfo[];
+export const BASE_WHITELISTED_TOKENS: TokenInfo[] =
+  baseWhitelistedTokens as TokenInfo[];
 
-// Hardcoded WETH, USDC and OP token addresses with decimals
-export const WETH: TokenInfo = {
-  address: "0x4200000000000000000000000000000000000006",
-  symbol: "WETH",
+export const toChecksumAddress = (address: string) => web3.utils.toChecksumAddress(address);
+
+// Helper function to find a token by symbol
+const findToken = (tokens: TokenInfo[], symbol: string): TokenInfo => {
+  const token = tokens.find((t) => t.symbol === symbol);
+  if (!token) throw new Error(`Token ${symbol} not found`);
+  return token;
 };
-
-// TODO change this name to usdc.e and import native usdc from base
-export const USDC: TokenInfo = {
-  address: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
-  symbol: "USDC.e",
-};
-
-export const NATIVE_USDC: TokenInfo = {
-  address: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
-  symbol: "USDC",
-};
-
-const USDC_BASE: TokenInfo = {
-  address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-  symbol: "USDC",
-};
-
-export const OP: TokenInfo = {
-  address: "0x4200000000000000000000000000000000000042",
-  symbol: "OP",
-};
-
-// beware not checksummed.
-const LUSD: TokenInfo = {
-  address: "0xc40f949f8a4e094d1b49a23ea9241d289b7b2819",
-  symbol: "LUSD",
-};
-
-export const VELO: TokenInfo = {
-  address: "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db",
-  symbol: "VELO",
-};
-
-const USDbC: TokenInfo = {
-  address: "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
-  symbol: "USCbC",
-};
-
-// NB issue!! DAI address on base, Lyra address on optimism!!
-const DAI: TokenInfo = {
-  address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
-  symbol: "DAI",
-};
-
-const AERO: TokenInfo = {
-  address: "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
-  symbol: "AERO",
-};
-
-const DOLA: TokenInfo = {
-  address: "0x4621b7A9c75199271F773Ebd9A499dbd165c3191",
-  symbol: "DOLA",
-};
-// list of WHITELISTED tokens with their symbol and decimals to be used in pricing
-const OPTIMISM_WHITELISTED_TOKENS: TokenInfo[] = [WETH, USDC, VELO, OP, LUSD];
-
-const BASE_WHITELISTED_TOKENS: TokenInfo[] = [
-  WETH,
-  USDbC,
-  USDC_BASE,
-  DAI,
-  DOLA,
-];
 
 // List of stablecoin pools with their token0, token1 and name
 const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
   {
     address: "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b",
-    token0: WETH,
-    token1: USDC,
+    token0: findToken(OPTIMISM_WHITELISTED_TOKENS, "WETH"),
+    token1: findToken(OPTIMISM_WHITELISTED_TOKENS, "USDC"),
     name: "vAMM-WETH/USDC.e",
   },
   {
     address: "0x6387765fFA609aB9A1dA1B16C455548Bfed7CbEA",
-    token0: WETH,
-    token1: LUSD,
+    token0: findToken(OPTIMISM_WHITELISTED_TOKENS, "WETH"),
+    token1: findToken(OPTIMISM_WHITELISTED_TOKENS, "LUSD"),
     name: "vAMM-WETH/LUSD",
   },
 ];
@@ -101,14 +48,14 @@ const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
 const BASE_STABLECOIN_POOLS: Pool[] = [
   {
     address: "0xB4885Bc63399BF5518b994c1d0C153334Ee579D0",
-    token0: WETH,
-    token1: USDbC,
+    token0: findToken(BASE_WHITELISTED_TOKENS, "WETH"),
+    token1: findToken(BASE_WHITELISTED_TOKENS, "USDbC"),
     name: "vAMM-WETH/USDbC",
   },
   {
     address: "0x9287C921f5d920cEeE0d07d7c58d476E46aCC640",
-    token0: WETH,
-    token1: DAI,
+    token0: findToken(BASE_WHITELISTED_TOKENS, "WETH"),
+    token1: findToken(BASE_WHITELISTED_TOKENS, "DAI"),
     name: "vAMM-WETH/DAI",
   },
 ];
@@ -134,7 +81,11 @@ const BASE_TESTING_POOL_ADDRESSES: string[] = [
 type chainConstants = {
   eth: TokenInfo;
   usdc: TokenInfo;
-  firstPriceFetchedBlockNumber: number;
+  oracle: {
+    getAddress: (blockNumber: number) => string;
+    startBlock: number;
+    updateDelta: number;
+  };
   rewardToken: TokenInfo;
   rpcURL: string;
   stablecoinPools: Pool[];
@@ -146,10 +97,18 @@ type chainConstants = {
 
 // Constants for Optimism
 const OPTIMISM_CONSTANTS: chainConstants = {
-  eth: WETH,
-  usdc: USDC,
-  firstPriceFetchedBlockNumber: 106247807,
-  rewardToken: VELO,
+  eth: findToken(OPTIMISM_WHITELISTED_TOKENS, "WETH"),
+  usdc: findToken(OPTIMISM_WHITELISTED_TOKENS, "USDC"),
+  oracle: {
+    getAddress: (blockNumber: number) => {
+      return blockNumber < 124076662
+        ? "0x395942C2049604a314d39F370Dfb8D87AAC89e16"
+        : "0x6a3af44e23395d2470f7c81331add6ede8597306";
+    },
+    startBlock: 107676013,
+    updateDelta: 60 * 60, // 1 hour
+  },
+  rewardToken: findToken(OPTIMISM_WHITELISTED_TOKENS, "VELO"),
   rpcURL: process.env.OPTIMISM_RPC_URL || "https://rpc.ankr.com/optimism",
   stablecoinPools: OPTIMISM_STABLECOIN_POOLS,
   stablecoinPoolAddresses: OPTIMISM_STABLECOIN_POOLS.map(
@@ -164,10 +123,18 @@ const OPTIMISM_CONSTANTS: chainConstants = {
 
 // Constants for Base
 const BASE_CONSTANTS: chainConstants = {
-  eth: WETH,
-  usdc: USDbC,
-  firstPriceFetchedBlockNumber: 3347620,
-  rewardToken: AERO,
+  eth: findToken(BASE_WHITELISTED_TOKENS, "WETH"),
+  usdc: findToken(BASE_WHITELISTED_TOKENS, "USDC"),
+  oracle: {
+    getAddress: (blockNumber: number) => {
+      return blockNumber < 18480097
+        ? "0xe58920a8c684CD3d6dCaC2a41b12998e4CB17EfE"
+        : "0xcbf5b6abf55fb87271338097fdd03e9d82a9d63f";
+    },
+    startBlock: 3219857,
+    updateDelta: 60 * 60, // 1 hour
+  },
+  rewardToken: findToken(BASE_WHITELISTED_TOKENS, "AERO"),
   rpcURL: process.env.BASE_RPC_URL || "https://base.publicnode.com",
   stablecoinPools: BASE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: BASE_STABLECOIN_POOLS.map((pool) => pool.address),
@@ -177,6 +144,25 @@ const BASE_CONSTANTS: chainConstants = {
     (token) => token.address
   ),
 };
+
+/**
+ * Create a unique ID for a token on a specific chain. Really should only be used for Token Entities.
+ * @param address 
+ * @param chainId 
+ * @returns string Merged Token ID. 
+ */
+export const TokenIdByChain = (address: string, chainId: number) => `${toChecksumAddress(address)}-${chainId}`;
+
+/**
+ * Create a unique ID for a token on a specific chain at a specific block. Really should only be used
+ * for TokenPrice Entities.
+ * @param address 
+ * @param chainId 
+ * @param blockNumber 
+ * @returns string Merged Token ID. 
+ */
+export const TokenIdByBlock = (address: string, chainId: number, blockNumber: number) =>
+  `${chainId}_${toChecksumAddress(address)}_${blockNumber}`;
 
 // Key is chain ID
 export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
@@ -190,6 +176,7 @@ export const CacheCategory = {
   BribeToPool: "bribeToPool",
   WhitelistedPoolIds: "whitelistedPoolIds",
   PoolToTokens: "poolToTokens",
+  TokenPrices: "tokenPrices",
 } as const;
 
 export type CacheCategory = (typeof CacheCategory)[keyof typeof CacheCategory];

@@ -3,10 +3,6 @@ import {
   LiquidityPoolHourlySnapshot,
   LiquidityPoolDailySnapshot,
   LiquidityPoolWeeklySnapshot,
-  Token,
-  TokenHourlySnapshot,
-  TokenDailySnapshot,
-  TokenWeeklySnapshot,
 } from "./src/Types.gen";
 
 import {
@@ -63,40 +59,6 @@ export function getLiquidityPoolSnapshotByInterval(
   return liquidityPoolSnapshotByIntervalEntity;
 }
 
-// Generic function to return a snapshot of entity of type Token given a specific snapshot interval
-export function getTokenSnapshotByInterval(
-  tokenEntity: Token,
-  interval: SnapshotInterval
-):
-  | TokenHourlySnapshot
-  | TokenDailySnapshot
-  | TokenWeeklySnapshot {
-  // Get the number of seconds in the interval
-  const numberOfSecondsInInterval = getNumberOfSecondsInInterval(interval);
-
-  // Get the interval ID for the snapshot entity
-  let intervalId = getIdForEntityByInterval(
-    tokenEntity.id,
-    tokenEntity.lastUpdatedTimestamp,
-    numberOfSecondsInInterval
-  );
-
-  // Create the snapshot entity
-  const tokenSnapshotByIntervalEntity = {
-    id: intervalId,
-    chainID: tokenEntity.chainID,
-    decimals: tokenEntity.decimals,
-    symbol: tokenEntity.symbol,
-    name: tokenEntity.name,
-    token: tokenEntity.id,
-    pricePerUSDNew: tokenEntity.pricePerUSDNew,
-    lastUpdatedTimestamp: tokenEntity.lastUpdatedTimestamp,
-  };
-
-  // Return the snapshot entity
-  return tokenSnapshotByIntervalEntity;
-}
-
 // Function to return the number of seconds in a given interval
 function getNumberOfSecondsInInterval(interval: SnapshotInterval): bigint {
   switch (interval) {
@@ -117,7 +79,9 @@ function getIdForEntityByInterval(
   numberOfSeconds: bigint
 ): string {
   // Convert Date to Unix timestamp in seconds
-  let lastUpdatedTimestampInSeconds = Math.floor(lastUpdatedTimestamp.getTime() / 1000);
+  let lastUpdatedTimestampInSeconds = Math.floor(
+    lastUpdatedTimestamp.getTime() / 1000
+  );
 
   // Perform interval calculation
   let interval = BigInt(lastUpdatedTimestampInSeconds) / numberOfSeconds;

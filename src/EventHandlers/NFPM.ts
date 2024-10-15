@@ -1,7 +1,8 @@
 import {
     NFPM,
-    NFPM_Transfer
- } from "generated";
+    NFPM_Transfer,
+} from "generated";
+import { set_whitelisted_prices } from "../PriceOracle";
 
 /**
  * @title NonfungiblePositionManager
@@ -19,15 +20,23 @@ import {
  * @param {uint256} tokenId - The ID of the token being transferred.
  */
 NFPM.Transfer.handler(async ({ event, context }) => {
+  const blockDatetime = new Date(event.block.timestamp * 1000);
   const entity: NFPM_Transfer = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     transactionHash: event.transaction.hash,
     from: event.params.from,
     to: event.params.to,
     tokenId: event.params.tokenId,
-    timestamp: new Date(event.block.timestamp * 1000),
+    timestamp: blockDatetime,
     chainId: event.chainId,
   };
 
   context.NFPM_Transfer.set(entity);
+
+  try {
+    await set_whitelisted_prices(event.chainId, event.block.number, blockDatetime, context);
+  } catch (error) {
+    console.error("Error updating whitelisted prices after position mint:");
+    console.error(error);
+  }
 });

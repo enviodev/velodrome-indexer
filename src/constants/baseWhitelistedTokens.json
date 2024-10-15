@@ -1,0 +1,1592 @@
+[
+  {
+    "address": "0x3ff7ab26f2dfd482c40bdadfc0e88d01bff79713",
+    "symbol": "oBMX",
+    "decimals": 18,
+    "createdBlock": 5943345
+  },
+  {
+    "address": "0x9a26f5433671751c3276a065f57e5a02d2817973",
+    "symbol": "KEYCAT",
+    "decimals": 18,
+    "createdBlock": 14154208
+  },
+  {
+    "address": "0x59525b9b23adc475ef91d98dae06b568ba574ce5",
+    "symbol": "FMP",
+    "decimals": 18,
+    "createdBlock": 13937576
+  },
+  {
+    "address": "0x9d19e729a1baafc87f4bc13ff05ce64eadfb9bbb",
+    "symbol": "wTAO",
+    "decimals": 18,
+    "createdBlock": 10527706
+  },
+  {
+    "address": "0xc43f3ae305a92043bd9b62ebd2fe14f7547ee485",
+    "symbol": "CHEX",
+    "decimals": 18,
+    "createdBlock": 15707657
+  },
+  {
+    "address": "0x1f3ba804efb9cfe17d595e7262cea4782dbf6e4e",
+    "symbol": "HPC",
+    "decimals": 18,
+    "createdBlock": 12387614
+  },
+  {
+    "address": "0xe2c86869216ac578bd62a4b8313770d9ee359a05",
+    "symbol": "EMT",
+    "decimals": 18,
+    "createdBlock": 15707678
+  },
+  {
+    "address": "0x3dd79d6bd927615787cc95f2c7a77c9ac1af26f4",
+    "symbol": "pwBLT",
+    "decimals": 18,
+    "createdBlock": 15405394
+  },
+  {
+    "address": "0x9483ab65847a447e36d21af1cab8c87e9712ff93",
+    "symbol": "wUSDR",
+    "decimals": 9,
+    "createdBlock": 3262393
+  },
+  {
+    "address": "0xf544251d25f3d243a36b07e7e7962a678f952691",
+    "symbol": "TAROT",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x3fbde9864362ce4abb244ebef2ef0482aba8ea39",
+    "symbol": "BAVA",
+    "decimals": 18,
+    "createdBlock": 12167180
+  },
+  {
+    "address": "0x806041b6473da60abbe1b256d9a2749a151be6c6",
+    "symbol": "stTAO",
+    "decimals": 9,
+    "createdBlock": 13594276
+  },
+  {
+    "address": "0x6d3b8c76c5396642960243febf736c6be8b60562",
+    "symbol": "SKOP",
+    "decimals": 18,
+    "createdBlock": 15714586
+  },
+  {
+    "address": "0x9beec80e62aa257ced8b0edd8692f79ee8783777",
+    "symbol": "TIMI",
+    "decimals": 18,
+    "createdBlock": 18433104
+  },
+  {
+    "address": "0x7f62ac1e974d65fab4a81821ca6af659a5f46298",
+    "symbol": "WELS",
+    "decimals": 18,
+    "createdBlock": 9614916
+  },
+  {
+    "address": "0x2c8d2fc58b80acb3b307c165af8f3ee296e6a271",
+    "symbol": "pHAM",
+    "decimals": 18,
+    "createdBlock": 15406158
+  },
+  {
+    "address": "0x2f3b1a07e3efb1fcc64bd09b86bd0fa885d93552",
+    "symbol": "MST",
+    "decimals": 18,
+    "createdBlock": 17481444
+  },
+  {
+    "address": "0xe54b0c7dad72fb102ade2b1b9f4eece69408ab36",
+    "symbol": "HLSp",
+    "decimals": 6,
+    "createdBlock": 13600463
+  },
+  {
+    "address": "0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42",
+    "symbol": "EURC",
+    "decimals": 6,
+    "createdBlock": 17825148
+  },
+  {
+    "address": "0x0d97f261b1e88845184f678e2d1e7a98d9fd38de",
+    "symbol": "TYBG",
+    "decimals": 18,
+    "createdBlock": 10137117
+  },
+  {
+    "address": "0x489fe42c267fe0366b16b0c39e7aeef977e841ef",
+    "symbol": "WAMPL",
+    "decimals": 18,
+    "createdBlock": 11830949
+  },
+  {
+    "address": "0x0b3e328455c4059eeb9e3f84b5543f74e24e7e1b",
+    "symbol": "VIRTUAL",
+    "decimals": 18,
+    "createdBlock": 12298884
+  },
+  {
+    "address": "0x23471e7250bcd7ee21df3f39ed6151931d1e076b",
+    "symbol": "WAI",
+    "decimals": 18,
+    "createdBlock": 13937576
+  },
+  {
+    "address": "0x6985884c4392d348587b19cb9eaaf157f13271cd",
+    "symbol": "ZRO",
+    "decimals": 18,
+    "createdBlock": 16620591
+  },
+  {
+    "address": "0xb8d98a102b0079b69ffbc760c8d857a31653e56e",
+    "symbol": "toby",
+    "decimals": 18,
+    "createdBlock": 13287848
+  },
+  {
+    "address": "0xeb466342c4d449bc9f53a865d5cb90586f405215",
+    "symbol": "axlUSDC",
+    "decimals": 6,
+    "createdBlock": 3282300
+  },
+  {
+    "address": "0xdcefd8c8fcc492630b943abcab3429f12ea9fea2",
+    "symbol": "KLIMA",
+    "decimals": 9,
+    "createdBlock": 13513007
+  },
+  {
+    "address": "0xa88594d404727625a9437c3f886c7643872296ae",
+    "symbol": "WELL",
+    "decimals": 18,
+    "createdBlock": 12298875
+  },
+  {
+    "address": "0xba5e6fa2f33f3955f0cef50c63dcc84861eab663",
+    "symbol": "BASED",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x37ab9f42051c112caaba55ab6487dd74286a0b29",
+    "symbol": "KWENTA",
+    "decimals": 18,
+    "createdBlock": 12125515
+  },
+  {
+    "address": "0x2a06a17cbc6d0032cac2c6696da90f29d39a1a29",
+    "symbol": "BITCOIN",
+    "decimals": 8,
+    "createdBlock": 12914180
+  },
+  {
+    "address": "0xb79dd08ea68a908a97220c76d19a6aa9cbde4376",
+    "symbol": "USD+",
+    "decimals": 6,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x768be13e1680b5ebe0024c42c896e3db59ec0149",
+    "symbol": "SKI",
+    "decimals": 9,
+    "createdBlock": 14503076
+  },
+  {
+    "address": "0x4621b7a9c75199271f773ebd9a499dbd165c3191",
+    "symbol": "DOLA",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0xd652c5425aea2afd5fb142e120fecf79e18fafc3",
+    "symbol": "POOL",
+    "decimals": 18,
+    "createdBlock": 12641477
+  },
+  {
+    "address": "0xbc404429558292ee2d769e57d57d6e74bbd2792d",
+    "symbol": "sUSX",
+    "decimals": 18,
+    "createdBlock": 20246543
+  },
+  {
+    "address": "0x14dc0ea777a87caf54e49c9375b39727e1d85b69",
+    "symbol": "ultraETHs",
+    "decimals": 18,
+    "createdBlock": 20246543
+  },
+  {
+    "address": "0xe3b53af74a4bf62ae5511055290838050bf764df",
+    "symbol": "STG",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0xece7b98bd817ee5b1f2f536daf34d0b6af8bb542",
+    "symbol": "ROCK",
+    "decimals": 18,
+    "createdBlock": 12383824
+  },
+  {
+    "address": "0x56a38e7216304108e841579041249feb236c887b",
+    "symbol": "LBM",
+    "decimals": 18,
+    "createdBlock": 13555580
+  },
+  {
+    "address": "0xe7798f023fc62146e8aa1b36da45fb70855a77ea",
+    "symbol": "iFARM",
+    "decimals": 18,
+    "createdBlock": 6332027
+  },
+  {
+    "address": "0x777b2839832982b35213063d850848369390ee16",
+    "symbol": "JARVIS",
+    "decimals": 18,
+    "createdBlock": 5700799
+  },
+  {
+    "address": "0x8ae125e8653821e851f12a49f7765db9a9ce7384",
+    "symbol": "DHT",
+    "decimals": 18,
+    "createdBlock": 3532583
+  },
+  {
+    "address": "0x74ccbe53f77b08632ce0cb91d3a545bf6b8e0979",
+    "symbol": "fBOMB",
+    "decimals": 18,
+    "createdBlock": 3272009
+  },
+  {
+    "address": "0xd3fdcb837dafdb7c9c3ebd48fe22a53f6dd3d7d7",
+    "symbol": "QI",
+    "decimals": 18,
+    "createdBlock": 12390730
+  },
+  {
+    "address": "0xb166e8b140d35d9d8226e40c09f757bac5a4d87d",
+    "symbol": "NPC",
+    "decimals": 18,
+    "createdBlock": 9324375
+  },
+  {
+    "address": "0x96419929d7949d6a801a6909c145c8eef6a40431",
+    "symbol": "SPEC",
+    "decimals": 18,
+    "createdBlock": 14456310
+  },
+  {
+    "address": "0xd1db4851bcf5b41442caa32025ce0afe6b8eabc2",
+    "symbol": "ZOOMER",
+    "decimals": 18,
+    "createdBlock": 9922711
+  },
+  {
+    "address": "0xeff2a458e464b07088bdb441c21a42ab4b61e07e",
+    "symbol": "PDT",
+    "decimals": 18,
+    "createdBlock": 17478659
+  },
+  {
+    "address": "0xcacf1ca03983ce6c7e235fb20c70acc70ed13509",
+    "symbol": "APX",
+    "decimals": 18,
+    "createdBlock": 15714586
+  },
+  {
+    "address": "0x6c240dda6b5c336df09a4d011139beaaa1ea2aa2",
+    "symbol": "ETHFI",
+    "decimals": 18,
+    "createdBlock": 20246533
+  },
+  {
+    "address": "0x5e5d64ea20e932d9031db75e9329663a68f76185",
+    "symbol": "AMBR",
+    "decimals": 18,
+    "createdBlock": 14807625
+  },
+  {
+    "address": "0x93dc5cb35627a759848c7a7f0079ea7b49e435a5",
+    "symbol": "MET",
+    "decimals": 18,
+    "createdBlock": 10196582
+  },
+  {
+    "address": "0x24914cb6bd01e6a0cf2a9c0478e33c25926e6a0c",
+    "symbol": "BOTTO",
+    "decimals": 18,
+    "createdBlock": 20848311
+  },
+  {
+    "address": "0xe85411c030fb32a9d8b14bbbc6cb19417391f711",
+    "symbol": "suBTC",
+    "decimals": 18,
+    "createdBlock": 10222282
+  },
+  {
+    "address": "0x02f92800f57bcd74066f5709f1daa1a4302df875",
+    "symbol": "PEAS",
+    "decimals": 18,
+    "createdBlock": 14456310
+  },
+  {
+    "address": "0xde5ed76e7c05ec5e4572cfc88d1acea165109e44",
+    "symbol": "DEUS",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0xc19669a405067927865b40ea045a2baabbbe57f5",
+    "symbol": "STAR",
+    "decimals": 18,
+    "createdBlock": 3911294
+  },
+  {
+    "address": "0xf34e0cff046e154cafcae502c7541b9e5fd8c249",
+    "symbol": "THALES",
+    "decimals": 18,
+    "createdBlock": 3263990
+  },
+  {
+    "address": "0xed1779845520339693cdbffec49a74246e7d671b",
+    "symbol": "SAM",
+    "decimals": 18,
+    "createdBlock": 13555580
+  },
+  {
+    "address": "0x417ac0e078398c154edfadd9ef675d30be60af93",
+    "symbol": "crvUSD",
+    "decimals": 18,
+    "createdBlock": 12991693
+  },
+  {
+    "address": "0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4",
+    "symbol": "TOSHI",
+    "decimals": 18,
+    "createdBlock": 9407935
+  },
+  {
+    "address": "0x1cea84203673764244e05693e42e6ace62be9ba5",
+    "symbol": "WBTC",
+    "decimals": 8,
+    "createdBlock": 11260975
+  },
+  {
+    "address": "0xcd2f22236dd9dfe2356d7c543161d4d260fd9bcb",
+    "symbol": "GHST",
+    "decimals": 18,
+    "createdBlock": 13513024
+  },
+  {
+    "address": "0xf7a0dd3317535ec4f4d29adf9d620b3d8d5d5069",
+    "symbol": "stERN",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x99ac4484e8a1dbd6a185380b3a811913ac884d87",
+    "symbol": "sDAI",
+    "decimals": 18,
+    "createdBlock": 11868129
+  },
+  {
+    "address": "0x0578d8a44db98b23bf096a382e016e29a5ce0ffe",
+    "symbol": "HIGHER",
+    "decimals": 18,
+    "createdBlock": 12687911
+  },
+  {
+    "address": "0xafb89a09d82fbde58f18ac6437b3fc81724e4df6",
+    "symbol": "DOG",
+    "decimals": 18,
+    "createdBlock": 10222282
+  },
+  {
+    "address": "0xb0505e5a99abd03d94a1169e638b78edfed26ea4",
+    "symbol": "uSUI",
+    "decimals": 18,
+    "createdBlock": 20554865
+  },
+  {
+    "address": "0xafb2820316e7bc5ef78d295ab9b8bb2257534576",
+    "symbol": "R",
+    "decimals": 18,
+    "createdBlock": 4478314
+  },
+  {
+    "address": "0xba7d47f471add16875e765edee0858c3413a56fd",
+    "symbol": "MTA",
+    "decimals": 18,
+    "createdBlock": 6031632
+  },
+  {
+    "address": "0x0555e30da8f98308edb960aa94c0db47230d2b9c",
+    "symbol": "WBTC",
+    "decimals": 8,
+    "createdBlock": 20246396
+  },
+  {
+    "address": "0x8f2e6758c4d6570344bd5007dec6301cd57590a0",
+    "symbol": "SPOT",
+    "decimals": 9,
+    "createdBlock": 12000161
+  },
+  {
+    "address": "0x01facc69ec7360640aa5898e852326752801674a",
+    "symbol": "FUSE",
+    "decimals": 18,
+    "createdBlock": 17481444
+  },
+  {
+    "address": "0x04d5ddf5f3a8939889f11e97f8c4bb48317f1938",
+    "symbol": "USDz",
+    "decimals": 18,
+    "createdBlock": 14764184
+  },
+  {
+    "address": "0xff8adec2221f9f4d8dfbafa6b9a297d17603493d",
+    "symbol": "WELL",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x22a2488fe295047ba13bd8cccdbc8361dbd8cf7c",
+    "symbol": "SONNE",
+    "decimals": 18,
+    "createdBlock": 3264618
+  },
+  {
+    "address": "0xdadc4f8e9d8d37294de0e02a2ce8cc0c90a4f6c2",
+    "symbol": "BUIDL",
+    "decimals": 18,
+    "createdBlock": 12687949
+  },
+  {
+    "address": "0x23da5f2d509cb43a59d43c108a43edf34510eff1",
+    "symbol": "xPufETH",
+    "decimals": 18,
+    "createdBlock": 20246543
+  },
+  {
+    "address": "0xe0023e73aab4fe9a22f059a9d27e857e027ee3dc",
+    "symbol": "RWAX",
+    "decimals": 18,
+    "createdBlock": 14764184
+  },
+  {
+    "address": "0x4e74d4db6c0726ccded4656d0bce448876bb4c7a",
+    "symbol": "wBLT",
+    "decimals": 18,
+    "createdBlock": 13244984
+  },
+  {
+    "address": "0x532f27101965dd16442e59d40670faf5ebb142e4",
+    "symbol": "BRETT",
+    "decimals": 18,
+    "createdBlock": 12094107
+  },
+  {
+    "address": "0x0e0c9756a3290cd782cf4ab73ac24d25291c9564",
+    "symbol": "ANIME",
+    "decimals": 18,
+    "createdBlock": 12687911
+  },
+  {
+    "address": "0xab36452dbac151be02b16ca17d8919826072f64a",
+    "symbol": "RSR",
+    "decimals": 18,
+    "createdBlock": 12383805
+  },
+  {
+    "address": "0xc9a3e2b3064c1c0546d3d0edc0a748e9f93cf18d",
+    "symbol": "Vaya",
+    "decimals": 18,
+    "createdBlock": 12383837
+  },
+  {
+    "address": "0x1db0c569ebb4a8b57ac01833b9792f526305e062",
+    "symbol": "GENOME",
+    "decimals": 18,
+    "createdBlock": 13297174
+  },
+  {
+    "address": "0x728cda34d732a87fd6429129e23d4742d9ff0064",
+    "symbol": "BaseDOGE",
+    "decimals": 18,
+    "createdBlock": 9358401
+  },
+  {
+    "address": "0xb59c8912c83157a955f9d715e556257f432c35d7",
+    "symbol": "TRUF",
+    "decimals": 18,
+    "createdBlock": 14503215
+  },
+  {
+    "address": "0xbe3111856e4aca828593274ea6872f27968c8dd6",
+    "symbol": "KRAV",
+    "decimals": 18,
+    "createdBlock": 4478314
+  },
+  {
+    "address": "0x9e53e88dcff56d3062510a745952dec4cefdff9e",
+    "symbol": "DOG",
+    "decimals": 18,
+    "createdBlock": 3911294
+  },
+  {
+    "address": "0xd1917629b3e6a72e6772aab5dbe58eb7fa3c2f33",
+    "symbol": "SEXY",
+    "decimals": 18,
+    "createdBlock": 12340841
+  },
+  {
+    "address": "0x18dd5b087bca9920562aff7a0199b96b9230438b",
+    "symbol": "PRO",
+    "decimals": 8,
+    "createdBlock": 11478191
+  },
+  {
+    "address": "0xe3086852a4b125803c815a158249ae468a3254ca",
+    "symbol": "$mfer",
+    "decimals": 18,
+    "createdBlock": 12687911
+  },
+  {
+    "address": "0x490a4b510d0ea9f835d2df29eb73b4fca5071937",
+    "symbol": "VITA",
+    "decimals": 18,
+    "createdBlock": 12080998
+  },
+  {
+    "address": "0x80f6bcedd3d4fa1035285affa30e38f464db3895",
+    "symbol": "BET",
+    "decimals": 18,
+    "createdBlock": 13720157
+  },
+  {
+    "address": "0x58d75a1c4477914f9a98a8708feaed1dbe40b8a3",
+    "symbol": "ATH",
+    "decimals": 18,
+    "createdBlock": 13720157
+  },
+  {
+    "address": "0x1f4446faaaed23090f324f051c3f8c5ce5ad1c36",
+    "symbol": "CRYO",
+    "decimals": 18,
+    "createdBlock": 12914139
+  },
+  {
+    "address": "0xed2d13a70acbd61074fc56bd0d0845e35f793e5e",
+    "symbol": "MOJO",
+    "decimals": 18,
+    "createdBlock": 18130872
+  },
+  {
+    "address": "0xad20523a7dc37babc1cc74897e4977232b3d02e5",
+    "symbol": "gUSDC",
+    "decimals": 6,
+    "createdBlock": 20848311
+  },
+  {
+    "address": "0x44d1d5e5e1677c065d6d23ddc74679aec548ed94",
+    "symbol": "AGOV",
+    "decimals": 18,
+    "createdBlock": 4478314
+  },
+  {
+    "address": "0xf734efde0c424ba2b547b186586de417b0954802",
+    "symbol": "Silo",
+    "decimals": 18,
+    "createdBlock": 20848311
+  },
+  {
+    "address": "0x8c9037d1ef5c6d1f6816278c7aaf5491d24cd527",
+    "symbol": "MOXIE",
+    "decimals": 18,
+    "createdBlock": 18084411
+  },
+  {
+    "address": "0x37289326b7bca5a776a5071b8d693c0588c5c9a6",
+    "symbol": "NFD",
+    "decimals": 18,
+    "createdBlock": 12914155
+  },
+  {
+    "address": "0x548f93779fbc992010c07467cbaf329dd5f059b7",
+    "symbol": "BMX",
+    "decimals": 18,
+    "createdBlock": 11478191
+  },
+  {
+    "address": "0xe642657e4f43e6dcf0bd73ef24008394574dee28",
+    "symbol": "RECORD",
+    "decimals": 18,
+    "createdBlock": 18084402
+  },
+  {
+    "address": "0xf1143f3a8d76f1ca740d29d5671d365f66c44ed1",
+    "symbol": "uBTC",
+    "decimals": 18,
+    "createdBlock": 18169688
+  },
+  {
+    "address": "0xb1a03eda10342529bbf8eb700a06c60441fef25d",
+    "symbol": "MIGGLES",
+    "decimals": 18,
+    "createdBlock": 17488619
+  },
+  {
+    "address": "0x4e200fe2f3efb977d5fd9c430a41531fb04d97b8",
+    "symbol": "ORDER",
+    "decimals": 18,
+    "createdBlock": 19338951
+  },
+  {
+    "address": "0x4154550f4db74dc38d1fe98e1f3f28ed6dad627d",
+    "symbol": "jEUR",
+    "decimals": 18,
+    "createdBlock": 16291196
+  },
+  {
+    "address": "0x9cc2fc2f75768b0307925c7935396ec9d94bba44",
+    "symbol": "MTA",
+    "decimals": 18,
+    "createdBlock": 3532583
+  },
+  {
+    "address": "0xb95fb324b8a2faf8ec4f76e3df46c718402736e2",
+    "symbol": "UNIT",
+    "decimals": 18,
+    "createdBlock": 13937576
+  },
+  {
+    "address": "0x8901cb2e82cc95c01e42206f8d1f417fe53e7af0",
+    "symbol": "YFX",
+    "decimals": 18,
+    "createdBlock": 3263990
+  },
+  {
+    "address": "0xcde172dc5ffc46d228838446c57c1227e0b82049",
+    "symbol": "BOOMER",
+    "decimals": 18,
+    "createdBlock": 16620591
+  },
+  {
+    "address": "0xecaf81eb42cd30014eb44130b89bcd6d4ad98b92",
+    "symbol": "CHAD",
+    "decimals": 18,
+    "createdBlock": 12384982
+  },
+  {
+    "address": "0xe2dca969624795985f2f083bcd0b674337ba130a",
+    "symbol": "SKR",
+    "decimals": 18,
+    "createdBlock": 15714586
+  },
+  {
+    "address": "0xf7c1cefcf7e1dd8161e00099facd3e1db9e528ee",
+    "symbol": "TOWER",
+    "decimals": 18,
+    "createdBlock": 12050331
+  },
+  {
+    "address": "0x54bc229d1cb15f8b6415efeab4290a40bc8b7d84",
+    "symbol": "DHT",
+    "decimals": 18,
+    "createdBlock": 10483310
+  },
+  {
+    "address": "0x3ee5e23eee121094f1cfc0ccc79d6c809ebd22e5",
+    "symbol": "ION",
+    "decimals": 18,
+    "createdBlock": 16291208
+  },
+  {
+    "address": "0xd08a2917653d4e460893203471f0000826fb4034",
+    "symbol": "FARM",
+    "decimals": 18,
+    "createdBlock": 6332027
+  },
+  {
+    "address": "0x1c22531aa9747d76fff8f0a43b37954ca67d28e0",
+    "symbol": "suETH",
+    "decimals": 18,
+    "createdBlock": 10222282
+  },
+  {
+    "address": "0x36be1d329444aef5d28df3662ec5b4f965cd93e9",
+    "symbol": "wXCH",
+    "decimals": 18,
+    "createdBlock": 15630298
+  },
+  {
+    "address": "0xba0dda8762c24da9487f5fa026a9b64b695a07ea",
+    "symbol": "OX",
+    "decimals": 18,
+    "createdBlock": 14844163
+  },
+  {
+    "address": "0x24cb2b89844604c57350776d81e14765d03b91de",
+    "symbol": "zunETH",
+    "decimals": 18,
+    "createdBlock": 17488608
+  },
+  {
+    "address": "0xf4435cc8b478d54313f04c956882be3d9acf9f6f",
+    "symbol": "LUCHA",
+    "decimals": 18,
+    "createdBlock": 14194452
+  },
+  {
+    "address": "0xa19328fb05ce6fd204d16c2a2a98f7cf434c12f4",
+    "symbol": "L2VE",
+    "decimals": 18,
+    "createdBlock": 11140964
+  },
+  {
+    "address": "0xb0ffa8000886e57f86dd5264b9582b2ad87b2b91",
+    "symbol": "W",
+    "decimals": 18,
+    "createdBlock": 15405411
+  },
+  {
+    "address": "0xcde90558fc317c69580deeaf3efc509428df9080",
+    "symbol": "NORMILIO",
+    "decimals": 18,
+    "createdBlock": 13287848
+  },
+  {
+    "address": "0x1bc71130a0e39942a7658878169764bbd8a45993",
+    "symbol": "rsETH",
+    "decimals": 18,
+    "createdBlock": 13597103
+  },
+  {
+    "address": "0x38815a4455921667d673b4cb3d48f0383ee93400",
+    "symbol": "PSTAKE",
+    "decimals": 18,
+    "createdBlock": 14456310
+  },
+  {
+    "address": "0x7f12d13b34f5f4f0a9449c16bcd42f0da47af200",
+    "symbol": "NORMIE",
+    "decimals": 9,
+    "createdBlock": 12597136
+  },
+  {
+    "address": "0x85483696cc9970ad9edd786b2c5ef735f38d156f",
+    "symbol": "USDC+",
+    "decimals": 6,
+    "createdBlock": 9661521
+  },
+  {
+    "address": "0xca160d11087e03fd398d40f561cd4768825f4958",
+    "symbol": "NUON",
+    "decimals": 18,
+    "createdBlock": 8066346
+  },
+  {
+    "address": "0xdbfefd2e8460a6ee4955a68582f85708baea60a3",
+    "symbol": "superOETHb",
+    "decimals": 18,
+    "createdBlock": 18433104
+  },
+  {
+    "address": "0xedfa23602d0ec14714057867a78d01e94176bea0",
+    "symbol": "wrsETH",
+    "decimals": 18,
+    "createdBlock": 13597103
+  },
+  {
+    "address": "0x24fcfc492c1393274b6bcd568ac9e225bec93584",
+    "symbol": "MAVIA",
+    "decimals": 18,
+    "createdBlock": 11562272
+  },
+  {
+    "address": "0x9cbd543f1b1166b2df36b68eb6bb1dce24e6abdf",
+    "symbol": "BASED",
+    "decimals": 18,
+    "createdBlock": 3911294
+  },
+  {
+    "address": "0xfde4c96c8593536e31f229ea8f37b2ada2699bb2",
+    "symbol": "USDT",
+    "decimals": 6,
+    "createdBlock": 17483478
+  },
+  {
+    "address": "0x4a3a6dd60a34bb2aba60d73b4c88315e9ceb6a3d",
+    "symbol": "MIM",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x526728dbc96689597f85ae4cd716d4f7fccbae9d",
+    "symbol": "msUSD",
+    "decimals": 18,
+    "createdBlock": 14764184
+  },
+  {
+    "address": "0x373504da48418c67e6fcd071f33cb0b3b47613c7",
+    "symbol": "wBaseDOGE",
+    "decimals": 18,
+    "createdBlock": 10222282
+  },
+  {
+    "address": "0x96e890c6b2501a69cad5dba402bfb871a2a2874c",
+    "symbol": "AAG",
+    "decimals": 18,
+    "createdBlock": 4215847
+  },
+  {
+    "address": "0xb6fe221fe9eef5aba221c348ba20a1bf5e73624c",
+    "symbol": "rETH",
+    "decimals": 18,
+    "createdBlock": 10618816
+  },
+  {
+    "address": "0xa023e6f6b4862ea38cbe45e377abd908abab2f82",
+    "symbol": "eMTRG",
+    "decimals": 18,
+    "createdBlock": 10222282
+  },
+  {
+    "address": "0x94025780a1ab58868d9b2dbbb775f44b32e8e6e5",
+    "symbol": "BETS",
+    "decimals": 18,
+    "createdBlock": 9975702
+  },
+  {
+    "address": "0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22",
+    "symbol": "cbETH",
+    "decimals": 18,
+    "createdBlock": 3282300
+  },
+  {
+    "address": "0xc227717ef4ae4d982e14789eb33ba942243c3fee",
+    "symbol": "MOZ",
+    "decimals": 18,
+    "createdBlock": 16620591
+  },
+  {
+    "address": "0x57f5fbd3de65dfc0bd3630f732969e5fb97e6d37",
+    "symbol": "TRUMP",
+    "decimals": 9,
+    "createdBlock": 16013674
+  },
+  {
+    "address": "0x5e40f26e89213660514c51fb61b2d357dbf63c85",
+    "symbol": "nARS",
+    "decimals": 18,
+    "createdBlock": 16875351
+  },
+  {
+    "address": "0xe4796ccb6bb5de2290c417ac337f2b66ca2e770e",
+    "symbol": "sFRAX",
+    "decimals": 18,
+    "createdBlock": 12342211
+  },
+  {
+    "address": "0x5b5dee44552546ecea05edea01dcd7be7aa6144a",
+    "symbol": "TN100x",
+    "decimals": 18,
+    "createdBlock": 12050311
+  },
+  {
+    "address": "0x8e5e9df4f0ea39ae5270e79bbabfcc34203a3470",
+    "symbol": "rgUSD",
+    "decimals": 18,
+    "createdBlock": 13856431
+  },
+  {
+    "address": "0x7ed613ab8b2b4c6a781ddc97ea98a666c6437511",
+    "symbol": "AYB",
+    "decimals": 18,
+    "createdBlock": 12641470
+  },
+  {
+    "address": "0x26f3901ac8a79c50fb0d8289c74f0d09adc42e29",
+    "symbol": "T",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x368181499736d0c0cc614dbb145e2ec1ac86b8c6",
+    "symbol": "LUSD",
+    "decimals": 18,
+    "createdBlock": 6940255
+  },
+  {
+    "address": "0xbc45647ea894030a4e9801ec03479739fa2485f0",
+    "symbol": "BENJI",
+    "decimals": 18,
+    "createdBlock": 14503215
+  },
+  {
+    "address": "0x455234ab787665a219125235fb01b22b512dfcaa",
+    "symbol": "DOSE",
+    "decimals": 18,
+    "createdBlock": 14154208
+  },
+  {
+    "address": "0x981d41c115a2d48cb1215d13bda8f989d407c9c5",
+    "symbol": "XEN",
+    "decimals": 18,
+    "createdBlock": 9707228
+  },
+  {
+    "address": "0x50da645f148798f68ef2d7db7c1cb22a6819bb2c",
+    "symbol": "SPX",
+    "decimals": 8,
+    "createdBlock": 12000812
+  },
+  {
+    "address": "0x40aeed4852df0ae3624e7027deddfb972dbc8852",
+    "symbol": "zunETH",
+    "decimals": 18,
+    "createdBlock": 14764184
+  },
+  {
+    "address": "0xa334884bf6b0a066d553d19e507315e839409e62",
+    "symbol": "ERN",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0xc55e93c62874d8100dbd2dfe307edc1036ad5434",
+    "symbol": "mooBIFI",
+    "decimals": 18,
+    "createdBlock": 20848352
+  },
+  {
+    "address": "0xecc68d0451e20292406967fe7c04280e5238ac7d",
+    "symbol": "frxETH",
+    "decimals": 18,
+    "createdBlock": 16013674
+  },
+  {
+    "address": "0x20b048fa035d5763685d695e66adf62c5d9f5055",
+    "symbol": "CHAR",
+    "decimals": 18,
+    "createdBlock": 15630298
+  },
+  {
+    "address": "0x3c281a39944a2319aa653d81cfd93ca10983d234",
+    "symbol": "BUILD",
+    "decimals": 18,
+    "createdBlock": 14844163
+  },
+  {
+    "address": "0x65a2508c429a6078a7bc2f7df81ab575bd9d9275",
+    "symbol": "DAI+",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x22e6966b799c4d5b13be962e1d117b56327fda66",
+    "symbol": "SNX",
+    "decimals": 18,
+    "createdBlock": 6575258
+  },
+  {
+    "address": "0x8bf591eae535f93a242d5a954d3cde648b48a5a8",
+    "symbol": "suUSD",
+    "decimals": 18,
+    "createdBlock": 10222282
+  },
+  {
+    "address": "0xe41228a455700caf09e551805a8ab37caa39d08c",
+    "symbol": "FPI",
+    "decimals": 18,
+    "createdBlock": 19338951
+  },
+  {
+    "address": "0x1fba65de0a9cbd2d1df82d141897042d36bb6c86",
+    "symbol": "WIF",
+    "decimals": 18,
+    "createdBlock": 18478949
+  },
+  {
+    "address": "0x166e70941262ae7cbf9df5c8897a6242c546457d",
+    "symbol": "wIRON",
+    "decimals": 8,
+    "createdBlock": 19948052
+  },
+  {
+    "address": "0x776aaef8d8760129a0398cf8674ee28cefc0eab9",
+    "symbol": "FLOPPA",
+    "decimals": 18,
+    "createdBlock": 16620591
+  },
+  {
+    "address": "0x12e96c2bfea6e835cf8dd38a5834fa61cf723736",
+    "symbol": "uDOGE",
+    "decimals": 18,
+    "createdBlock": 19336370
+  },
+  {
+    "address": "0x3e31966d4f81c72d2a55310a6365a56a4393e98d",
+    "symbol": "WMTX",
+    "decimals": 6,
+    "createdBlock": 14456310
+  },
+  {
+    "address": "0x0000206329b97db379d5e1bf586bbdb969c63274",
+    "symbol": "USDA",
+    "decimals": 18,
+    "createdBlock": 12984340
+  },
+  {
+    "address": "0x236aa50979d5f3de3bd1eeb40e81137f22ab794b",
+    "symbol": "tBTC",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x7002458b1df59eccb57387bc79ffc7c29e22e6f7",
+    "symbol": "OGN",
+    "decimals": 18,
+    "createdBlock": 16013682
+  },
+  {
+    "address": "0x1d653f09f216682ede4549455d6cf45f93c730cf",
+    "symbol": "REGEN",
+    "decimals": 18,
+    "createdBlock": 14503215
+  },
+  {
+    "address": "0xcb327b99ff831bf8223cced12b1338ff3aa322ff",
+    "symbol": "bsdETH",
+    "decimals": 18,
+    "createdBlock": 11137903
+  },
+  {
+    "address": "0x3b86ad95859b6ab773f55f8d94b4b9d443ee931f",
+    "symbol": "SolvBTC",
+    "decimals": 18,
+    "createdBlock": 20246543
+  },
+  {
+    "address": "0xc142171b138db17a1b7cb999c44526094a4dae05",
+    "symbol": "USX",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x23432452b720c80553458496d4d9d7c5003280d0",
+    "symbol": "FXS",
+    "decimals": 18,
+    "createdBlock": 12341089
+  },
+  {
+    "address": "0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452",
+    "symbol": "wstETH",
+    "decimals": 18,
+    "createdBlock": 6118942
+  },
+  {
+    "address": "0x348fdfe2c35934a96c1353185f09d0f9efbada86",
+    "symbol": "TROVE",
+    "decimals": 18,
+    "createdBlock": 4215835
+  },
+  {
+    "address": "0x66e535e8d2ebf13f49f3d49e5c50395a97c137b1",
+    "symbol": "MOLTEN",
+    "decimals": 18,
+    "createdBlock": 11173467
+  },
+  {
+    "address": "0xc7edf7b7b3667a06992508e7b156eff794a9e1c8",
+    "symbol": "XPRT",
+    "decimals": 6,
+    "createdBlock": 15413979
+  },
+  {
+    "address": "0xc5102fe9359fd9a28f877a67e36b0f050d81a3cc",
+    "symbol": "HOP",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0xbb22ff867f8ca3d5f2251b4084f6ec86d4666e14",
+    "symbol": "CTX",
+    "decimals": 18,
+    "createdBlock": 14844163
+  },
+  {
+    "address": "0xfbb75a59193a3525a8825bebe7d4b56899e2f7e1",
+    "symbol": "RSC",
+    "decimals": 18,
+    "createdBlock": 13597103
+  },
+  {
+    "address": "0x9eaf8c1e34f05a589eda6bafdf391cf6ad3cb239",
+    "symbol": "YFI",
+    "decimals": 18,
+    "createdBlock": 17565955
+  },
+  {
+    "address": "0x9b8df6e244526ab5f6e6400d331db28c8fdddb55",
+    "symbol": "uSOL",
+    "decimals": 18,
+    "createdBlock": 18169688
+  },
+  {
+    "address": "0x12063cc18a7096d170e5fc410d8623ad97ee24b3",
+    "symbol": "FREN",
+    "decimals": 18,
+    "createdBlock": 4478314
+  },
+  {
+    "address": "0x994ac01750047b9d35431a7ae4ed312ee955e030",
+    "symbol": "axlOP",
+    "decimals": 18,
+    "createdBlock": 10835243
+  },
+  {
+    "address": "0x2dad3a13ef0c6366220f989157009e501e7938f8",
+    "symbol": "EXTRA",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0xa61beb4a3d02decb01039e378237032b351125b4",
+    "symbol": "EURA",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x641b0453487c9d14c5df96d45a481ef1dc84e31f",
+    "symbol": "MAAT",
+    "decimals": 18,
+    "createdBlock": 13937576
+  },
+  {
+    "address": "0x2af864fb54b55900cd58d19c7102d9e4fa8d84a3",
+    "symbol": "GB",
+    "decimals": 18,
+    "createdBlock": 11260979
+  },
+  {
+    "address": "0x6059d0ed9368c36941514d2864fd114a84853d5a",
+    "symbol": "FOAM",
+    "decimals": 18,
+    "createdBlock": 13555580
+  },
+  {
+    "address": "0x74aa9bb52b36a378a6e641b86d7acb76dc9b3940",
+    "symbol": "TRVL",
+    "decimals": 18,
+    "createdBlock": 17481444
+  },
+  {
+    "address": "0x764a726d9ced0433a8d7643335919deb03a9a935",
+    "symbol": "POKT",
+    "decimals": 6,
+    "createdBlock": 18130872
+  },
+  {
+    "address": "0x9e1028f5f1d5ede59748ffcee5532509976840e0",
+    "symbol": "COMP",
+    "decimals": 18,
+    "createdBlock": 3666711
+  },
+  {
+    "address": "0xf469fbd2abcd6b9de8e169d128226c0fc90a012e",
+    "symbol": "pumpBTC",
+    "decimals": 8,
+    "createdBlock": 20554364
+  },
+  {
+    "address": "0x0645bc5cdff2376089323ac20df4119e48e4bcc4",
+    "symbol": "JOJO",
+    "decimals": 18,
+    "createdBlock": 17483411
+  },
+  {
+    "address": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf",
+    "symbol": "cbBTC",
+    "decimals": 8,
+    "createdBlock": 19432677
+  },
+  {
+    "address": "0xf6e932ca12afa26665dc4dde7e27be02a7c02e50",
+    "symbol": "MOCHI",
+    "decimals": 18,
+    "createdBlock": 10527706
+  },
+  {
+    "address": "0x6921b130d297cc43754afba22e5eac0fbf8db75b",
+    "symbol": "doginme",
+    "decimals": 18,
+    "createdBlock": 11561611
+  },
+  {
+    "address": "0xd5b9ddb04f20ea773c9b56607250149b26049b1f",
+    "symbol": "zunUSD",
+    "decimals": 18,
+    "createdBlock": 17488608
+  },
+  {
+    "address": "0x76734b57dfe834f102fb61e1ebf844adf8dd931e",
+    "symbol": "weirdo",
+    "decimals": 8,
+    "createdBlock": 14807613
+  },
+  {
+    "address": "0x576bca23dcb6d94ff8e537d88b0d3e1bead444a2",
+    "symbol": "BCT",
+    "decimals": 18,
+    "createdBlock": 15107032
+  },
+  {
+    "address": "0x00e1724885473b63bce08a9f0a52f35b0979e35a",
+    "symbol": "OATH",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0xcc7ff230365bd730ee4b352cc2492cedac49383e",
+    "symbol": "hyUSD",
+    "decimals": 18,
+    "createdBlock": 5731958
+  },
+  {
+    "address": "0xa81a52b4dda010896cdd386c7fbdc5cdc835ba23",
+    "symbol": "TRAC",
+    "decimals": 18,
+    "createdBlock": 18130872
+  },
+  {
+    "address": "0x78b3c724a2f663d11373c4a1978689271895256f",
+    "symbol": "TKN",
+    "decimals": 18,
+    "createdBlock": 9661508
+  },
+  {
+    "address": "0x1f55a02a049033e3419a8e2975cf3f572f4e6e9a",
+    "symbol": "sfrxETH",
+    "decimals": 18,
+    "createdBlock": 12341089
+  },
+  {
+    "address": "0xc1e02884af4a283ca25ab63c45360d220d69da52",
+    "symbol": "sUSDCy",
+    "decimals": 18,
+    "createdBlock": 14541739
+  },
+  {
+    "address": "0x1db0fc8933f545648b54a9ee4326209a9a259643",
+    "symbol": "ZUN",
+    "decimals": 18,
+    "createdBlock": 16404997
+  },
+  {
+    "address": "0x6b4712ae9797c199edd44f897ca09bc57628a1cf",
+    "symbol": "UNIDX",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x6e2c81b6c2c0e02360f00a0da694e489acb0b05e",
+    "symbol": "RFL",
+    "decimals": 18,
+    "createdBlock": 16277345
+  },
+  {
+    "address": "0x2416092f143378750bb29b79ed961ab195cceea5",
+    "symbol": "ezETH",
+    "decimals": 18,
+    "createdBlock": 12687934
+  },
+  {
+    "address": "0x1cff25b095cf6595afabe35dd7e5348666e57c11",
+    "symbol": "uETH",
+    "decimals": 18,
+    "createdBlock": 18169688
+  },
+  {
+    "address": "0x4f604735c1cf31399c6e711d5962b2b3e0225ad3",
+    "symbol": "USDGLO",
+    "decimals": 18,
+    "createdBlock": 16277345
+  },
+  {
+    "address": "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca",
+    "symbol": "USDbC",
+    "decimals": 6,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x321725ee44cb4bfa544cf45a5a585b925d30a58c",
+    "symbol": "GROW",
+    "decimals": 18,
+    "createdBlock": 10918738
+  },
+  {
+    "address": "0xd722e55c1d9d9fa0021a5215cbb904b92b3dc5d4",
+    "symbol": "RDNT",
+    "decimals": 18,
+    "createdBlock": 17481444
+  },
+  {
+    "address": "0x01aac2b594f7bdbec740f0f1aa22910ebb4b74ab",
+    "symbol": "UNIO",
+    "decimals": 18,
+    "createdBlock": 16013674
+  },
+  {
+    "address": "0x750cf88d9e0c2bcedeec31d5faad6ed6e3f1abc6",
+    "symbol": "XCAD",
+    "decimals": 18,
+    "createdBlock": 13848275
+  },
+  {
+    "address": "0x2da56acb9ea78330f947bd57c54119debda7af71",
+    "symbol": "Mog",
+    "decimals": 18,
+    "createdBlock": 12641484
+  },
+  {
+    "address": "0x04d1963c76eb1bec59d0eeb249ed86f736b82993",
+    "symbol": "SOFT",
+    "decimals": 18,
+    "createdBlock": 13513015
+  },
+  {
+    "address": "0x940181a94a35a4569e4529a3cdfb74e38fd98631",
+    "symbol": "AERO",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x084382d1cc4f4dfd1769b1cc1ac2a9b1f8365e90",
+    "symbol": "MODE",
+    "decimals": 18,
+    "createdBlock": 16920786
+  },
+  {
+    "address": "0xe31ee12bdfdd0573d634124611e85338e2cbf0cf",
+    "symbol": "sUSDz",
+    "decimals": 18,
+    "createdBlock": 16620591
+  },
+  {
+    "address": "0x944824290cc12f31ae18ef51216a223ba4063092",
+    "symbol": "MASA",
+    "decimals": 18,
+    "createdBlock": 13901180
+  },
+  {
+    "address": "0x82b0e1a2374ea0198f62a48b14ffab53db6c1e36",
+    "symbol": "PEGG",
+    "decimals": 18,
+    "createdBlock": 19336393
+  },
+  {
+    "address": "0x614577036f0a024dbc1c88ba616b394dd65d105a",
+    "symbol": "GNUS",
+    "decimals": 18,
+    "createdBlock": 13287848
+  },
+  {
+    "address": "0xdb6e0e5094a25a052ab6845a9f1e486b9a9b3dde",
+    "symbol": "OKAYEG",
+    "decimals": 18,
+    "createdBlock": 15106791
+  },
+  {
+    "address": "0x224114c444e3c3d936532fe08351648700570909",
+    "symbol": "PAL",
+    "decimals": 18,
+    "createdBlock": 13597103
+  },
+  {
+    "address": "0xebff2db643cf955247339c8c6bcd8406308ca437",
+    "symbol": "CHOMP",
+    "decimals": 18,
+    "createdBlock": 15714586
+  },
+  {
+    "address": "0x50c5725949a6f0c72e6c4a641f24049a917db0cb",
+    "symbol": "DAI",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x5ed25e305e08f58afd7995eac72563e6be65a617",
+    "symbol": "uNEAR",
+    "decimals": 18,
+    "createdBlock": 20848311
+  },
+  {
+    "address": "0x38d513ec43dda20f323f26c7bef74c5cf80b6477",
+    "symbol": "CARLO",
+    "decimals": 18,
+    "createdBlock": 14764184
+  },
+  {
+    "address": "0xa3d1a8deb97b111454b294e2324efad13a9d8396",
+    "symbol": "OVN",
+    "decimals": 18,
+    "createdBlock": 4300797
+  },
+  {
+    "address": "0x416bd43bc76d496ff49923c20ecaf86b52ab078d",
+    "symbol": "HBR",
+    "decimals": 18,
+    "createdBlock": 14194522
+  },
+  {
+    "address": "0x4ed4e862860bed51a9570b96d89af5e1b0efefed",
+    "symbol": "DEGEN",
+    "decimals": 18,
+    "createdBlock": 11217431
+  },
+  {
+    "address": "0x1c7a460413dd4e964f96d8dfc56e7223ce88cd85",
+    "symbol": "SEAM",
+    "decimals": 18,
+    "createdBlock": 7808388
+  },
+  {
+    "address": "0xb676f87a6e701f0de8de5ab91b56b66109766db1",
+    "symbol": "LRDS",
+    "decimals": 18,
+    "createdBlock": 19338951
+  },
+  {
+    "address": "0xcfa3ef56d303ae4faaba0592388f19d7c3399fb4",
+    "symbol": "eUSD",
+    "decimals": 18,
+    "createdBlock": 5731958
+  },
+  {
+    "address": "0x9d36f8f62347538440a212e9162f534f797542df",
+    "symbol": "SATS",
+    "decimals": 18,
+    "createdBlock": 14456310
+  },
+  {
+    "address": "0x5a76a56ad937335168b30df3aa1327277421c6ae",
+    "symbol": "VELA",
+    "decimals": 18,
+    "createdBlock": 4478293
+  },
+  {
+    "address": "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad",
+    "symbol": "axlWBTC",
+    "decimals": 8,
+    "createdBlock": 3282300
+  },
+  {
+    "address": "0xfa980ced6895ac314e7de34ef1bfae90a5add21b",
+    "symbol": "PRIME",
+    "decimals": 18,
+    "createdBlock": 9614916
+  },
+  {
+    "address": "0xaa6cccdce193698d33deb9ffd4be74eaa74c4898",
+    "symbol": "ElonRWA",
+    "decimals": 18,
+    "createdBlock": 12687911
+  },
+  {
+    "address": "0xefb97aaf77993922ac4be4da8fbc9a2425322677",
+    "symbol": "USD3",
+    "decimals": 18,
+    "createdBlock": 13856431
+  },
+  {
+    "address": "0xbf1aea8670d2528e08334083616dd9c5f3b087ae",
+    "symbol": "MAI",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x8fe815417913a93ea99049fc0718ee1647a2a07c",
+    "symbol": "XSWAP",
+    "decimals": 18,
+    "createdBlock": 14154208
+  },
+  {
+    "address": "0x6ef3864876424ade834a7c1be8c0cf3d71208b84",
+    "symbol": "zunUSD",
+    "decimals": 18,
+    "createdBlock": 14155174
+  },
+  {
+    "address": "0x04c0599ae5a44757c0af6f9ec3b93da8976c150a",
+    "symbol": "weETH",
+    "decimals": 18,
+    "createdBlock": 13597103
+  },
+  {
+    "address": "0xe1abd004250ac8d1f199421d647e01d094faa180",
+    "symbol": "ROOST",
+    "decimals": 18,
+    "createdBlock": 14155200
+  },
+  {
+    "address": "0x3b6564b5da73a41d3a66e6558a98fd0e9e1e77ad",
+    "symbol": "UTS",
+    "decimals": 18,
+    "createdBlock": 14503076
+  },
+  {
+    "address": "0xb4fde59a779991bfb6a52253b51947828b982be3",
+    "symbol": "PEPE",
+    "decimals": 18,
+    "createdBlock": 17565969
+  },
+  {
+    "address": "0x10c1b6f768e13c624a4a23337f1a5ba5c9be0e4b",
+    "symbol": "WARPIE",
+    "decimals": 18,
+    "createdBlock": 14844163
+  },
+  {
+    "address": "0xeb6d78148f001f3aa2f588997c5e102e489ad341",
+    "symbol": "CHAMP",
+    "decimals": 18,
+    "createdBlock": 19594917
+  },
+  {
+    "address": "0x3816dd4bd44c8830c2fa020a5605bac72fa3de7a",
+    "symbol": "PRE",
+    "decimals": 18,
+    "createdBlock": 15405369
+  },
+  {
+    "address": "0x7ba6f01772924a82d9626c126347a28299e98c98",
+    "symbol": "msETH",
+    "decimals": 18,
+    "createdBlock": 14764184
+  },
+  {
+    "address": "0x12418783e860997eb99e8acf682df952f721cf62",
+    "symbol": "dlcBTC",
+    "decimals": 8,
+    "createdBlock": 17488608
+  },
+  {
+    "address": "0x4200000000000000000000000000000000000006",
+    "symbol": "WETH",
+    "decimals": 18,
+    "createdBlock": 3200634
+  },
+  {
+    "address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+    "symbol": "USDC",
+    "decimals": 6,
+    "createdBlock": 3611350
+  }
+]

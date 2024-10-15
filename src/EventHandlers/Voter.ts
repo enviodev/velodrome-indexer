@@ -6,7 +6,7 @@ import {
 
 import { LiquidityPoolNew } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
-import { CHAIN_CONSTANTS } from "./../Constants";
+import { CHAIN_CONSTANTS, TokenIdByChain } from "./../Constants";
 import { poolLookupStoreManager } from "./../Store";
 import { multiplyBase1e18 } from "./../Maths";
 
@@ -79,9 +79,10 @@ Voter.DistributeReward.handlerWithLoader({
 
       // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
       const rewardToken = await context.Token.get(
-        CHAIN_CONSTANTS[event.chainId].rewardToken.address +
-          "-" +
-          event.chainId.toString()
+        TokenIdByChain(
+          CHAIN_CONSTANTS[event.chainId].rewardToken.address,
+          event.chainId
+        )
       );
 
       return { currentLiquidityPool, rewardToken };
