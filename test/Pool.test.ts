@@ -1,9 +1,6 @@
 import { expect } from "chai";
 import { MockDb, Pool } from "../generated/src/TestHelpers.gen";
-import {
-  LiquidityPoolNew,
-  Token,
-} from "../generated/src/Types.gen";
+import { LiquidityPoolNew, Token } from "../generated/src/Types.gen";
 import {
   TEN_TO_THE_18_BI,
   TEN_TO_THE_6_BI,
@@ -165,41 +162,40 @@ describe("Pool Events", () => {
   });
 
   describe("Swap event", () => {
-    it("should create a new Pool_Swap entity and update LiquidityPool", async () => {
-      const mockLiquidityPool: LiquidityPoolNew = {
-        id: toChecksumAddress("0x3333333333333333333333333333333333333333"),
+
+    // Any to allow for data manipulation.
+    let mockLiquidityPoolData: any;
+    let mockToken0Data: any;
+    let mockToken1Data: any;
+
+    beforeEach(() => {
+      mockToken0Data = {
+        id: TokenIdByChain("0x1111111111111111111111111111111111111111", 10),
+        decimals: 18n,
+        pricePerUSDNew: TEN_TO_THE_18_BI, // 1 USD
+      };
+
+      mockToken1Data = {
+        id: TokenIdByChain("0x2222222222222222222222222222222222222222", 10),
+        decimals: 6n,
+        pricePerUSDNew: TEN_TO_THE_18_BI, // 1 USD
+      };
+
+      mockLiquidityPoolData = {
+        id: "0x3333333333333333333333333333333333333333",
         chainID: 10n,
-        token0_id: TokenIdByChain(
-          "0x1111111111111111111111111111111111111111",
-          10
-        ),
-        token1_id: TokenIdByChain(
-          "0x2222222222222222222222222222222222222222",
-          10
-        ),
+        token0_id: mockToken0Data.id,
+        token1_id: mockToken1Data.id,
         totalVolume0: 0n,
         totalVolume1: 0n,
         totalVolumeUSD: 0n,
         numberOfSwaps: 0n,
-      } as LiquidityPoolNew;
+      };
+    });
 
-      const mockToken0: Token = {
-        id: TokenIdByChain("0x1111111111111111111111111111111111111111", 10),
-        decimals: 18n,
-        pricePerUSDNew: TEN_TO_THE_18_BI, // 1 USD
-      } as Token;
-
-      const mockToken1: Token = {
-        id: TokenIdByChain("0x2222222222222222222222222222222222222222", 10),
-        decimals: 6n,
-        pricePerUSDNew: TEN_TO_THE_18_BI, // 1 USD
-      } as Token;
-
-      const updatedDB1 = mockDb.entities.LiquidityPoolNew.set(mockLiquidityPool);
-      const updatedDB2 = updatedDB1.entities.Token.set(mockToken0);
-      const updatedDB3 = updatedDB2.entities.Token.set(mockToken1);
-
-      const mockEvent = Pool.Swap.createMockEvent({
+    describe("when tokens do not exist in the database and are not whitelisted", () => {
+      let postEventDB: ReturnType<typeof MockDb.createMockDb>;
+      let eventData =  {
         sender: "0x4444444444444444444444444444444444444444",
         to: "0x5555555555555555555555555555555555555555",
         amount0In: 100n * TEN_TO_THE_18_BI,
@@ -215,30 +211,96 @@ describe("Pool Events", () => {
           chainId: 10,
           logIndex: 1,
           srcAddress: "0x3333333333333333333333333333333333333333",
-        },
+        }
+      };
+      beforeEach( async () => {
+        mockLiquidityPoolData.token0_id = TokenIdByChain("0x9999999999999999999999999999999999999990", 10);
+        mockLiquidityPoolData.token1_id = TokenIdByChain("0x9999999999999999999999999999999999999999", 10);
+
+        const updatedDB1 =
+          mockDb.entities.LiquidityPoolNew.set(mockLiquidityPoolData as LiquidityPoolNew);
+
+        const mockEvent = Pool.Swap.createMockEvent(eventData);
+
+        postEventDB = await Pool.Swap.processEvent({
+          event: mockEvent,
+          mockDb: updatedDB1,
+        });
       });
 
-      const result = await Pool.Swap.processEvent({ event: mockEvent, mockDb: updatedDB3 });
+      /**
+       * Data should remain unchanged for non-whitelisted tokens. We want to capture pool data but not prices on tokens.
+       */
+      it("should not update the liquidity pool with swap volume", async () => {
+        const updatedPool = postEventDB.entities.LiquidityPoolNew.get(
+          toChecksumAddress(eventData.mockEventData.srcAddress)
+        );
+        expect(updatedPool).to.not.be.undefined;
+        expect(updatedPool?.totalVolume0).to.equal(mockLiquidityPoolData.totalVolume0);
+        expect(updatedPool?.totalVolume1).to.equal(mockLiquidityPoolData.totalVolume1);
+        expect(updatedPool?.totalVolumeUSD).to.equal(mockLiquidityPoolData.totalVolumeUSD);
+        expect(updatedPool?.numberOfSwaps).to.equal(mockLiquidityPoolData.numberOfSwaps);
+        expect(updatedPool?.lastUpdatedTimestamp).to.equal(mockLiquidityPoolData.lastUpdatedTimestamp);
+      });
+    });
 
-      const swapEvent = result.entities.Pool_Swap.get("10_123456_1");
-      expect(swapEvent).to.not.be.undefined;
-      expect(swapEvent?.sender).to.equal(
-        "0x4444444444444444444444444444444444444444"
-      );
-      expect(swapEvent?.to).to.equal(
-        "0x5555555555555555555555555555555555555555"
-      );
-      expect(swapEvent?.amount0In).to.equal(100n * TEN_TO_THE_18_BI);
-      expect(swapEvent?.amount1Out).to.equal(99n * TEN_TO_THE_6_BI);
+    describe("when tokens exist and are whitelisted", () => {
 
-      const updatedPool = result.entities.LiquidityPoolNew.get(
-        toChecksumAddress("0x3333333333333333333333333333333333333333")
-      );
-      expect(updatedPool).to.not.be.undefined;
-      expect(updatedPool?.totalVolume0).to.equal(100n * TEN_TO_THE_18_BI);
-      expect(updatedPool?.totalVolume1).to.equal(99n * TEN_TO_THE_18_BI);
-      expect(updatedPool?.totalVolumeUSD).to.equal(100n * TEN_TO_THE_18_BI);
-      expect(updatedPool?.numberOfSwaps).to.equal(1n);
+      let postEventDB: ReturnType<typeof MockDb.createMockDb>;
+      let eventData =  {
+        sender: "0x4444444444444444444444444444444444444444",
+        to: "0x5555555555555555555555555555555555555555",
+        amount0In: 100n * TEN_TO_THE_18_BI,
+        amount1In: 0n,
+        amount0Out: 0n,
+        amount1Out: 99n * TEN_TO_THE_6_BI,
+        mockEventData: {
+          block: {
+            timestamp: 1000000,
+            number: 123456,
+            hash: "0x1234567890123456789012345678901234567890123456789012345678901234",
+          },
+          chainId: 10,
+          logIndex: 1,
+          srcAddress: "0x3333333333333333333333333333333333333333",
+        }
+      };
+
+
+      beforeEach( async () => {
+        const updatedDB1 =
+          mockDb.entities.LiquidityPoolNew.set(mockLiquidityPoolData as LiquidityPoolNew);
+        const updatedDB2 = updatedDB1.entities.Token.set(mockToken0Data as Token);
+        const updatedDB3 = updatedDB2.entities.Token.set(mockToken1Data as Token);
+
+        const mockEvent = Pool.Swap.createMockEvent(eventData);
+
+        postEventDB = await Pool.Swap.processEvent({
+          event: mockEvent,
+          mockDb: updatedDB3,
+        });
+      });
+      it("should create a new Pool_Swap entity and update LiquidityPool", async () => {
+
+        const swapEvent = postEventDB.entities.Pool_Swap.get("10_123456_1");
+        expect(swapEvent).to.not.be.undefined;
+        expect(swapEvent?.sender).to.equal(eventData.sender);
+        expect(swapEvent?.to).to.equal(eventData.to);
+        expect(swapEvent?.amount0In).to.equal(eventData.amount0In);
+        expect(swapEvent?.amount1Out).to.equal(eventData.amount1Out);
+        expect(swapEvent?.timestamp).to.deep.equal(new Date(eventData.mockEventData.block.timestamp * 1000));
+      });
+      it("should create a new Liquidity Pool if it doesn't exist", async () => {
+        const updatedPool = postEventDB.entities.LiquidityPoolNew.get(
+          toChecksumAddress(eventData.mockEventData.srcAddress)
+        );
+        expect(updatedPool).to.not.be.undefined;
+        expect(updatedPool?.totalVolume0).to.equal(100n * TEN_TO_THE_18_BI);
+        expect(updatedPool?.totalVolume1).to.equal(99n * TEN_TO_THE_18_BI);
+        expect(updatedPool?.totalVolumeUSD).to.equal(100n * TEN_TO_THE_18_BI);
+        expect(updatedPool?.numberOfSwaps).to.equal(1n);
+        expect(updatedPool?.lastUpdatedTimestamp).to.deep.equal(new Date(eventData.mockEventData.block.timestamp * 1000));
+      });
     });
   });
 
@@ -271,7 +333,8 @@ describe("Pool Events", () => {
         pricePerUSDNew: TEN_TO_THE_18_BI, // 1 USD
       } as Token;
 
-      const updatedDB1 = mockDb.entities.LiquidityPoolNew.set(mockLiquidityPool);
+      const updatedDB1 =
+        mockDb.entities.LiquidityPoolNew.set(mockLiquidityPool);
       const updatedDB2 = updatedDB1.entities.Token.set(mockToken0);
       const updatedDB3 = updatedDB2.entities.Token.set(mockToken1);
 
@@ -290,8 +353,10 @@ describe("Pool Events", () => {
         },
       });
 
-      const result = await Pool.Sync.processEvent({ event: mockEvent, mockDb: updatedDB3 });
-
+      const result = await Pool.Sync.processEvent({
+        event: mockEvent,
+        mockDb: updatedDB3,
+      });
 
       const syncEvent = result.entities.Pool_Sync.get("10_123456_1");
       expect(syncEvent).to.not.be.undefined;

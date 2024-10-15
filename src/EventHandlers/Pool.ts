@@ -119,15 +119,19 @@ Pool.Swap.handlerWithLoader({
       toChecksumAddress(event.srcAddress)
     );
 
-    if (liquidityPoolNew == undefined) return null;
+    if (liquidityPoolNew == undefined) return;
 
     const token0Instance = await context.Token.get(liquidityPoolNew.token0_id);
     const token1Instance = await context.Token.get(liquidityPoolNew.token1_id);
 
-    if (token0Instance == undefined || token1Instance == undefined)
-      throw new Error(
-        "Token instances not found. They are required fields for LiquidityPoolEntity"
-      );
+    if (token0Instance == undefined || token1Instance == undefined) {
+      console.log("Token instances not found.", {
+        token0_id: liquidityPoolNew.token0_id,
+        token1_id: liquidityPoolNew.token1_id,
+        chainId: event.chainId,
+      });
+      return;
+    }
 
     // if the swap `to` is a liquidityPool, then we won't count
     // it as a unique user.
