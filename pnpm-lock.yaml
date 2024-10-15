@@ -960,7 +960,6 @@ packages:
 
   /envio@2.4.4:
     resolution: {integrity: sha512-4ZtUOgBZ8l2cDnmRW0d60AQ/A5q4DxfDd7I1MQxQiD48Pu5P/H/z6QPk2D7QdE2iza/T0IIVvmTCoubZGURVEw==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     hasBin: true
     optionalDependencies:
       envio-darwin-arm64: 2.4.4
