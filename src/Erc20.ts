@@ -17,17 +17,17 @@ export async function getErc20TokenDetails(
   readonly decimals: number;
   readonly symbol: string;
 }> {
-  console.log(
-    `[getErc20TokenDetails] Starting for address: ${contractAddress}, chainId: ${chainId}`
-  );
+  // console.log(
+  //   `[getErc20TokenDetails] Starting for address: ${contractAddress}, chainId: ${chainId}`
+  // );
 
   const cache = Cache.init(CacheCategory.Token, chainId);
   const token = cache.read(contractAddress.toLowerCase());
 
   if (token) {
-    console.log(
-      `[getErc20TokenDetails] Cache hit for address: ${contractAddress}`
-    );
+    // console.log(
+    //   `[getErc20TokenDetails] Cache hit for address: ${contractAddress}`
+    // );
     return {
       decimals: Number(token.decimals),
       name: token.name,

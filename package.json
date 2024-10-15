@@ -8,14 +8,16 @@
     "dev": "envio dev",
     "codegen": "envio codegen",
     "start": "ts-node generated/src/Index.bs.js",
-    "test": "mocha --require ts-node/register test/**/*.ts",
+    "test": "mocha --require ts-node/register test/**/*.ts --timeout 20000",
     "enable-hydra": "./hack/hydra-mode/hydra-mode.sh"
   },
   "devDependencies": {
     "@types/chai": "^4.3.11",
     "@types/node": "^18.16.1",
+    "@types/sinon": "^17.0.3",
     "chai": "4.3.10",
     "js-yaml": "4.1.0",
+    "sinon": "^19.0.2",
     "typescript": "^5.0.4",
     "web3": "^4.4.0"
   },
