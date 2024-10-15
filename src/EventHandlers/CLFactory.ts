@@ -1,11 +1,11 @@
-import {
-  CLFactory,
-  CLFactory_PoolCreated,
-} from "generated";
+import { CLFactory, CLFactory_PoolCreated } from "generated";
 
-CLFactory.PoolCreated.contractRegister(({ event, context }) => {
-  context.addCLPool(event.params.pool);
-});
+CLFactory.PoolCreated.contractRegister(
+  ({ event, context }) => {
+    context.addCLPool(event.params.pool);
+  },
+  { preRegisterDynamicContracts: true }
+);
 
 CLFactory.PoolCreated.handler(async ({ event, context }) => {
   const entity: CLFactory_PoolCreated = {

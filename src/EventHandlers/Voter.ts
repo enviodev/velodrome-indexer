@@ -1,8 +1,4 @@
-import {
-  Voter,
-  Voter_GaugeCreated,
-  Voter_Voted,
-} from "generated";
+import { Voter, Voter_GaugeCreated, Voter_Voted } from "generated";
 
 import { LiquidityPoolNew } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
@@ -10,10 +6,8 @@ import { CHAIN_CONSTANTS, TokenIdByChain } from "./../Constants";
 import { poolLookupStoreManager } from "./../Store";
 import { multiplyBase1e18 } from "./../Maths";
 
-const {
-  getPoolAddressByGaugeAddress,
-  addRewardAddressDetails,
-} = poolLookupStoreManager();
+const { getPoolAddressByGaugeAddress, addRewardAddressDetails } =
+  poolLookupStoreManager();
 
 Voter.Voted.handler(async ({ event, context }) => {
   const entity: Voter_Voted = {
@@ -30,10 +24,13 @@ Voter.Voted.handler(async ({ event, context }) => {
   context.Voter_Voted.set(entity);
 });
 
-Voter.GaugeCreated.contractRegister(({ event, context }) => {
-  context.addVotingReward(event.params.bribeVotingReward);
-  context.addGauge(event.params.gauge);
-});
+Voter.GaugeCreated.contractRegister(
+  ({ event, context }) => {
+    context.addVotingReward(event.params.bribeVotingReward);
+    context.addGauge(event.params.gauge);
+  },
+  { preRegisterDynamicContracts: true }
+);
 
 Voter.GaugeCreated.handler(async ({ event, context }) => {
   const entity: Voter_GaugeCreated = {
