@@ -62,7 +62,7 @@ Pool.Fees.handlerWithLoader({
       loaderReturn;
 
     if (token0Instance == undefined || token1Instance == undefined) {
-      console.error("Token instances not found.", {
+      console.log("Token instances not found.", {
         token0_id: currentLiquidityPool.token0_id,
         token1_id: currentLiquidityPool.token1_id,
         chainId: event.chainId,
@@ -266,7 +266,7 @@ Pool.Sync.handler(async ({ event, context }) => {
   const token1Instance = await context.Token.get(liquidityPoolNew.token1_id);
 
   if (token0Instance == undefined || token1Instance == undefined) {
-    console.error(
+    console.log(
       "Token instances not found but are required fields for LiquidityPoolEntity.",
       {
         token0_id: liquidityPoolNew.token0_id,
