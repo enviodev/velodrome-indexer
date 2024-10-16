@@ -416,3 +416,12 @@ type TokenPrice {
   chainID: Int! @index # Chain ID where the token is located
   lastUpdatedTimestamp: Timestamp! @index # Timestamp of the last update
 }
+
+type Voter_WhitelistToken {
+  id: ID!
+  whitelister: String!
+  token: String!
+  isWhitelisted: Boolean!
+  timestamp: Timestamp!
+  chainId: Int!
+}

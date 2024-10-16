@@ -47,6 +47,7 @@ contracts:
       - event: Voted(address indexed sender, address indexed pool, uint256 indexed tokenId, uint256 weight, uint256 totalWeight, uint256 timestamp)
       - event: DistributeReward(address indexed sender, address indexed gauge, uint256 amount)
       - event: GaugeCreated(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory, address pool, address bribeVotingReward, address feeVotingReward, address gauge, address creator)
+      - event: WhitelistToken(address indexed whitelister, address indexed token, bool indexed _bool)
   - name: VotingReward
     handler: src/EventHandlers/VotingReward.ts
     events:

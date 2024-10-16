@@ -2,6 +2,7 @@ import {
   Voter,
   Voter_GaugeCreated,
   Voter_Voted,
+  Voter_WhitelistToken,
 } from "generated";
 
 import { LiquidityPoolNew } from "./../src/Types.gen";
@@ -139,4 +140,34 @@ Voter.DistributeReward.handlerWithLoader({
       }
     }
   },
+});
+
+/**
+ * Handles the WhitelistToken event for the Voter contract.
+ * 
+ * This handler is triggered when a WhitelistToken event is emitted by the Voter contract.
+ * It creates a new Voter_WhitelistToken entity and stores it in the context.
+ * 
+ * The Voter_WhitelistToken entity contains the following fields:
+ * - id: A unique identifier for the event, composed of the chain ID, block number, and log index.
+ * - whitelister: The address of the entity that performed the whitelisting.
+ * - token: The address of the token being whitelisted.
+ * - isWhitelisted: A boolean indicating whether the token is whitelisted.
+ * - timestamp: The timestamp of the block in which the event was emitted, converted to a Date object.
+ * - chainId: The ID of the blockchain network where the event occurred.
+ * 
+ * @param {Object} event - The event object containing details of the WhitelistToken event.
+ * @param {Object} context - The context object used to interact with the data store.
+ */
+Voter.WhitelistToken.handler(async ({ event, context }) => {
+  const entity: Voter_WhitelistToken = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    whitelister: event.params.whitelister,
+    token: event.params.token,
+    isWhitelisted: event.params._bool,
+    timestamp: new Date(event.block.timestamp * 1000),
+    chainId: event.chainId,
+  };
+
+  context.Voter_WhitelistToken.set(entity);
 });
