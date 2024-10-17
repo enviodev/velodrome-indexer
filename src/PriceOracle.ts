@@ -179,7 +179,7 @@ export async function set_whitelisted_prices(
         name: token.symbol,
         address: toChecksumAddress(token.address),
         price: Number(price),
-        chainID: chainId,
+        chainId: chainId,
         lastUpdatedTimestamp: blockDatetime,
     };
     context.TokenPrice.set(tokenPrice);
