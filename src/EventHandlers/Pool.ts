@@ -235,6 +235,10 @@ Pool.Swap.handlerWithLoader({
   },
 });
 
+/**
+ * Sync event handler.
+ * @notice This event is triggered by Uniswap V2 factory when a new LP position is created, and updates the reserves for the pool.
+ */
 Pool.Sync.handlerWithLoader({
   loader: async ({ event, context }) => {
     const liquidityPoolNew = await context.LiquidityPoolNew.get(event.srcAddress);
@@ -272,21 +276,25 @@ Pool.Sync.handlerWithLoader({
       token1PricePerUSDNew: liquidityPoolNew.token1Price,
     };
 
+    // Update normalized reserves regardles of whether the token is priced
+    tokenUpdateData.normalizedReserve0 += normalizeTokenAmountTo1e18(
+      event.params.reserve0,
+      Number(token0Instance?.decimals || 18)
+    );
+
+    tokenUpdateData.normalizedReserve1 += normalizeTokenAmountTo1e18(
+      event.params.reserve1,
+      Number(token1Instance?.decimals || 18)
+    );
+
+    // Update price and liquidity if the token is priced
     if (token0Instance) {
-      tokenUpdateData.normalizedReserve0 = normalizeTokenAmountTo1e18(
-        event.params.reserve0,
-        Number(token0Instance.decimals)
-      );
       tokenUpdateData.token0PricePerUSDNew = token0Instance.pricePerUSDNew;
       tokenUpdateData.totalLiquidityUSD += multiplyBase1e18(
         tokenUpdateData.normalizedReserve0, tokenUpdateData.token0PricePerUSDNew);
     }
 
     if (token1Instance) {
-      tokenUpdateData.normalizedReserve1 = normalizeTokenAmountTo1e18(
-        event.params.reserve1,
-        Number(token1Instance.decimals)
-      );
       tokenUpdateData.token1PricePerUSDNew = token1Instance.pricePerUSDNew;
       tokenUpdateData.totalLiquidityUSD += multiplyBase1e18(
         tokenUpdateData.normalizedReserve1, tokenUpdateData.token1PricePerUSDNew);

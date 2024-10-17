@@ -33,7 +33,7 @@ export function setupCommon() {
     totalVolumeUSD: 0n,
     numberOfSwaps: 0n,
     reserve0: 10000n * TEN_TO_THE_18_BI,
-    reserve1: 20000n * TEN_TO_THE_6_BI,
+    reserve1: 20000n * TEN_TO_THE_18_BI,
   };
 
   return {
