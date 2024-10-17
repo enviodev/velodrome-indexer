@@ -128,8 +128,6 @@ Pool.Swap.handlerWithLoader({
     };
   },
   handler: async ({ event, context, loaderReturn }) => {
-    // The pool entity should be created via PoolCreated event from the PoolFactory contract
-    // QUESTION: Should it error if this is undefined?
     const entity: Pool_Swap = {
       id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
       sender: event.params.sender,
