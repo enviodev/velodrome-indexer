@@ -107,30 +107,16 @@ Pool.Fees.handlerWithLoader({
 
 Pool.Swap.handlerWithLoader({
   loader: async ({ event, context }) => {
-    const [liquidityPoolNew, toUser] = await Promise.all([
-      context.LiquidityPoolNew.get(event.srcAddress),
-      context.User.get(event.params.to),
-    ]);
+    const liquidityPoolNew = await context.LiquidityPoolNew.get(event.srcAddress);
 
     if (liquidityPoolNew == undefined) return null;
 
-    const [token0Instance, token1Instance, isLiquidityPool] = await Promise.all(
-      [
-        context.Token.get(liquidityPoolNew.token0_id),
-        context.Token.get(liquidityPoolNew.token1_id),
-        context.LiquidityPoolNew.get(event.params.to),
-      ]
-    );
-
-    if (token0Instance == undefined || token1Instance == undefined) {
-      // Commenting out error as overwhelming console.
-      // console.log("Token instances not found.", {
-      //   token0_id: liquidityPoolNew.token0_id,
-      //   token1_id: liquidityPoolNew.token1_id,
-      //   chainId: event.chainId,
-      // });
-      return null;
-    }
+    const [token0Instance, token1Instance, toUser, isLiquidityPool] = await Promise.all([
+      context.Token.get(liquidityPoolNew.token0_id),
+      context.Token.get(liquidityPoolNew.token1_id),
+      context.User.get(event.params.to),
+      context.LiquidityPoolNew.get(event.params.to),
+    ]);
 
     return {
       liquidityPoolNew,
@@ -162,35 +148,40 @@ Pool.Swap.handlerWithLoader({
       const { liquidityPoolNew, token0Instance, token1Instance, to_address } =
         loaderReturn;
 
-      // Same as above.
-      // Important assume if amount0In is >0 then amount0Out =0 etc
-      let netAmount0 = normalizeTokenAmountTo1e18(
-        event.params.amount0In + event.params.amount0Out,
-        Number(token0Instance.decimals)
-      );
-      let netAmount1 = normalizeTokenAmountTo1e18(
-        event.params.amount1In + event.params.amount1Out,
-        Number(token1Instance.decimals)
-      );
+      let tokenUpdateData = {
+        netAmount0: 0n,
+        netAmount1: 0n,
+        netVolumeToken0USD: 0n,
+        netVolumeToken1USD: 0n,
+        volumeInUSD: 0n,
+      };
 
-      let token0Price = token0Instance.pricePerUSDNew;
-      let token1Price = token1Instance.pricePerUSDNew;
+      if (token0Instance) {
+        tokenUpdateData.netAmount0 = normalizeTokenAmountTo1e18(
+          event.params.amount0In + event.params.amount0Out,
+          Number(token0Instance.decimals)
+        );
+        tokenUpdateData.netVolumeToken0USD = multiplyBase1e18(
+          tokenUpdateData.netAmount0,
+          token0Instance.pricePerUSDNew
+        );
+      }
 
-      // Calculate amounts in USD
-      // We don't double count volume, we use USD of first token if possible to
-      // Calculate volume in USD.
-      let netVolumeToken0USD = multiplyBase1e18(
-        netAmount0,
-        token0Instance.pricePerUSDNew
-      );
-      let netVolumeToken1USD = multiplyBase1e18(
-        netAmount1,
-        token1Instance.pricePerUSDNew
-      );
+      if (token1Instance) {
+        tokenUpdateData.netAmount1 = normalizeTokenAmountTo1e18(
+          event.params.amount1In + event.params.amount1Out,
+          Number(token1Instance.decimals)
+        );
+        tokenUpdateData.netVolumeToken1USD = multiplyBase1e18(
+          tokenUpdateData.netAmount1,
+          token1Instance.pricePerUSDNew
+        );
+      }
 
-      // Try use volume from token 0 if its priced, otherwise use token 1.
-      let volumeInUSD =
-        netVolumeToken0USD != 0n ? netVolumeToken0USD : netVolumeToken1USD;
+      // Use volume from token 0 if it's priced, otherwise use token 1
+      tokenUpdateData.volumeInUSD = tokenUpdateData.netVolumeToken0USD != 0n
+        ? tokenUpdateData.netVolumeToken0USD
+        : tokenUpdateData.netVolumeToken1USD;
 
       // add a new user if `to` isn't a liquidity pool and doesn't already exist
       // as a user
@@ -220,113 +211,120 @@ Pool.Swap.handlerWithLoader({
       // Work out relative token pricing base on swaps above.
       const liquidityPoolInstanceNew: LiquidityPoolNew = {
         ...liquidityPoolNew,
-        totalVolume0: liquidityPoolNew.totalVolume0 + netAmount0,
-        totalVolume1: liquidityPoolNew.totalVolume1 + netAmount1,
-        totalVolumeUSD: liquidityPoolNew.totalVolumeUSD + volumeInUSD,
-        token0Price,
-        token1Price,
+        totalVolume0: liquidityPoolNew.totalVolume0 + tokenUpdateData.netAmount0,
+        totalVolume1: liquidityPoolNew.totalVolume1 + tokenUpdateData.netAmount1,
+        totalVolumeUSD: liquidityPoolNew.totalVolumeUSD + tokenUpdateData.volumeInUSD,
+        token0Price: token0Instance?.pricePerUSDNew ?? liquidityPoolNew.token0Price,
+        token1Price: token1Instance?.pricePerUSDNew ?? liquidityPoolNew.token1Price,
         numberOfSwaps: liquidityPoolNew.numberOfSwaps + 1n,
         lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       };
 
       context.LiquidityPoolNew.set(liquidityPoolInstanceNew);
+      const blockDatetime = new Date(event.block.timestamp * 1000);
+      try {
+        await set_whitelisted_prices(
+          event.chainId,
+          event.block.number,
+          blockDatetime,
+          context
+        );
+      } catch (error) {
+        console.log("Error updating token prices on pool sync:", error);
+      }
+
     }
   },
 });
 
-Pool.Sync.handler(async ({ event, context }) => {
-  const liquidityPoolNew = await context.LiquidityPoolNew.get(event.srcAddress);
+Pool.Sync.handlerWithLoader({
+  loader: async ({ event, context }) => {
+    const liquidityPoolNew = await context.LiquidityPoolNew.get(event.srcAddress);
 
-  if (liquidityPoolNew == undefined) return;
+    if (!liquidityPoolNew) return null;
 
-  const entity: Pool_Sync = {
-    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    reserve0: event.params.reserve0,
-    reserve1: event.params.reserve1,
-    sourceAddress: event.srcAddress,
-    timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
-    chainId: event.chainId,
-  };
+    const [token0Instance, token1Instance] = await Promise.all([
+      context.Token.get(liquidityPoolNew.token0_id),
+      context.Token.get(liquidityPoolNew.token1_id),
+    ]);
 
-  context.Pool_Sync.set(entity);
+    return { liquidityPoolNew, token0Instance, token1Instance };
+  },
+  handler: async ({ event, context, loaderReturn }) => {
+    if (!loaderReturn) return;
 
-  const blockDatetime = new Date(event.block.timestamp * 1000);
+    const { liquidityPoolNew, token0Instance, token1Instance } = loaderReturn;
 
-  try {
-    await set_whitelisted_prices(
-      event.chainId,
-      event.block.number,
-      blockDatetime,
-      context
-    );
-  } catch (error) {
-    console.log("Error updating token prices on pool sync:", error);
-  }
-  const token0Instance = await context.Token.get(liquidityPoolNew.token0_id);
-  const token1Instance = await context.Token.get(liquidityPoolNew.token1_id);
+    const entity: Pool_Sync = {
+      id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+      reserve0: event.params.reserve0,
+      reserve1: event.params.reserve1,
+      sourceAddress: event.srcAddress,
+      timestamp: new Date(event.block.timestamp * 1000),
+      chainId: event.chainId,
+    };
 
-  if (token0Instance == undefined || token1Instance == undefined) {
-    console.log(
-      "Token instances not found but are required fields for LiquidityPoolEntity.",
-      {
-        token0_id: liquidityPoolNew.token0_id,
-        token1_id: liquidityPoolNew.token1_id,
-        chainId: event.chainId,
-      }
-    );
-    return;
-  }
+    context.Pool_Sync.set(entity);
 
-  // Normalize reserve amounts to 1e18
-  let normalizedReserve0 = normalizeTokenAmountTo1e18(
-    event.params.reserve0,
-    Number(token0Instance.decimals)
-  );
-  let normalizedReserve1 = normalizeTokenAmountTo1e18(
-    event.params.reserve1,
-    Number(token1Instance.decimals)
-  );
+    let tokenUpdateData = {
+      totalLiquidityUSD: 0n,
+      normalizedReserve0: liquidityPoolNew.reserve0,
+      normalizedReserve1: liquidityPoolNew.reserve1,
+      token0PricePerUSDNew: liquidityPoolNew.token0Price,
+      token1PricePerUSDNew: liquidityPoolNew.token1Price,
+    };
 
-  let token0PricePerUSDNew = token0Instance.pricePerUSDNew;
-  let token1PricePerUSDNew = token1Instance.pricePerUSDNew;
+    if (token0Instance) {
+      tokenUpdateData.normalizedReserve0 = normalizeTokenAmountTo1e18(
+        event.params.reserve0,
+        Number(token0Instance.decimals)
+      );
+      tokenUpdateData.token0PricePerUSDNew = token0Instance.pricePerUSDNew;
+      tokenUpdateData.totalLiquidityUSD += multiplyBase1e18(
+        tokenUpdateData.normalizedReserve0, tokenUpdateData.token0PricePerUSDNew);
+    }
 
-  let totalLiquidityUSD = 0n;
-  // Only non-zero this figure if we don't have a price for both tokens(?)
-  totalLiquidityUSD =
-    multiplyBase1e18(normalizedReserve0, token0PricePerUSDNew) +
-    multiplyBase1e18(normalizedReserve1, token1PricePerUSDNew);
+    if (token1Instance) {
+      tokenUpdateData.normalizedReserve1 = normalizeTokenAmountTo1e18(
+        event.params.reserve1,
+        Number(token1Instance.decimals)
+      );
+      tokenUpdateData.token1PricePerUSDNew = token1Instance.pricePerUSDNew;
+      tokenUpdateData.totalLiquidityUSD += multiplyBase1e18(
+        tokenUpdateData.normalizedReserve1, tokenUpdateData.token1PricePerUSDNew);
+    }
 
-  // Create a new instance of LiquidityPoolEntity to be updated in the DB
-  const liquidityPoolInstanceNew: LiquidityPoolNew = {
-    ...liquidityPoolNew,
-    reserve0: normalizedReserve0,
-    reserve1: normalizedReserve1,
-    totalLiquidityUSD: totalLiquidityUSD,
-    token0Price: token0PricePerUSDNew,
-    token1Price: token1PricePerUSDNew,
-    lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
-  };
+    const liquidityPoolInstanceNew: LiquidityPoolNew = {
+      ...liquidityPoolNew,
+      reserve0: tokenUpdateData.normalizedReserve0,
+      reserve1: tokenUpdateData.normalizedReserve1,
+      totalLiquidityUSD: tokenUpdateData.totalLiquidityUSD,
+      token0Price: tokenUpdateData.token0PricePerUSDNew,
+      token1Price: tokenUpdateData.token1PricePerUSDNew,
+      lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
+    };
 
-  const liquidityPoolHourlySnapshotInstance =
-    getLiquidityPoolSnapshotByInterval(
+    const liquidityPoolHourlySnapshotInstance =
+      getLiquidityPoolSnapshotByInterval(
+        liquidityPoolInstanceNew,
+        SnapshotInterval.Hourly
+      );
+
+    const liquidityPoolDailySnapshotInstance = getLiquidityPoolSnapshotByInterval(
       liquidityPoolInstanceNew,
-      SnapshotInterval.Hourly
+      SnapshotInterval.Daily
     );
 
-  const liquidityPoolDailySnapshotInstance = getLiquidityPoolSnapshotByInterval(
-    liquidityPoolInstanceNew,
-    SnapshotInterval.Daily
-  );
+    const liquidityPoolWeeklySnapshotInstance =
+      getLiquidityPoolSnapshotByInterval(
+        liquidityPoolInstanceNew,
+        SnapshotInterval.Weekly
+      );
 
-  const liquidityPoolWeeklySnapshotInstance =
-    getLiquidityPoolSnapshotByInterval(
-      liquidityPoolInstanceNew,
-      SnapshotInterval.Weekly
-    );
+    context.LiquidityPoolNew.set(liquidityPoolInstanceNew);
 
-  context.LiquidityPoolNew.set(liquidityPoolInstanceNew);
-
-  context.LiquidityPoolHourlySnapshot.set(liquidityPoolHourlySnapshotInstance);
-  context.LiquidityPoolDailySnapshot.set(liquidityPoolDailySnapshotInstance);
-  context.LiquidityPoolWeeklySnapshot.set(liquidityPoolWeeklySnapshotInstance);
+    context.LiquidityPoolHourlySnapshot.set(liquidityPoolHourlySnapshotInstance);
+    context.LiquidityPoolDailySnapshot.set(liquidityPoolDailySnapshotInstance);
+    context.LiquidityPoolWeeklySnapshot.set(liquidityPoolWeeklySnapshotInstance);
+  },
 });
