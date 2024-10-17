@@ -1,3 +1,4 @@
+// Run with: deno run --allow-read --allow-write --node-modules-dir scripts/generate_whitelist.ts
 import { parse } from "https://deno.land/std@0.182.0/csv/mod.ts";
 import Web3 from "npm:web3@4.0.1";
 import "jsr:@std/dotenv/load";
