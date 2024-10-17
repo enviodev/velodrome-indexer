@@ -8,7 +8,7 @@
     "dev": "envio dev",
     "codegen": "envio codegen",
     "start": "ts-node generated/src/Index.bs.js",
-    "test": "mocha --require ts-node/register test/**/*.ts --timeout 20000",
+    "test": "mocha --recursive --require ts-node/register \"test/**/*.ts\" --timeout 20000",
     "enable-hydra": "./hack/hydra-mode/hydra-mode.sh"
   },
   "devDependencies": {
