@@ -16,7 +16,7 @@ describe("Pool Swap Event", () => {
   let mockToken1Data: any;
   let mockLiquidityPoolData: any;
 
-  let expected: any = {};
+  let expectations: any = {};
 
   let eventData: any;
   let mockPriceOracle: sinon.SinonStub;
@@ -28,28 +28,28 @@ describe("Pool Swap Event", () => {
     mockToken1Data = setupData.mockToken1Data;
     mockLiquidityPoolData = setupData.mockLiquidityPoolData;
 
-    expected.swapAmount0In = 100n * mockToken0Data.decimals;
-    expected.swapAmount1Out = 99n * mockToken1Data.decimals;
+    expectations.swapAmount0In = 100n * mockToken0Data.decimals;
+    expectations.swapAmount1Out = 99n * mockToken1Data.decimals;
 
     // The code expects net abounts to be normalized to 1e18
-    expected.expectedNetAmount0 =
-      (expected.swapAmount0In * TEN_TO_THE_18_BI) /
+    expectations.expectedNetAmount0 =
+      (expectations.swapAmount0In * TEN_TO_THE_18_BI) /
       10n ** mockToken0Data.decimals;
-    expected.expectedNetAmount1 =
-      (expected.swapAmount1Out * TEN_TO_THE_18_BI) /
+    expectations.expectedNetAmount1 =
+      (expectations.swapAmount1Out * TEN_TO_THE_18_BI) /
       10n ** mockToken1Data.decimals;
 
-    expected.expectedLPVolume0 =
-      mockLiquidityPoolData.totalVolume0 + expected.expectedNetAmount0;
-    expected.expectedLPVolume1 =
-      mockLiquidityPoolData.totalVolume1 + expected.expectedNetAmount1;
+    expectations.expectedLPVolume0 =
+      mockLiquidityPoolData.totalVolume0 + expectations.expectedNetAmount0;
+    expectations.expectedLPVolume1 =
+      mockLiquidityPoolData.totalVolume1 + expectations.expectedNetAmount1;
 
     // The code expects pricePerUSDNew to be normalized to 1e18
-    expected.expectedLPVolumeUSD0 =
-      expected.expectedNetAmount0 *
+    expectations.expectedLPVolumeUSD0 =
+      expectations.expectedNetAmount0 *
       (mockToken0Data.pricePerUSDNew / TEN_TO_THE_18_BI);
-    expected.expectedLPVolumeUSD1 =
-      expected.expectedNetAmount1 *
+    expectations.expectedLPVolumeUSD1 =
+      expectations.expectedNetAmount1 *
       (mockToken1Data.pricePerUSDNew / TEN_TO_THE_18_BI);
 
     mockPriceOracle = sinon
@@ -60,10 +60,10 @@ describe("Pool Swap Event", () => {
     eventData = {
       sender: "0x4444444444444444444444444444444444444444",
       to: "0x5555555555555555555555555555555555555555",
-      amount0In: expected.swapAmount0In,
+      amount0In: expectations.swapAmount0In,
       amount1In: 0n,
       amount0Out: 0n,
-      amount1Out: expected.swapAmount1Out,
+      amount1Out: expectations.swapAmount1Out,
       mockEventData: {
         block: {
           timestamp: 1000000,
@@ -160,12 +160,12 @@ describe("Pool Swap Event", () => {
         "Token0 nominal swap volume should not be updated"
       );
       expect(updatedPool?.totalVolume1).to.equal(
-        expected.expectedNetAmount1,
+        expectations.expectedNetAmount1,
         "Token1 nominal swap volume should be updated"
       );
 
       expect(updatedPool?.totalVolumeUSD).to.equal(
-        expected.expectedLPVolumeUSD1,
+        expectations.expectedLPVolumeUSD1,
         "Swap volume in USD should be updated for token 1"
       );
 
@@ -210,7 +210,7 @@ describe("Pool Swap Event", () => {
       expect(updatedPool).to.not.be.undefined;
 
       expect(updatedPool?.totalVolume0).to.equal(
-        expected.expectedNetAmount0,
+        expectations.expectedNetAmount0,
         "Token0 nominal swap volume should be updated"
       );
       expect(updatedPool?.totalVolume1).to.equal(
@@ -219,7 +219,7 @@ describe("Pool Swap Event", () => {
       );
 
       expect(updatedPool?.totalVolumeUSD).to.equal(
-        expected.expectedLPVolumeUSD0,
+        expectations.expectedLPVolumeUSD0,
         "Total volume USD should be updated."
       );
 
@@ -271,10 +271,10 @@ describe("Pool Swap Event", () => {
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
       expect(updatedPool).to.not.be.undefined;
-      expect(updatedPool?.totalVolume0).to.equal(expected.expectedNetAmount0);
-      expect(updatedPool?.totalVolume1).to.equal(expected.expectedNetAmount1);
+      expect(updatedPool?.totalVolume0).to.equal(expectations.expectedNetAmount0);
+      expect(updatedPool?.totalVolume1).to.equal(expectations.expectedNetAmount1);
       expect(updatedPool?.totalVolumeUSD).to.equal(
-        expected.expectedLPVolumeUSD0
+        expectations.expectedLPVolumeUSD0
       );
       expect(updatedPool?.numberOfSwaps).to.equal(1n);
       expect(updatedPool?.lastUpdatedTimestamp).to.deep.equal(
