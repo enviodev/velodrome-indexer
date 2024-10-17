@@ -1,3 +1,5 @@
+// Run with: deno run --allow-read --allow-write --node-modules-dir scripts/update_whitelist.ts
+
 import { parse, stringify, Column } from "https://deno.land/std@0.224.0/csv/mod.ts";
 
 // Function to read CSV and return a Set of addresses
