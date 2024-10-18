@@ -43,7 +43,7 @@ PoolFactory.PoolCreated.handlerWithLoader({
 
     const pool: LiquidityPoolNew = {
       id: event.params.pool,
-      chainID: BigInt(event.chainId),
+      chainId: event.chainId,
       name: generatePoolName(
         poolTokenSymbols[0],
         poolTokenSymbols[1],

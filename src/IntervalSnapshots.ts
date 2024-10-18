@@ -36,7 +36,7 @@ export function getLiquidityPoolSnapshotByInterval(
     id: intervalId,
     pool: liquidityPoolEntity.id,
     name: liquidityPoolEntity.name,
-    chainID: liquidityPoolEntity.chainID,
+    chainId: liquidityPoolEntity.chainId,
     reserve0: liquidityPoolEntity.reserve0,
     reserve1: liquidityPoolEntity.reserve1,
     totalLiquidityUSD: liquidityPoolEntity.totalLiquidityUSD,
