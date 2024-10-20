@@ -5,11 +5,12 @@ import {
   Voter_WhitelistToken,
 } from "generated";
 
-import { LiquidityPoolNew } from "./../src/Types.gen";
+import { LiquidityPoolAggregator } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
 import { CHAIN_CONSTANTS, TokenIdByChain } from "./../Constants";
 import { poolLookupStoreManager } from "./../Store";
 import { multiplyBase1e18 } from "./../Maths";
+import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 
 const {
   getPoolAddressByGaugeAddress,
@@ -74,7 +75,7 @@ Voter.DistributeReward.handlerWithLoader({
 
     if (poolAddress) {
       // Load the LiquidityPool entity to be updated,
-      const currentLiquidityPool = await context.LiquidityPoolNew.get(
+      const currentLiquidityPool = await context.LiquidityPoolAggregator.get(
         poolAddress
       );
 
@@ -120,8 +121,7 @@ Voter.DistributeReward.handlerWithLoader({
         );
 
         // Create a new instance of LiquidityPoolEntity to be updated in the DB
-        let newLiquidityPoolInstance: LiquidityPoolNew = {
-          ...currentLiquidityPool,
+        let lpDiff = {
           totalEmissions:
             currentLiquidityPool.totalEmissions + normalizedEmissionsAmount,
           totalEmissionsUSD:
@@ -131,7 +131,8 @@ Voter.DistributeReward.handlerWithLoader({
         };
 
         // Update the LiquidityPoolEntity in the DB
-        context.LiquidityPoolNew.set(newLiquidityPoolInstance);
+        updateLiquidityPoolAggregator(lpDiff, currentLiquidityPool, new Date(event.block.timestamp * 1000), context);
+
       } else {
         // If there is no pool entity with the particular gauge address, log the error
         context.log.warn(

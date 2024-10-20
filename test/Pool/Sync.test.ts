@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Pool, MockDb } from "../../generated/src/TestHelpers.gen";
-import { LiquidityPoolNew } from "../../generated/src/Types.gen";
+import { LiquidityPoolAggregator } from "../../generated/src/Types.gen";
 import { setupCommon } from "./common";
 import { TEN_TO_THE_18_BI, TEN_TO_THE_6_BI, toChecksumAddress, TokenIdByChain } from "../../src/Constants";
 
@@ -64,7 +64,7 @@ describe("Pool Sync Event", () => {
         token1_id: TokenIdByChain("0x9999999999999999999999999999999999999999", 10),
       };
 
-      const updatedDB1 = mockDb.entities.LiquidityPoolNew.set(modifiedMockLiquidityPoolData as LiquidityPoolNew);
+      const updatedDB1 = mockDb.entities.LiquidityPoolAggregator.set(modifiedMockLiquidityPoolData as LiquidityPoolAggregator);
       const mockEvent = Pool.Sync.createMockEvent(eventData);
 
       const postEventDB = await Pool.Sync.processEvent({
@@ -72,7 +72,7 @@ describe("Pool Sync Event", () => {
         mockDb: updatedDB1,
       });
 
-      const updatedPool = postEventDB.entities.LiquidityPoolNew.get(
+      const updatedPool = postEventDB.entities.LiquidityPoolAggregator.get(
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
       expect(updatedPool).to.not.be.undefined;
@@ -86,8 +86,8 @@ describe("Pool Sync Event", () => {
     let postEventDB: ReturnType<typeof MockDb.createMockDb>;
 
     beforeEach(async () => {
-      const updatedDB1 = mockDb.entities.LiquidityPoolNew.set(
-        mockLiquidityPoolData as LiquidityPoolNew
+      const updatedDB1 = mockDb.entities.LiquidityPoolAggregator.set(
+        mockLiquidityPoolData as LiquidityPoolAggregator
       );
       const updatedDB2 = updatedDB1.entities.Token.set(mockToken0Data);
       const updatedDB3 = updatedDB2.entities.Token.set(mockToken1Data);
@@ -101,7 +101,7 @@ describe("Pool Sync Event", () => {
 
     });
     it("should update reserves and usd liquidity", async () => {
-      const updatedPool = postEventDB.entities.LiquidityPoolNew.get(
+      const updatedPool = postEventDB.entities.LiquidityPoolAggregator.get(
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
       expect(updatedPool).to.not.be.undefined;

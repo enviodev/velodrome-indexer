@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Pool, MockDb } from "../../generated/src/TestHelpers.gen";
-import { LiquidityPoolNew, Token } from "../../generated/src/Types.gen";
+import { LiquidityPoolAggregator, Token } from "../../generated/src/Types.gen";
 import { setupCommon } from "./common";
 import { TEN_TO_THE_18_BI, TEN_TO_THE_6_BI, toChecksumAddress, TokenIdByChain } from "../../src/Constants";
 
@@ -14,7 +14,7 @@ describe("Pool Fees Event", () => {
 
   it("should update LiquidityPool entity with new fees", async () => {
     const poolId = toChecksumAddress("0x3333333333333333333333333333333333333333");
-    const mockLiquidityPool: LiquidityPoolNew = {
+    const mockLiquidityPool: LiquidityPoolAggregator = {
       id: poolId,
       chainId: 10,
       token0_id: TokenIdByChain("0x1111111111111111111111111111111111111111", 10),
@@ -22,11 +22,11 @@ describe("Pool Fees Event", () => {
       totalFees0: 0n,
       totalFees1: 0n,
       totalFeesUSD: 0n,
-    } as LiquidityPoolNew;
+    } as LiquidityPoolAggregator;
 
     const updatedDB1 = mockDb.entities.Token.set(mockToken0Data as Token);
     const updatedDB2 = updatedDB1.entities.Token.set(mockToken1Data as Token);
-    const updatedDB3 = updatedDB2.entities.LiquidityPoolNew.set(mockLiquidityPool);
+    const updatedDB3 = updatedDB2.entities.LiquidityPoolAggregator.set(mockLiquidityPool);
 
     const mockEvent = Pool.Fees.createMockEvent({
       amount0: 100n * TEN_TO_THE_18_BI,
@@ -47,7 +47,7 @@ describe("Pool Fees Event", () => {
       mockDb: updatedDB3,
     });
 
-    const updatedPool = result.entities.LiquidityPoolNew.get(poolId);
+    const updatedPool = result.entities.LiquidityPoolAggregator.get(poolId);
     expect(updatedPool).to.not.be.undefined;
     expect(updatedPool?.totalFees0).to.equal(100n * TEN_TO_THE_18_BI);
     expect(updatedPool?.totalFees1).to.equal(200n * TEN_TO_THE_18_BI);

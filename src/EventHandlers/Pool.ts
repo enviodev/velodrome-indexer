@@ -1,12 +1,13 @@
 import { Pool, Pool_Swap, Pool_Sync, Pool_Mint, Pool_Burn } from "generated";
 
-import { Token, LiquidityPoolNew, User } from "./../src/Types.gen";
+import { Token, LiquidityPoolAggregator, User } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
 import { multiplyBase1e18 } from "./../Maths";
 import { getLiquidityPoolSnapshotByInterval } from "./../IntervalSnapshots";
 import { SnapshotInterval } from "./../CustomTypes";
 import { toChecksumAddress, TokenIdByChain } from "../Constants";
 import { set_whitelisted_prices } from "../PriceOracle";
+import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 
 // Helper function to get checksum address
 
@@ -42,7 +43,7 @@ Pool.Burn.handler(async ({ event, context }) => {
 
 Pool.Fees.handlerWithLoader({
   loader: async ({ event, context }) => {
-    const currentLiquidityPool = await context.LiquidityPoolNew.get(
+    const currentLiquidityPool = await context.LiquidityPoolAggregator.get(
       event.srcAddress
     );
 
@@ -90,7 +91,7 @@ Pool.Fees.handlerWithLoader({
       token1Instance.pricePerUSDNew
     );
     // Create a new instance of LiquidityPool to be updated in the DB
-    const liquidityPoolInstance: LiquidityPoolNew = {
+    const liquidityPoolInstance: LiquidityPoolAggregator = {
       ...currentLiquidityPool,
       totalFees0: currentLiquidityPool.totalFees0 + normalizedFeeAmount0Total,
       totalFees1: currentLiquidityPool.totalFees1 + normalizedFeeAmount1Total,
@@ -101,25 +102,25 @@ Pool.Fees.handlerWithLoader({
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
     };
     // Update the LiquidityPoolEntity in the DB
-    context.LiquidityPoolNew.set(liquidityPoolInstance);
+    context.LiquidityPoolAggregator.set(liquidityPoolInstance);
   },
 });
 
 Pool.Swap.handlerWithLoader({
   loader: async ({ event, context }) => {
-    const liquidityPoolNew = await context.LiquidityPoolNew.get(event.srcAddress);
+    const liquidityPool = await context.LiquidityPoolAggregator.get(event.srcAddress);
 
-    if (liquidityPoolNew == undefined) return null;
+    if (liquidityPool == undefined) return null;
 
     const [token0Instance, token1Instance, toUser, isLiquidityPool] = await Promise.all([
-      context.Token.get(liquidityPoolNew.token0_id),
-      context.Token.get(liquidityPoolNew.token1_id),
+      context.Token.get(liquidityPool.token0_id),
+      context.Token.get(liquidityPool.token1_id),
       context.User.get(event.params.to),
-      context.LiquidityPoolNew.get(event.params.to),
+      context.LiquidityPoolAggregator.get(event.params.to),
     ]);
 
     return {
-      liquidityPoolNew,
+      liquidityPool,
       token0Instance,
       token1Instance,
       to_address: event.params.to,
@@ -143,7 +144,7 @@ Pool.Swap.handlerWithLoader({
 
     context.Pool_Swap.set(entity);
     if (loaderReturn) {
-      const { liquidityPoolNew, token0Instance, token1Instance, to_address } =
+      const { liquidityPool, token0Instance, token1Instance, to_address } =
         loaderReturn;
 
       let tokenUpdateData = {
@@ -183,7 +184,7 @@ Pool.Swap.handlerWithLoader({
 
       // add a new user if `to` isn't a liquidity pool and doesn't already exist
       // as a user
-      if (!(await context.LiquidityPoolNew.get(to_address))) {
+      if (!(await context.LiquidityPoolAggregator.get(to_address))) {
         let currentUser = await context.User.get(to_address);
         if (!currentUser) {
           let newUser: User = {
@@ -207,18 +208,19 @@ Pool.Swap.handlerWithLoader({
       }
 
       // Work out relative token pricing base on swaps above.
-      const liquidityPoolInstanceNew: LiquidityPoolNew = {
-        ...liquidityPoolNew,
-        totalVolume0: liquidityPoolNew.totalVolume0 + tokenUpdateData.netAmount0,
-        totalVolume1: liquidityPoolNew.totalVolume1 + tokenUpdateData.netAmount1,
-        totalVolumeUSD: liquidityPoolNew.totalVolumeUSD + tokenUpdateData.volumeInUSD,
-        token0Price: token0Instance?.pricePerUSDNew ?? liquidityPoolNew.token0Price,
-        token1Price: token1Instance?.pricePerUSDNew ?? liquidityPoolNew.token1Price,
-        numberOfSwaps: liquidityPoolNew.numberOfSwaps + 1n,
+      const liquidityPoolDiff = {
+        totalVolume0: liquidityPool.totalVolume0 + tokenUpdateData.netAmount0,
+        totalVolume1: liquidityPool.totalVolume1 + tokenUpdateData.netAmount1,
+        totalVolumeUSD: liquidityPool.totalVolumeUSD + tokenUpdateData.volumeInUSD,
+        token0Price: token0Instance?.pricePerUSDNew ?? liquidityPool.token0Price,
+        token1Price: token1Instance?.pricePerUSDNew ?? liquidityPool.token1Price,
+        numberOfSwaps: liquidityPool.numberOfSwaps + 1n,
         lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       };
 
-      context.LiquidityPoolNew.set(liquidityPoolInstanceNew);
+
+      updateLiquidityPoolAggregator(liquidityPoolDiff, liquidityPool, liquidityPoolDiff.lastUpdatedTimestamp, context);
+
       const blockDatetime = new Date(event.block.timestamp * 1000);
       try {
         await set_whitelisted_prices(
@@ -241,21 +243,21 @@ Pool.Swap.handlerWithLoader({
  */
 Pool.Sync.handlerWithLoader({
   loader: async ({ event, context }) => {
-    const liquidityPoolNew = await context.LiquidityPoolNew.get(event.srcAddress);
+    const liquidityPool = await context.LiquidityPoolAggregator.get(event.srcAddress);
 
-    if (!liquidityPoolNew) return null;
+    if (!liquidityPool) return null;
 
     const [token0Instance, token1Instance] = await Promise.all([
-      context.Token.get(liquidityPoolNew.token0_id),
-      context.Token.get(liquidityPoolNew.token1_id),
+      context.Token.get(liquidityPool.token0_id),
+      context.Token.get(liquidityPool.token1_id),
     ]);
 
-    return { liquidityPoolNew, token0Instance, token1Instance };
+    return { liquidityPool, token0Instance, token1Instance };
   },
   handler: async ({ event, context, loaderReturn }) => {
     if (!loaderReturn) return;
 
-    const { liquidityPoolNew, token0Instance, token1Instance } = loaderReturn;
+    const { liquidityPool, token0Instance, token1Instance } = loaderReturn;
 
     const entity: Pool_Sync = {
       id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
@@ -270,10 +272,10 @@ Pool.Sync.handlerWithLoader({
 
     let tokenUpdateData = {
       totalLiquidityUSD: 0n,
-      normalizedReserve0: liquidityPoolNew.reserve0,
-      normalizedReserve1: liquidityPoolNew.reserve1,
-      token0PricePerUSDNew: liquidityPoolNew.token0Price,
-      token1PricePerUSDNew: liquidityPoolNew.token1Price,
+      normalizedReserve0: liquidityPool.reserve0,
+      normalizedReserve1: liquidityPool.reserve1,
+      token0PricePerUSDNew: liquidityPool.token0Price,
+      token1PricePerUSDNew: liquidityPool.token1Price,
     };
 
     // Update normalized reserves regardles of whether the token is priced
@@ -300,8 +302,7 @@ Pool.Sync.handlerWithLoader({
         tokenUpdateData.normalizedReserve1, tokenUpdateData.token1PricePerUSDNew);
     }
 
-    const liquidityPoolInstanceNew: LiquidityPoolNew = {
-      ...liquidityPoolNew,
+    const liquidityPoolDiff = {
       reserve0: tokenUpdateData.normalizedReserve0,
       reserve1: tokenUpdateData.normalizedReserve1,
       totalLiquidityUSD: tokenUpdateData.totalLiquidityUSD,
@@ -310,27 +311,7 @@ Pool.Sync.handlerWithLoader({
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
     };
 
-    const liquidityPoolHourlySnapshotInstance =
-      getLiquidityPoolSnapshotByInterval(
-        liquidityPoolInstanceNew,
-        SnapshotInterval.Hourly
-      );
+    updateLiquidityPoolAggregator(liquidityPoolDiff, liquidityPool, liquidityPoolDiff.lastUpdatedTimestamp, context);
 
-    const liquidityPoolDailySnapshotInstance = getLiquidityPoolSnapshotByInterval(
-      liquidityPoolInstanceNew,
-      SnapshotInterval.Daily
-    );
-
-    const liquidityPoolWeeklySnapshotInstance =
-      getLiquidityPoolSnapshotByInterval(
-        liquidityPoolInstanceNew,
-        SnapshotInterval.Weekly
-      );
-
-    context.LiquidityPoolNew.set(liquidityPoolInstanceNew);
-
-    context.LiquidityPoolHourlySnapshot.set(liquidityPoolHourlySnapshotInstance);
-    context.LiquidityPoolDailySnapshot.set(liquidityPoolDailySnapshotInstance);
-    context.LiquidityPoolWeeklySnapshot.set(liquidityPoolWeeklySnapshotInstance);
   },
 });

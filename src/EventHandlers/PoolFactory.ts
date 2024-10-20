@@ -3,9 +3,10 @@ import { PoolFactory, PoolFactory_SetCustomFee } from "generated";
 import { getErc20TokenDetails } from "./../Erc20";
 
 import { TokenEntityMapping } from "./../CustomTypes";
-import { Token, LiquidityPoolNew } from "./../src/Types.gen";
+import { Token, LiquidityPoolAggregator } from "./../src/Types.gen";
 import { generatePoolName } from "./../Helpers";
 import { TokenIdByChain } from "../Constants";
+import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 
 PoolFactory.PoolCreated.contractRegister(({ event, context }) => {
   context.addPool(event.params.pool);
@@ -41,7 +42,7 @@ PoolFactory.PoolCreated.handlerWithLoader({
       }
     }
 
-    const pool: LiquidityPoolNew = {
+    const pool: LiquidityPoolAggregator = {
       id: event.params.pool,
       chainId: event.chainId,
       name: generatePoolName(
@@ -68,9 +69,10 @@ PoolFactory.PoolCreated.handlerWithLoader({
       totalEmissionsUSD: 0n,
       totalBribesUSD: 0n,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
+      lastSnapshotTimestamp: new Date(event.block.timestamp * 1000),
     };
 
-    context.LiquidityPoolNew.set(pool);
+    updateLiquidityPoolAggregator(pool, pool, pool.lastUpdatedTimestamp, context);
   },
 });
 

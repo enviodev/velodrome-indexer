@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { MockDb, PoolFactory } from "../generated/src/TestHelpers.gen";
-import { LiquidityPoolNew, Token } from "../generated/src/Types.gen";
+import { LiquidityPoolAggregator, Token } from "../generated/src/Types.gen";
 import { TEN_TO_THE_18_BI } from "../src/Constants";
 import { toChecksumAddress } from "../src/Constants";
 
@@ -28,7 +28,7 @@ describe("PoolFactory Events", () => {
       const result = await PoolFactory.PoolCreated.processEvent({ event: mockEvent, mockDb });
 
       // Assert
-      const createdPool = result.entities.LiquidityPoolNew.get(toChecksumAddress("0x3333333333333333333333333333333333333333"));
+      const createdPool = result.entities.LiquidityPoolAggregator.get(toChecksumAddress("0x3333333333333333333333333333333333333333"));
       expect(createdPool).to.not.be.undefined;
       expect(createdPool?.token0_id).to.equal(toChecksumAddress("0x1111111111111111111111111111111111111111") + "-10");
       expect(createdPool?.token1_id).to.equal(toChecksumAddress("0x2222222222222222222222222222222222222222") + "-10");
