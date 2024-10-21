@@ -74,6 +74,15 @@ type Token {
   tokenWeeklySnapshots: [TokenWeeklySnapshot!]! @derivedFrom(field: "token") # weekly snapshots of the token
 }
 
+type TokenPrice {
+  id: ID! # Unique identifier for the record, could be a combination of token address and chain ID
+  name: String! # Name of the token
+  address: String! @index # Address of the token
+  pricePerUSDNew: BigInt! @config(precision: 76) # price of token per USD
+  chainId: Int!
+  lastUpdatedTimestamp: Timestamp! @index # Timestamp of the last update
+}
+
 # Hourly snapshot of the LiquidityPool entity
 type TokenHourlySnapshot {
   id: ID! # address of the token - number of weeks since unix epoch time
@@ -355,16 +364,6 @@ type CLPool_Swap {
   chainId: Int!
 }
 
-scalar Decimal
-
-type TokenPrice {
-  id: ID! # Unique identifier for the record, could be a combination of token address and chain ID
-  name: String! # Name of the token
-  address: String! @index # Address of the token
-  price: Float! # Price of the token
-  chainId: Int!
-  lastUpdatedTimestamp: Timestamp! @index # Timestamp of the last update
-}
 
 type Voter_WhitelistToken {
   id: ID!

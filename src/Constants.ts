@@ -2,7 +2,8 @@ import { TokenInfo, Pool } from "./CustomTypes";
 import dotenv from "dotenv";
 import optimismWhitelistedTokens from "./constants/optimismWhitelistedTokens.json";
 import baseWhitelistedTokens from "./constants/baseWhitelistedTokens.json";
-import web3 from "web3";
+import contractABI from "../abis/VeloPriceOracleABI.json";
+import Web3 from "web3";
 
 dotenv.config();
 
@@ -20,7 +21,7 @@ export const OPTIMISM_WHITELISTED_TOKENS: TokenInfo[] =
 export const BASE_WHITELISTED_TOKENS: TokenInfo[] =
   baseWhitelistedTokens as TokenInfo[];
 
-export const toChecksumAddress = (address: string) => web3.utils.toChecksumAddress(address);
+export const toChecksumAddress = (address: string) => Web3.utils.toChecksumAddress(address);
 
 // Helper function to find a token by symbol
 const findToken = (tokens: TokenInfo[], symbol: string): TokenInfo => {
@@ -28,6 +29,15 @@ const findToken = (tokens: TokenInfo[], symbol: string): TokenInfo => {
   if (!token) throw new Error(`Token ${symbol} not found`);
   return token;
 };
+
+export function getPriceOracleContract(chainId: number, blockNumber: number) {
+  const contractAddress =
+    CHAIN_CONSTANTS[chainId].oracle.getAddress(blockNumber);
+  const rpcURL = CHAIN_CONSTANTS[chainId].rpcURL;
+  const web3 = new Web3(rpcURL);
+  const contract = new web3.eth.Contract(contractABI, contractAddress);
+  return contract;
+}
 
 // List of stablecoin pools with their token0, token1 and name
 const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
