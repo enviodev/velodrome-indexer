@@ -5,11 +5,12 @@ import {
   VotingReward_NotifyReward,
 } from "generated";
 
-import { LiquidityPoolNew } from "./../src/Types.gen";
+import { LiquidityPoolAggregator } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
 import { multiplyBase1e18 } from "./../Maths";
 import { poolLookupStoreManager } from "./../Store";
 import { TokenIdByChain } from "../Constants";
+import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 
 //// global state!
 const { getPoolAddressByBribeVotingRewardAddress } = poolLookupStoreManager();
@@ -29,7 +30,7 @@ VotingReward.NotifyReward.handlerWithLoader({
     }
 
     const [currentLiquidityPool, rewardToken] = await Promise.all([
-      context.LiquidityPoolNew.get(poolAddress),
+      context.LiquidityPoolAggregator.get(poolAddress),
       context.Token.get(TokenIdByChain(event.params.reward, event.chainId)),
     ]);
 
@@ -72,15 +73,14 @@ VotingReward.NotifyReward.handlerWithLoader({
         );
 
         // Create a new instance of LiquidityPoolEntity to be updated in the DB
-        let newLiquidityPoolInstance: LiquidityPoolNew = {
-          ...currentLiquidityPool,
+        let lpDiff = {
           totalBribesUSD:
             currentLiquidityPool.totalBribesUSD + normalizedBribesAmountUsd,
           lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
         };
 
         // Update the LiquidityPoolEntity in the DB
-        context.LiquidityPoolNew.set(newLiquidityPoolInstance);
+        updateLiquidityPoolAggregator(lpDiff, currentLiquidityPool, new Date(event.block.timestamp * 1000), context);
       }
     }
   },

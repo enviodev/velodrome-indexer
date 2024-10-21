@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { MockDb, Pool } from "../../generated/src/TestHelpers.gen";
-import { LiquidityPoolNew, Token } from "../../generated/src/Types.gen";
+import { LiquidityPoolAggregator, Token } from "../../generated/src/Types.gen";
 import { setupCommon } from "./common";
 import {
   TEN_TO_THE_18_BI,
@@ -95,8 +95,8 @@ describe("Pool Swap Event", () => {
         ),
       };
 
-      const updatedDB1 = mockDb.entities.LiquidityPoolNew.set(
-        modifiedMockLiquidityPoolData as LiquidityPoolNew
+      const updatedDB1 = mockDb.entities.LiquidityPoolAggregator.set(
+        modifiedMockLiquidityPoolData as LiquidityPoolAggregator
       );
       const mockEvent = Pool.Swap.createMockEvent(eventData);
 
@@ -105,7 +105,7 @@ describe("Pool Swap Event", () => {
         mockDb: updatedDB1,
       });
 
-      const updatedPool = postEventDB.entities.LiquidityPoolNew.get(
+      const updatedPool = postEventDB.entities.LiquidityPoolAggregator.get(
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
       expect(updatedPool).to.not.be.undefined;
@@ -135,8 +135,8 @@ describe("Pool Swap Event", () => {
         10
       );
 
-      const updatedDB1 = mockDb.entities.LiquidityPoolNew.set(
-        mockLiquidityPoolData as LiquidityPoolNew
+      const updatedDB1 = mockDb.entities.LiquidityPoolAggregator.set(
+        mockLiquidityPoolData as LiquidityPoolAggregator
       );
       const updatedDB2 = updatedDB1.entities.Token.set(mockToken0Data as Token);
       const updatedDB3 = updatedDB2.entities.Token.set(mockToken1Data as Token);
@@ -150,7 +150,7 @@ describe("Pool Swap Event", () => {
     });
 
     it("should update the liquidity pool with token1 data only", async () => {
-      const updatedPool = postEventDB.entities.LiquidityPoolNew.get(
+      const updatedPool = postEventDB.entities.LiquidityPoolAggregator.get(
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
       expect(updatedPool).to.not.be.undefined;
@@ -189,8 +189,8 @@ describe("Pool Swap Event", () => {
         10
       );
 
-      const updatedDB1 = mockDb.entities.LiquidityPoolNew.set(
-        mockLiquidityPoolData as LiquidityPoolNew
+      const updatedDB1 = mockDb.entities.LiquidityPoolAggregator.set(
+        mockLiquidityPoolData as LiquidityPoolAggregator
       );
       const updatedDB2 = updatedDB1.entities.Token.set(mockToken0Data as Token);
       const updatedDB3 = updatedDB2.entities.Token.set(mockToken1Data as Token);
@@ -204,7 +204,7 @@ describe("Pool Swap Event", () => {
     });
 
     it("should update the liquidity pool with token0 data only", async () => {
-      const updatedPool = postEventDB.entities.LiquidityPoolNew.get(
+      const updatedPool = postEventDB.entities.LiquidityPoolAggregator.get(
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
       expect(updatedPool).to.not.be.undefined;
@@ -239,8 +239,8 @@ describe("Pool Swap Event", () => {
     let postEventDB: ReturnType<typeof MockDb.createMockDb>;
 
     beforeEach(async () => {
-      const updatedDB1 = mockDb.entities.LiquidityPoolNew.set(
-        mockLiquidityPoolData as LiquidityPoolNew
+      const updatedDB1 = mockDb.entities.LiquidityPoolAggregator.set(
+        mockLiquidityPoolData as LiquidityPoolAggregator
       );
       const updatedDB2 = updatedDB1.entities.Token.set(mockToken0Data as Token);
       const updatedDB3 = updatedDB2.entities.Token.set(mockToken1Data as Token);
@@ -267,7 +267,7 @@ describe("Pool Swap Event", () => {
     });
 
     it("should create a new Liquidity Pool if it doesn't exist", async () => {
-      const updatedPool = postEventDB.entities.LiquidityPoolNew.get(
+      const updatedPool = postEventDB.entities.LiquidityPoolAggregator.get(
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
       expect(updatedPool).to.not.be.undefined;
