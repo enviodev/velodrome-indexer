@@ -19,6 +19,8 @@ describe("Pool Fees Event", () => {
       chainId: 10,
       token0_id: TokenIdByChain("0x1111111111111111111111111111111111111111", 10),
       token1_id: TokenIdByChain("0x2222222222222222222222222222222222222222", 10),
+      token0_address: "0x1111111111111111111111111111111111111111",
+      token1_address: "0x2222222222222222222222222222222222222222",
       totalFees0: 0n,
       totalFees1: 0n,
       totalFeesUSD: 0n,

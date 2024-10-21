@@ -8,7 +8,7 @@ import {
   TokenIdByBlock,
   getPriceOracleContract
 } from "./Constants";
-import { Token, TokenPrice } from "./src/Types.gen";
+import { Token, TokenPriceSnapshot } from "./src/Types.gen";
 import { Cache, ShapePricesList } from "./cache";
 import { createHash } from "crypto";
 
@@ -169,7 +169,7 @@ export async function set_whitelisted_prices(
     context.Token.set(updatedToken);
 
     // Create new TokenPrice entity
-    const tokenPrice: TokenPrice = {
+    const tokenPrice: TokenPriceSnapshot = {
         id: TokenIdByBlock(token.address, chainId, blockNumber),
         name: token.symbol,
         address: toChecksumAddress(token.address),
@@ -177,7 +177,7 @@ export async function set_whitelisted_prices(
         chainId: chainId,
         lastUpdatedTimestamp: blockDatetime,
     };
-    context.TokenPrice.set(tokenPrice);
+    context.TokenPriceSnapshot.set(tokenPrice);
   }
 
   setPricesLastUpdated(chainId, blockDatetime);

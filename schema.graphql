@@ -74,7 +74,7 @@ type Token {
   tokenWeeklySnapshots: [TokenWeeklySnapshot!]! @derivedFrom(field: "token") # weekly snapshots of the token
 }
 
-type TokenPrice {
+type TokenPriceSnapshot {
   id: ID! # Unique identifier for the record, could be a combination of token address and chain ID
   name: String! # Name of the token
   address: String! @index # Address of the token

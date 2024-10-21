@@ -37,7 +37,7 @@ describe("PriceOracle", () => {
 
     mockContext = {
         Token: { set: sinon.stub(), get: sinon.stub() },
-        TokenPrice: { set: sinon.stub(), get: sinon.stub() }
+        TokenPriceSnapshot: { set: sinon.stub(), get: sinon.stub() }
     };
 
     const dep = require("../src/Constants");
@@ -75,7 +75,7 @@ describe("PriceOracle", () => {
       expect(updatedToken?.lastUpdatedTimestamp).to.deep.equal(blockDatetime);
 
       // Check if TokenPrice was created
-      const tokenPrice = mockContext.TokenPrice.set.args[0][0];
+      const tokenPrice = mockContext.TokenPriceSnapshot.set.args[0][0];
       expect(tokenPrice).to.not.be.undefined;
       expect(tokenPrice?.pricePerUSDNew).to.equal(BigInt("1000000000000000000"));
       expect(tokenPrice?.lastUpdatedTimestamp).to.deep.equal(blockDatetime);
@@ -96,7 +96,7 @@ describe("PriceOracle", () => {
       expect(newToken?.lastUpdatedTimestamp).to.deep.equal(updatedBlockDatetime);
 
       // Check if TokenPrice was created
-      const tokenPrice = mockContext.TokenPrice.set.args[0][0];
+      const tokenPrice = mockContext.TokenPriceSnapshot.set.args[0][0];
       expect(tokenPrice).to.not.be.undefined;
       expect(tokenPrice?.pricePerUSDNew).to.equal(BigInt("1000000000000000000"));
       expect(tokenPrice?.lastUpdatedTimestamp).to.deep.equal(updatedBlockDatetime);

@@ -5,6 +5,7 @@ import { normalizeTokenAmountTo1e18 } from "./../Helpers";
 import { multiplyBase1e18 } from "./../Maths";
 import { set_whitelisted_prices } from "../PriceOracle";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
+import { TokenIdByChain } from "../Constants";
 
 // Helper function to get checksum address
 
@@ -47,8 +48,12 @@ Pool.Fees.handlerWithLoader({
     if (currentLiquidityPool == undefined) return null;
 
     const [token0Instance, token1Instance] = await Promise.all([
-      context.Token.get(currentLiquidityPool.token0_id),
-      context.Token.get(currentLiquidityPool.token1_id),
+      context.Token.get(
+        TokenIdByChain(currentLiquidityPool.token0_address, event.chainId)
+      ),
+      context.Token.get(
+        TokenIdByChain(currentLiquidityPool.token1_address, event.chainId)
+      ),
     ]);
 
     return { currentLiquidityPool, token0Instance, token1Instance };
@@ -61,8 +66,8 @@ Pool.Fees.handlerWithLoader({
 
     if (token0Instance == undefined || token1Instance == undefined) {
       console.log("Token instances not found.", {
-        token0_id: currentLiquidityPool.token0_id,
-        token1_id: currentLiquidityPool.token1_id,
+        token0_address: currentLiquidityPool.token0_address,
+        token1_address: currentLiquidityPool.token1_address,
         chainId: event.chainId,
       });
       return;
