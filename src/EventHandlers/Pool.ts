@@ -1,11 +1,8 @@
 import { Pool, Pool_Swap, Pool_Sync, Pool_Mint, Pool_Burn } from "generated";
 
-import { Token, LiquidityPoolAggregator, User } from "./../src/Types.gen";
+import { LiquidityPoolAggregator, User } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
 import { multiplyBase1e18 } from "./../Maths";
-import { getLiquidityPoolSnapshotByInterval } from "./../IntervalSnapshots";
-import { SnapshotInterval } from "./../CustomTypes";
-import { toChecksumAddress, TokenIdByChain } from "../Constants";
 import { set_whitelisted_prices } from "../PriceOracle";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 

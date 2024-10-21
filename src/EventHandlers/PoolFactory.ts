@@ -52,6 +52,8 @@ PoolFactory.PoolCreated.handlerWithLoader({
       ),
       token0_id: TokenIdByChain(event.params.token0, event.chainId),
       token1_id: TokenIdByChain(event.params.token1, event.chainId),
+      token0_address: event.params.token0,
+      token1_address: event.params.token1,
       isStable: event.params.stable,
       reserve0: 0n,
       reserve1: 0n,

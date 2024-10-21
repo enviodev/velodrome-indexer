@@ -52,7 +52,7 @@ export function updateLiquidityPoolAggregator(
   timestamp: Date,
   context: handlerContext
 ) {
-  const updated = {
+  const updated: LiquidityPoolAggregator = {
     ...current,
     ...diff,
     lastUpdatedTimestamp: timestamp,
@@ -67,7 +67,12 @@ export function updateLiquidityPoolAggregator(
     UPDATE_INTERVAL)
   ) {
     setLiquidityPoolAggregatorSnapshot(updated, timestamp, context);
-    updated.lastSnapshotTimestamp = timestamp;
-    context.LiquidityPoolAggregator.set(updated);
+    const snapshotUpdate: LiquidityPoolAggregatorSnapshot = {
+      ...updated,
+      id: `${updated.chainId}-${updated.id}_${updated.lastUpdatedTimestamp.getTime()}`,
+      pool: updated.id,
+      timestamp: updated.lastUpdatedTimestamp,
+    };
+    context.LiquidityPoolAggregatorSnapshot.set(snapshotUpdate);
   }
 }
