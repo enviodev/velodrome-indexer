@@ -155,7 +155,8 @@ export async function set_whitelisted_prices(
             chainId: chainId,
             decimals: BigInt(token.decimals),
             pricePerUSDNew: BigInt(price),
-            lastUpdatedTimestamp: blockDatetime
+            lastUpdatedTimestamp: blockDatetime,
+            isWhitelisted: false,
         };
     }
 

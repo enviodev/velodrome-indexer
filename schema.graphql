@@ -69,6 +69,7 @@ type Token {
   decimals: BigInt! @config(precision: 76) # number of decimals
   pricePerUSDNew: BigInt! @config(precision: 76) # price of token per USD
   lastUpdatedTimestamp: Timestamp! # timestamp of last update
+  isWhitelisted: Boolean! # whether the token is whitelisted
   tokenHourlySnapshots: [TokenHourlySnapshot!]! @derivedFrom(field: "token") # hourly snapshots of the token
   tokenDailySnapshots: [TokenDailySnapshot!]! @derivedFrom(field: "token") # daily snapshots of the token
   tokenWeeklySnapshots: [TokenWeeklySnapshot!]! @derivedFrom(field: "token") # weekly snapshots of the token
