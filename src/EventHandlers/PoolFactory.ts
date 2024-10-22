@@ -3,9 +3,10 @@ import { PoolFactory, PoolFactory_SetCustomFee } from "generated";
 import { getErc20TokenDetails } from "./../Erc20";
 
 import { TokenEntityMapping } from "./../CustomTypes";
-import { Token, LiquidityPoolNew } from "./../src/Types.gen";
+import { Token, LiquidityPoolAggregator } from "./../src/Types.gen";
 import { generatePoolName } from "./../Helpers";
 import { TokenIdByChain } from "../Constants";
+import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 
 PoolFactory.PoolCreated.contractRegister(({ event, context }) => {
   context.addPool(event.params.pool);
@@ -41,9 +42,9 @@ PoolFactory.PoolCreated.handlerWithLoader({
       }
     }
 
-    const pool: LiquidityPoolNew = {
+    const pool: LiquidityPoolAggregator = {
       id: event.params.pool,
-      chainID: BigInt(event.chainId),
+      chainId: event.chainId,
       name: generatePoolName(
         poolTokenSymbols[0],
         poolTokenSymbols[1],
@@ -51,6 +52,8 @@ PoolFactory.PoolCreated.handlerWithLoader({
       ),
       token0_id: TokenIdByChain(event.params.token0, event.chainId),
       token1_id: TokenIdByChain(event.params.token1, event.chainId),
+      token0_address: event.params.token0,
+      token1_address: event.params.token1,
       isStable: event.params.stable,
       reserve0: 0n,
       reserve1: 0n,
@@ -68,9 +71,10 @@ PoolFactory.PoolCreated.handlerWithLoader({
       totalEmissionsUSD: 0n,
       totalBribesUSD: 0n,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
+      lastSnapshotTimestamp: new Date(event.block.timestamp * 1000),
     };
 
-    context.LiquidityPoolNew.set(pool);
+    updateLiquidityPoolAggregator(pool, pool, pool.lastUpdatedTimestamp, context);
   },
 });
 

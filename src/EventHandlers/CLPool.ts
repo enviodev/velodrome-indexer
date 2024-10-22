@@ -10,6 +10,7 @@ import {
   CLPool_SetFeeProtocol,
   CLPool_Swap
 } from "generated";
+import { set_whitelisted_prices } from "../PriceOracle";
 
 CLPool.Burn.handler(async ({ event, context }) => {
   const entity: CLPool_Burn = {
@@ -155,4 +156,16 @@ CLPool.Swap.handler(async ({ event, context }) => {
   };
 
   context.CLPool_Swap.set(entity);
+  const blockDatetime = new Date(event.block.timestamp * 1000);
+  try {
+    await set_whitelisted_prices(
+      event.chainId,
+      event.block.number,
+      blockDatetime,
+      context
+    );
+  } catch (error) {
+    console.log("Error updating token prices on pool sync:", error);
+  }
+
 });

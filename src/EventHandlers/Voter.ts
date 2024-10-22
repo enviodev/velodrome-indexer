@@ -2,13 +2,16 @@ import {
   Voter,
   Voter_GaugeCreated,
   Voter_Voted,
+  Voter_WhitelistToken,
 } from "generated";
 
-import { LiquidityPoolNew } from "./../src/Types.gen";
+import { LiquidityPoolAggregator, Token } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
 import { CHAIN_CONSTANTS, TokenIdByChain } from "./../Constants";
 import { poolLookupStoreManager } from "./../Store";
 import { multiplyBase1e18 } from "./../Maths";
+import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
+import { getErc20TokenDetails } from "../Erc20";
 
 const {
   getPoolAddressByGaugeAddress,
@@ -73,7 +76,7 @@ Voter.DistributeReward.handlerWithLoader({
 
     if (poolAddress) {
       // Load the LiquidityPool entity to be updated,
-      const currentLiquidityPool = await context.LiquidityPoolNew.get(
+      const currentLiquidityPool = await context.LiquidityPoolAggregator.get(
         poolAddress
       );
 
@@ -119,8 +122,7 @@ Voter.DistributeReward.handlerWithLoader({
         );
 
         // Create a new instance of LiquidityPoolEntity to be updated in the DB
-        let newLiquidityPoolInstance: LiquidityPoolNew = {
-          ...currentLiquidityPool,
+        let lpDiff = {
           totalEmissions:
             currentLiquidityPool.totalEmissions + normalizedEmissionsAmount,
           totalEmissionsUSD:
@@ -130,13 +132,76 @@ Voter.DistributeReward.handlerWithLoader({
         };
 
         // Update the LiquidityPoolEntity in the DB
-        context.LiquidityPoolNew.set(newLiquidityPoolInstance);
+        updateLiquidityPoolAggregator(lpDiff, currentLiquidityPool, new Date(event.block.timestamp * 1000), context);
+
       } else {
         // If there is no pool entity with the particular gauge address, log the error
         context.log.warn(
           `No pool entity or reward token found for the gauge address ${event.params.gauge.toString()}`
         );
       }
+    }
+  },
+});
+
+/**
+ * Handles the WhitelistToken event for the Voter contract.
+ * 
+ * This handler is triggered when a WhitelistToken event is emitted by the Voter contract.
+ * It creates a new Voter_WhitelistToken entity and stores it in the context.
+ * 
+ * The Voter_WhitelistToken entity contains the following fields:
+ * - id: A unique identifier for the event, composed of the chain ID, block number, and log index.
+ * - whitelister: The address of the entity that performed the whitelisting.
+ * - token: The address of the token being whitelisted.
+ * - isWhitelisted: A boolean indicating whether the token is whitelisted.
+ * - timestamp: The timestamp of the block in which the event was emitted, converted to a Date object.
+ * - chainId: The ID of the blockchain network where the event occurred.
+ * 
+ * @param {Object} event - The event object containing details of the WhitelistToken event.
+ * @param {Object} context - The context object used to interact with the data store.
+ */
+Voter.WhitelistToken.handlerWithLoader({
+  loader: async ({ event, context }) => {
+    const token = await context.Token.get(TokenIdByChain(event.params.token, event.chainId));
+    return { token };
+  },
+  handler: async ({ event, context, loaderReturn }) => {
+    const entity: Voter_WhitelistToken = {
+      id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+      whitelister: event.params.whitelister,
+      token: event.params.token,
+      isWhitelisted: event.params._bool,
+      timestamp: new Date(event.block.timestamp * 1000),
+      chainId: event.chainId,
+    };
+
+    context.Voter_WhitelistToken.set(entity);
+
+    // Update the Token entity in the DB, either by updating the existing one or creating a new one
+    if (loaderReturn && loaderReturn.token) {
+      const { token } = loaderReturn;
+      const updatedToken: Token = {
+        ...token,
+        isWhitelisted: event.params._bool,
+      };
+
+      context.Token.set(updatedToken as Token);
+      return
+    } else {
+      const tokenDetails = await getErc20TokenDetails(event.params.token, event.chainId);
+      const updatedToken: Token = {
+        id: TokenIdByChain(event.params.token, event.chainId),
+        name: tokenDetails.name,
+        symbol: tokenDetails.symbol,
+        pricePerUSDNew: 0n,
+        address: event.params.token,
+        chainId: event.chainId,
+        decimals: BigInt(tokenDetails.decimals),
+        isWhitelisted: event.params._bool,
+        lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
+      };
+      context.Token.set(updatedToken);
     }
   },
 });
