@@ -1,6 +1,6 @@
 import {
-  LiquidityPoolAggregator,
-  LiquidityPoolAggregatorSnapshot,
+  CLPoolAggregator,
+  CLPoolAggregatorSnapshot,
   handlerContext,
 } from "./../src/Types.gen";
 
@@ -17,14 +17,14 @@ const UPDATE_INTERVAL = 60 * 60 * 1000; // 1 hour
  * @param timestamp - The current timestamp when the snapshot is taken.
  * @param context - The handler context used to store the snapshot.
  */
-export function setLiquidityPoolAggregatorSnapshot(
-  liquidityPoolAggregator: LiquidityPoolAggregator,
+export function setCLPoolAggregatorSnapshot(
+  liquidityPoolAggregator: CLPoolAggregator,
   timestamp: Date,
   context: handlerContext
 ) {
   const chainId = liquidityPoolAggregator.chainId;
 
-  const snapshot: LiquidityPoolAggregatorSnapshot = {
+  const snapshot: CLPoolAggregatorSnapshot = {
     ...liquidityPoolAggregator,
     pool: liquidityPoolAggregator.id,
     id: `${chainId}-${liquidityPoolAggregator.id}_${timestamp.getTime()}`,
@@ -46,13 +46,13 @@ export function setLiquidityPoolAggregatorSnapshot(
  * @param timestamp - The current timestamp when the update is applied.
  * @param context - The handler context used to store the updated state and snapshots.
  */
-export function updateLiquidityPoolAggregator(
+export function updateCLPoolAggregator(
   diff: any,
-  current: LiquidityPoolAggregator,
+  current: CLPoolAggregator,
   timestamp: Date,
   context: handlerContext
 ) {
-  const updated: LiquidityPoolAggregator = {
+  const updated: CLPoolAggregator = {
     ...current,
     ...diff,
     lastUpdatedTimestamp: timestamp,
@@ -63,14 +63,16 @@ export function updateLiquidityPoolAggregator(
   // Update the snapshot if the last update was more than 1 hour ago
   if (
     !current.lastSnapshotTimestamp ||
-    (timestamp.getTime() - current.lastSnapshotTimestamp.getTime() >
+    (timestamp.getTime() - current.lastUpdatedTimestamp.getTime() >
     UPDATE_INTERVAL)
   ) {
-    setLiquidityPoolAggregatorSnapshot(updated, timestamp, context);
-    const snapshotUpdate: LiquidityPoolAggregator = {
+    setCLPoolAggregatorSnapshot(updated, timestamp, context);
+    const snapshotUpdate: CLPoolAggregatorSnapshot = {
       ...updated,
-      lastSnapshotTimestamp: timestamp,
+      id: `${updated.chainId}-${updated.id}_${updated.lastUpdatedTimestamp.getTime()}`,
+      pool: updated.id,
+      timestamp: updated.lastUpdatedTimestamp,
     };
-    context.LiquidityPoolAggregator.set(snapshotUpdate);
+    context.LiquidityPoolAggregatorSnapshot.set(snapshotUpdate);
   }
 }
