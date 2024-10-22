@@ -59,6 +59,7 @@ describe("PriceOracle", () => {
         symbol: OPTIMISM_WHITELISTED_TOKENS[0].symbol,
         name: OPTIMISM_WHITELISTED_TOKENS[0].symbol,
         chainId: chainId,
+        isWhitelisted: false,
         decimals: BigInt(OPTIMISM_WHITELISTED_TOKENS[0].decimals),
         pricePerUSDNew: BigInt(0),
         lastUpdatedTimestamp: new Date("2022-01-01T00:00:00Z")

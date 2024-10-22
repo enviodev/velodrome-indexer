@@ -5,12 +5,13 @@ import {
   Voter_WhitelistToken,
 } from "generated";
 
-import { LiquidityPoolAggregator } from "./../src/Types.gen";
+import { LiquidityPoolAggregator, Token } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
 import { CHAIN_CONSTANTS, TokenIdByChain } from "./../Constants";
 import { poolLookupStoreManager } from "./../Store";
 import { multiplyBase1e18 } from "./../Maths";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
+import { getErc20TokenDetails } from "../Erc20";
 
 const {
   getPoolAddressByGaugeAddress,
@@ -160,15 +161,47 @@ Voter.DistributeReward.handlerWithLoader({
  * @param {Object} event - The event object containing details of the WhitelistToken event.
  * @param {Object} context - The context object used to interact with the data store.
  */
-Voter.WhitelistToken.handler(async ({ event, context }) => {
-  const entity: Voter_WhitelistToken = {
-    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    whitelister: event.params.whitelister,
-    token: event.params.token,
-    isWhitelisted: event.params._bool,
-    timestamp: new Date(event.block.timestamp * 1000),
-    chainId: event.chainId,
-  };
+Voter.WhitelistToken.handlerWithLoader({
+  loader: async ({ event, context }) => {
+    const token = await context.Token.get(TokenIdByChain(event.params.token, event.chainId));
+    return { token };
+  },
+  handler: async ({ event, context, loaderReturn }) => {
+    const entity: Voter_WhitelistToken = {
+      id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+      whitelister: event.params.whitelister,
+      token: event.params.token,
+      isWhitelisted: event.params._bool,
+      timestamp: new Date(event.block.timestamp * 1000),
+      chainId: event.chainId,
+    };
 
-  context.Voter_WhitelistToken.set(entity);
+    context.Voter_WhitelistToken.set(entity);
+
+    // Update the Token entity in the DB, either by updating the existing one or creating a new one
+    if (loaderReturn && loaderReturn.token) {
+      const { token } = loaderReturn;
+      const updatedToken: Token = {
+        ...token,
+        isWhitelisted: event.params._bool,
+      };
+
+      context.Token.set(updatedToken as Token);
+      return
+    } else {
+      const tokenDetails = await getErc20TokenDetails(event.params.token, event.chainId);
+      const updatedToken: Token = {
+        id: TokenIdByChain(event.params.token, event.chainId),
+        name: tokenDetails.name,
+        symbol: tokenDetails.symbol,
+        pricePerUSDNew: 0n,
+        address: event.params.token,
+        chainId: event.chainId,
+        decimals: BigInt(tokenDetails.decimals),
+        isWhitelisted: event.params._bool,
+        lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
+      };
+      context.Token.set(updatedToken);
+    }
+  },
 });
