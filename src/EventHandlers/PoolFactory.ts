@@ -8,9 +8,12 @@ import { generatePoolName } from "./../Helpers";
 import { TokenIdByChain } from "../Constants";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 
-PoolFactory.PoolCreated.contractRegister(({ event, context }) => {
-  context.addPool(event.params.pool);
-});
+PoolFactory.PoolCreated.contractRegister(
+  ({ event, context }) => {
+    context.addPool(event.params.pool);
+  },
+  { preRegisterDynamicContracts: true }
+);
 
 PoolFactory.PoolCreated.handlerWithLoader({
   loader: async ({ event, context }) => {
@@ -74,7 +77,12 @@ PoolFactory.PoolCreated.handlerWithLoader({
       lastSnapshotTimestamp: new Date(event.block.timestamp * 1000),
     };
 
-    updateLiquidityPoolAggregator(pool, pool, pool.lastUpdatedTimestamp, context);
+    updateLiquidityPoolAggregator(
+      pool,
+      pool,
+      pool.lastUpdatedTimestamp,
+      context
+    );
   },
 });
 
