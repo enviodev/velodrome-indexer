@@ -9,11 +9,11 @@ import {
   CLPool_Mint,
   CLPool_SetFeeProtocol,
   CLPool_Swap,
-  CLPoolAggregator
+  CLPoolAggregator,
 } from "generated";
 import { set_whitelisted_prices } from "../PriceOracle";
 import { normalizeTokenAmountTo1e18 } from "../Helpers";
-import { multiplyBase1e18 } from "../Maths";
+import { multiplyBase1e18, abs } from "../Maths";
 import { updateCLPoolAggregator } from "../Aggregators/CLPoolAggregator";
 
 CLPool.Burn.handler(async ({ event, context }) => {
@@ -110,7 +110,6 @@ CLPool.Initialize.handler(async ({ event, context }) => {
 });
 
 CLPool.Mint.handler(async ({ event, context }) => {
-
   const entity: CLPool_Mint = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     sender: event.params.sender,
@@ -146,15 +145,17 @@ CLPool.SetFeeProtocol.handler(async ({ event, context }) => {
 
 CLPool.Swap.handlerWithLoader({
   loader: async ({ event, context }) => {
-
     const pool_id = event.srcAddress;
-    const pool_created = await context.CLFactory_PoolCreated.getWhere.pool.eq(pool_id);
+    const pool_created = await context.CLFactory_PoolCreated.getWhere.pool.eq(
+      pool_id
+    );
 
-    const [token0Instance, token1Instance, clPoolAggregator] = await Promise.all([
-      context.Token.get(pool_created[0].token0),
-      context.Token.get(pool_created[0].token1),
-      context.CLPoolAggregator.get(pool_id)
-    ]);
+    const [token0Instance, token1Instance, clPoolAggregator] =
+      await Promise.all([
+        context.Token.get(pool_created[0].token0),
+        context.Token.get(pool_created[0].token1),
+        context.CLPoolAggregator.get(pool_id),
+      ]);
 
     return { clPoolAggregator, token0Instance, token1Instance };
   },
@@ -191,6 +192,7 @@ CLPool.Swap.handlerWithLoader({
           event.params.amount0,
           Number(token0Instance.decimals)
         );
+        tokenUpdateData.netAmount0 = abs(tokenUpdateData.netAmount0);
         tokenUpdateData.netVolumeToken0USD = multiplyBase1e18(
           tokenUpdateData.netAmount0,
           token0Instance.pricePerUSDNew
@@ -202,6 +204,7 @@ CLPool.Swap.handlerWithLoader({
           event.params.amount1,
           Number(token1Instance.decimals)
         );
+        tokenUpdateData.netAmount1 = abs(tokenUpdateData.netAmount1);
         tokenUpdateData.netVolumeToken1USD = multiplyBase1e18(
           tokenUpdateData.netAmount1,
           token1Instance.pricePerUSDNew
@@ -209,16 +212,22 @@ CLPool.Swap.handlerWithLoader({
       }
 
       // Use volume from token 0 if it's priced, otherwise use token 1
-      tokenUpdateData.volumeInUSD = tokenUpdateData.netVolumeToken0USD != 0n
-        ? tokenUpdateData.netVolumeToken0USD
-        : tokenUpdateData.netVolumeToken1USD;
+      tokenUpdateData.volumeInUSD =
+        tokenUpdateData.netVolumeToken0USD != 0n
+          ? tokenUpdateData.netVolumeToken0USD
+          : tokenUpdateData.netVolumeToken1USD;
 
       const clPoolAggregatorDiff: Partial<CLPoolAggregator> = {
-        totalVolume0: clPoolAggregator.totalVolume0 + tokenUpdateData.netAmount0,
-        totalVolume1: clPoolAggregator.totalVolume1 + tokenUpdateData.netAmount1,
-        totalVolumeUSD: clPoolAggregator.totalVolumeUSD + tokenUpdateData.volumeInUSD,
-        token0Price: token0Instance?.pricePerUSDNew ?? clPoolAggregator.token0Price,
-        token1Price: token1Instance?.pricePerUSDNew ?? clPoolAggregator.token1Price,
+        totalVolume0:
+          clPoolAggregator.totalVolume0 + tokenUpdateData.netAmount0,
+        totalVolume1:
+          clPoolAggregator.totalVolume1 + tokenUpdateData.netAmount1,
+        totalVolumeUSD:
+          clPoolAggregator.totalVolumeUSD + tokenUpdateData.volumeInUSD,
+        token0Price:
+          token0Instance?.pricePerUSDNew ?? clPoolAggregator.token0Price,
+        token1Price:
+          token1Instance?.pricePerUSDNew ?? clPoolAggregator.token1Price,
         numberOfSwaps: clPoolAggregator.numberOfSwaps + 1n,
       };
 
