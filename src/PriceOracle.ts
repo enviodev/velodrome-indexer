@@ -172,7 +172,6 @@ export async function set_whitelisted_prices(
     // Create new TokenPrice entity
     const tokenPrice: TokenPriceSnapshot = {
         id: TokenIdByBlock(token.address, chainId, blockNumber),
-        name: token.symbol,
         address: toChecksumAddress(token.address),
         pricePerUSDNew: BigInt(price),
         chainId: chainId,

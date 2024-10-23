@@ -2,7 +2,7 @@ import { Pool, Pool_Swap, Pool_Sync, Pool_Mint, Pool_Burn } from "generated";
 
 import { LiquidityPoolAggregator, User } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
-import { multiplyBase1e18 } from "./../Maths";
+import { abs, multiplyBase1e18 } from "./../Maths";
 import { set_whitelisted_prices } from "../PriceOracle";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 import { TokenIdByChain } from "../Constants";
@@ -110,16 +110,19 @@ Pool.Fees.handlerWithLoader({
 
 Pool.Swap.handlerWithLoader({
   loader: async ({ event, context }) => {
-    const liquidityPool = await context.LiquidityPoolAggregator.get(event.srcAddress);
+    const liquidityPool = await context.LiquidityPoolAggregator.get(
+      event.srcAddress
+    );
 
     if (liquidityPool == undefined) return null;
 
-    const [token0Instance, token1Instance, toUser, isLiquidityPool] = await Promise.all([
-      context.Token.get(liquidityPool.token0_id),
-      context.Token.get(liquidityPool.token1_id),
-      context.User.get(event.params.to),
-      context.LiquidityPoolAggregator.get(event.params.to),
-    ]);
+    const [token0Instance, token1Instance, toUser, isLiquidityPool] =
+      await Promise.all([
+        context.Token.get(liquidityPool.token0_id),
+        context.Token.get(liquidityPool.token1_id),
+        context.User.get(event.params.to),
+        context.LiquidityPoolAggregator.get(event.params.to),
+      ]);
 
     return {
       liquidityPool,
@@ -162,6 +165,7 @@ Pool.Swap.handlerWithLoader({
           event.params.amount0In + event.params.amount0Out,
           Number(token0Instance.decimals)
         );
+        tokenUpdateData.netAmount0 = abs(tokenUpdateData.netAmount0);
         tokenUpdateData.netVolumeToken0USD = multiplyBase1e18(
           tokenUpdateData.netAmount0,
           token0Instance.pricePerUSDNew
@@ -173,6 +177,7 @@ Pool.Swap.handlerWithLoader({
           event.params.amount1In + event.params.amount1Out,
           Number(token1Instance.decimals)
         );
+        tokenUpdateData.netAmount1 = abs(tokenUpdateData.netAmount1);
         tokenUpdateData.netVolumeToken1USD = multiplyBase1e18(
           tokenUpdateData.netAmount1,
           token1Instance.pricePerUSDNew
@@ -180,9 +185,10 @@ Pool.Swap.handlerWithLoader({
       }
 
       // Use volume from token 0 if it's priced, otherwise use token 1
-      tokenUpdateData.volumeInUSD = tokenUpdateData.netVolumeToken0USD != 0n
-        ? tokenUpdateData.netVolumeToken0USD
-        : tokenUpdateData.netVolumeToken1USD;
+      tokenUpdateData.volumeInUSD =
+        tokenUpdateData.netVolumeToken0USD != 0n
+          ? tokenUpdateData.netVolumeToken0USD
+          : tokenUpdateData.netVolumeToken1USD;
 
       // add a new user if `to` isn't a liquidity pool and doesn't already exist
       // as a user
@@ -213,15 +219,22 @@ Pool.Swap.handlerWithLoader({
       const liquidityPoolDiff = {
         totalVolume0: liquidityPool.totalVolume0 + tokenUpdateData.netAmount0,
         totalVolume1: liquidityPool.totalVolume1 + tokenUpdateData.netAmount1,
-        totalVolumeUSD: liquidityPool.totalVolumeUSD + tokenUpdateData.volumeInUSD,
-        token0Price: token0Instance?.pricePerUSDNew ?? liquidityPool.token0Price,
-        token1Price: token1Instance?.pricePerUSDNew ?? liquidityPool.token1Price,
+        totalVolumeUSD:
+          liquidityPool.totalVolumeUSD + tokenUpdateData.volumeInUSD,
+        token0Price:
+          token0Instance?.pricePerUSDNew ?? liquidityPool.token0Price,
+        token1Price:
+          token1Instance?.pricePerUSDNew ?? liquidityPool.token1Price,
         numberOfSwaps: liquidityPool.numberOfSwaps + 1n,
         lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       };
 
-
-      updateLiquidityPoolAggregator(liquidityPoolDiff, liquidityPool, liquidityPoolDiff.lastUpdatedTimestamp, context);
+      updateLiquidityPoolAggregator(
+        liquidityPoolDiff,
+        liquidityPool,
+        liquidityPoolDiff.lastUpdatedTimestamp,
+        context
+      );
 
       const blockDatetime = new Date(event.block.timestamp * 1000);
       try {
@@ -234,7 +247,6 @@ Pool.Swap.handlerWithLoader({
       } catch (error) {
         console.log("Error updating token prices on pool sync:", error);
       }
-
     }
   },
 });
@@ -245,7 +257,9 @@ Pool.Swap.handlerWithLoader({
  */
 Pool.Sync.handlerWithLoader({
   loader: async ({ event, context }) => {
-    const liquidityPool = await context.LiquidityPoolAggregator.get(event.srcAddress);
+    const liquidityPool = await context.LiquidityPoolAggregator.get(
+      event.srcAddress
+    );
 
     if (!liquidityPool) return null;
 
@@ -295,13 +309,17 @@ Pool.Sync.handlerWithLoader({
     if (token0Instance) {
       tokenUpdateData.token0PricePerUSDNew = token0Instance.pricePerUSDNew;
       tokenUpdateData.totalLiquidityUSD += multiplyBase1e18(
-        tokenUpdateData.normalizedReserve0, tokenUpdateData.token0PricePerUSDNew);
+        tokenUpdateData.normalizedReserve0,
+        tokenUpdateData.token0PricePerUSDNew
+      );
     }
 
     if (token1Instance) {
       tokenUpdateData.token1PricePerUSDNew = token1Instance.pricePerUSDNew;
       tokenUpdateData.totalLiquidityUSD += multiplyBase1e18(
-        tokenUpdateData.normalizedReserve1, tokenUpdateData.token1PricePerUSDNew);
+        tokenUpdateData.normalizedReserve1,
+        tokenUpdateData.token1PricePerUSDNew
+      );
     }
 
     const liquidityPoolDiff = {
@@ -313,7 +331,11 @@ Pool.Sync.handlerWithLoader({
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
     };
 
-    updateLiquidityPoolAggregator(liquidityPoolDiff, liquidityPool, liquidityPoolDiff.lastUpdatedTimestamp, context);
-
+    updateLiquidityPoolAggregator(
+      liquidityPoolDiff,
+      liquidityPool,
+      liquidityPoolDiff.lastUpdatedTimestamp,
+      context
+    );
   },
 });
