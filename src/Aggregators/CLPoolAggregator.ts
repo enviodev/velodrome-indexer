@@ -31,7 +31,7 @@ export function setCLPoolAggregatorSnapshot(
     timestamp: liquidityPoolAggregator.lastUpdatedTimestamp,
   };
 
-  context.LiquidityPoolAggregatorSnapshot.set(snapshot);
+  context.CLPoolAggregatorSnapshot.set(snapshot);
 }
 
 /**
@@ -58,21 +58,19 @@ export function updateCLPoolAggregator(
     lastUpdatedTimestamp: timestamp,
   };
 
-  context.LiquidityPoolAggregator.set(updated);
+  context.CLPoolAggregator.set(updated);
 
   // Update the snapshot if the last update was more than 1 hour ago
   if (
     !current.lastSnapshotTimestamp ||
-    (timestamp.getTime() - current.lastUpdatedTimestamp.getTime() >
+    (timestamp.getTime() - current.lastSnapshotTimestamp.getTime() >
     UPDATE_INTERVAL)
   ) {
     setCLPoolAggregatorSnapshot(updated, timestamp, context);
-    const snapshotUpdate: CLPoolAggregatorSnapshot = {
+    const snapshotTimestampUpdate: CLPoolAggregator = {
       ...updated,
-      id: `${updated.chainId}-${updated.id}_${updated.lastUpdatedTimestamp.getTime()}`,
-      pool: updated.id,
-      timestamp: updated.lastUpdatedTimestamp,
+      lastSnapshotTimestamp: timestamp,
     };
-    context.LiquidityPoolAggregatorSnapshot.set(snapshotUpdate);
+    context.CLPoolAggregator.set(snapshotTimestampUpdate);
   }
 }
