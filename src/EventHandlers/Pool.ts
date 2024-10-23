@@ -2,7 +2,7 @@ import { Pool, Pool_Swap, Pool_Sync, Pool_Mint, Pool_Burn } from "generated";
 
 import { LiquidityPoolAggregator, User } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
-import { multiplyBase1e18 } from "./../Maths";
+import { abs, multiplyBase1e18 } from "./../Maths";
 import { set_whitelisted_prices } from "../PriceOracle";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 import { TokenIdByChain } from "../Constants";
@@ -162,6 +162,7 @@ Pool.Swap.handlerWithLoader({
           event.params.amount0In + event.params.amount0Out,
           Number(token0Instance.decimals)
         );
+        tokenUpdateData.netAmount0 = abs(tokenUpdateData.netAmount0);
         tokenUpdateData.netVolumeToken0USD = multiplyBase1e18(
           tokenUpdateData.netAmount0,
           token0Instance.pricePerUSDNew
@@ -173,6 +174,7 @@ Pool.Swap.handlerWithLoader({
           event.params.amount1In + event.params.amount1Out,
           Number(token1Instance.decimals)
         );
+        tokenUpdateData.netAmount1 = abs(tokenUpdateData.netAmount1);
         tokenUpdateData.netVolumeToken1USD = multiplyBase1e18(
           tokenUpdateData.netAmount1,
           token1Instance.pricePerUSDNew
