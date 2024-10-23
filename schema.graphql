@@ -137,7 +137,7 @@ type CLFactory_PoolCreated {
   token0: String!
   token1: String!
   tickSpacing: BigInt! @config(precision: 76)
-  pool: String!
+  pool: String! @index
   timestamp: Timestamp!
   chainId: Int!
 }

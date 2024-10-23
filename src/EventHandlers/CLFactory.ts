@@ -25,7 +25,7 @@ CLFactory.PoolCreated.handlerWithLoader({
       token1: event.params.token1,
       tickSpacing: event.params.tickSpacing,
       pool: event.params.pool,
-      timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+      timestamp: new Date(event.block.timestamp * 1000),
       chainId: event.chainId,
     };
 
