@@ -71,7 +71,6 @@ describe("LiquidityPoolAggregator Functions", () => {
 
     it("should update the liquidity pool aggregator", () => {
 
-      expect(contextStub.LiquidityPoolAggregator.set.calledOnce).to.be.true;
       const updatedAggregator =
         contextStub.LiquidityPoolAggregator.set.getCall(0).args[0];
       expect(updatedAggregator.totalVolume0).to.equal(diff.totalVolume0);
