@@ -33,21 +33,83 @@ CLPool.Burn.handler(async ({ event, context }) => {
   context.CLPool_Burn.set(entity);
 });
 
-CLPool.Collect.handler(async ({ event, context }) => {
-  const entity: CLPool_Collect = {
-    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    owner: event.params.owner,
-    recipient: event.params.recipient,
-    tickLower: event.params.tickLower,
-    tickUpper: event.params.tickUpper,
-    amount0: event.params.amount0,
-    amount1: event.params.amount1,
-    sourceAddress: event.srcAddress,
-    timestamp: new Date(event.block.timestamp * 1000),
-    chainId: event.chainId,
-  };
+CLPool.Collect.handlerWithLoader({
+  loader: async ({ event, context }) => {
+    const pool_id = event.srcAddress;
+    const pool_created = await context.CLFactory_PoolCreated.getWhere.pool.eq(
+      pool_id
+    );
 
-  context.CLPool_Collect.set(entity);
+    if (!pool_created || pool_created.length === 0) {
+      context.log.error(`Pool ${pool_id} not found during collect`);
+      return null;
+    }
+
+    const [token0Instance, token1Instance, clPoolAggregator] =
+      await Promise.all([
+        context.Token.get(pool_created[0].token0),
+        context.Token.get(pool_created[0].token1),
+        context.CLPoolAggregator.get(pool_id),
+      ]);
+
+    return { clPoolAggregator, token0Instance, token1Instance };
+  },
+  handler: async ({ event, context, loaderReturn }) => {
+
+    const entity: CLPool_Collect = {
+      id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+      owner: event.params.owner,
+      recipient: event.params.recipient,
+      tickLower: event.params.tickLower,
+      tickUpper: event.params.tickUpper,
+      amount0: event.params.amount0,
+      amount1: event.params.amount1,
+      sourceAddress: event.srcAddress,
+      timestamp: new Date(event.block.timestamp * 1000),
+      chainId: event.chainId,
+    };
+
+    context.CLPool_Collect.set(entity);
+
+    if (loaderReturn && loaderReturn.clPoolAggregator) {
+      const { clPoolAggregator, token0Instance, token1Instance } = loaderReturn;
+
+      let tokenUpdateData = {
+        totalFees0: clPoolAggregator.totalFees0,
+        totalFees1: clPoolAggregator.totalFees1,
+        totalFeesUSD: clPoolAggregator.totalFeesUSD,
+      };
+
+      if (token0Instance) {
+        tokenUpdateData.totalFees0 += normalizeTokenAmountTo1e18(
+          event.params.amount0,
+          Number(token0Instance.decimals)
+        );
+        tokenUpdateData.totalFeesUSD += multiplyBase1e18(
+          tokenUpdateData.totalFees0,
+          token0Instance.pricePerUSDNew
+        );
+      }
+
+      if (token1Instance) {
+        tokenUpdateData.totalFees1 += normalizeTokenAmountTo1e18(
+          event.params.amount1,
+          Number(token1Instance.decimals)
+        );
+        tokenUpdateData.totalFeesUSD += multiplyBase1e18(
+          tokenUpdateData.totalFees1,
+          token1Instance.pricePerUSDNew
+        );
+      }
+
+      updateCLPoolAggregator(
+        tokenUpdateData,
+        clPoolAggregator,
+        new Date(event.block.timestamp * 1000),
+        context
+      );
+    }
+  },
 });
 
 CLPool.CollectFees.handler(async ({ event, context }) => {

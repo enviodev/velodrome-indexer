@@ -37,9 +37,13 @@ describe("CLPool Event Handlers", () => {
 
     let mockEvent: any;
     const poolId = "0x1234567890123456789012345678901234567890";
+    const token0Id = "0x0000000000000000000000000000000000000001";
+    const token1Id = "0x0000000000000000000000000000000000000002";
     let mockCLPoolAggregator: any;
     let mockEventData: any;
     let setupDB: any;
+    let mockToken0: Token;
+    let mockToken1: Token;
 
     const eventFees = {
         amount0: 100n * 10n ** 18n,
@@ -47,23 +51,35 @@ describe("CLPool Event Handlers", () => {
     };
 
     beforeEach(() => {
+      mockToken0 = {
+        id: token0Id,
+        decimals: 18n,
+        pricePerUSDNew: 1n * 10n ** 18n,
+      } as Token;
+
+      mockToken1 = {
+        id: token1Id,
+        decimals: 6n,
+        pricePerUSDNew: 1n * 10n ** 18n,
+      } as Token;
+
 
       mockEventData = {
+        amount0: eventFees.amount0,
+        amount1: eventFees.amount1,
+        mockEventData: {
         block: {
-          number: 123456,
+            number: 123456,
             timestamp: 1000000,
             hash: "0xblockhash",
         },
-        amount0: eventFees.amount0,
-        amount1: eventFees.amount1,
         chainId: 1,
         logIndex: 0,
         srcAddress: poolId,
+        },
       };
 
-      mockEvent = CLPool.Collect.createMockEvent({
-        mockEventData,
-      });
+      mockEvent = CLPool.Collect.createMockEvent(mockEventData);
 
       mockCLPoolAggregator = {
         id: poolId,
@@ -77,11 +93,19 @@ describe("CLPool Event Handlers", () => {
     describe("when event is processed", () => {
 
         beforeEach(async () => {
-            mockDb.entities.CLPoolAggregator.set(mockCLPoolAggregator);
+            let updatedDB = mockDb.entities.CLFactory_PoolCreated.set({
+                id: `1_123456_0`,
+                token0: token0Id,
+                token1: token1Id,
+                pool: poolId,
+            } as CLFactory_PoolCreated);
+            updatedDB = updatedDB.entities.Token.set(mockToken0);
+            updatedDB = updatedDB.entities.Token.set(mockToken1);
+            updatedDB = updatedDB.entities.CLPoolAggregator.set(mockCLPoolAggregator);
 
             setupDB = await CLPool.Collect.processEvent({
                 event: mockEvent,
-                mockDb,
+                mockDb: updatedDB,
             });
         });
 
