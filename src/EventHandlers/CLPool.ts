@@ -281,6 +281,11 @@ CLPool.Swap.handlerWithLoader({
       pool_id
     );
 
+    if (!pool_created || pool_created.length === 0) {
+      context.log.error(`Pool ${pool_id} not found during swap`);
+      return null;
+    }
+
     const [token0Instance, token1Instance, clPoolAggregator] =
       await Promise.all([
         context.Token.get(pool_created[0].token0),
