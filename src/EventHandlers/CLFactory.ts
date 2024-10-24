@@ -29,6 +29,13 @@ CLFactory.PoolCreated.handlerWithLoader({
       chainId: event.chainId,
     };
 
+    console.log(event.params.pool);
+
+    const testPool = "0x2787d72D17dB123351EBe903237E761EBCF529D6";
+    if (event.params.pool.toLowerCase() == testPool.toLowerCase()) {
+      console.log(entity);
+    }
+
     context.CLFactory_PoolCreated.set(entity);
 
     const { poolToken0, poolToken1 } = loaderReturn;
