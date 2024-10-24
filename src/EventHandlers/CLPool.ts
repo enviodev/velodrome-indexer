@@ -150,6 +150,15 @@ CLPool.Swap.handlerWithLoader({
       pool_id
     );
 
+    if (!pool_created || pool_created.length === 0) {
+      console.error("Pool not found", pool_id);
+      console.error(event);
+      if (event.block.number == 14192694) {
+        throw new Error("Halt point");
+      }
+      return null;
+    }
+
     const [token0Instance, token1Instance, clPoolAggregator] =
       await Promise.all([
         context.Token.get(pool_created[0].token0),

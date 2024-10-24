@@ -60,7 +60,7 @@ contracts:
       - event: NotifyReward(address indexed from, uint256 amount)
 networks:
   - id: 10 # Optimism
-    start_block: 0
+    start_block: 127089707
     contracts:
       - name: NFPM
         address:
@@ -1074,7 +1074,7 @@ networks:
       - name: CLPool
         address:
   - id: 8453 # Base
-    start_block: 0
+    start_block: 14192630 # 14192634 14194004
     contracts:
       - name: NFPM
         address:
