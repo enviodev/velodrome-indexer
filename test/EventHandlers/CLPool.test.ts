@@ -228,6 +228,11 @@ describe("CLPool Event Handlers", () => {
                     eventFees.amount1 * (10n ** 18n) / 10n ** 6n
                 )
             , "It should normalize fees here");
+            expect(diff.totalFeesUSD).to.equal(
+                mockCLPoolAggregator.totalFeesUSD + 
+                    (eventFees.amount0 * mockToken0.pricePerUSDNew / 10n ** 18n) +
+                    ( (eventFees.amount1 / 10n ** 6n) * mockToken1.pricePerUSDNew)
+            , "It should correctly update total fees in USD");
         });
     });
   });

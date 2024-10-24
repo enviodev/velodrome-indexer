@@ -42,6 +42,7 @@ function updateCLPoolFees(
   token0Instance: Token | undefined,
   token1Instance: Token | undefined
 ) {
+
   let tokenUpdateData = {
     totalFees0: clPoolAggregator.totalFees0,
     totalFees1: clPoolAggregator.totalFees1,
@@ -49,23 +50,25 @@ function updateCLPoolFees(
   };
 
   if (token0Instance) {
-    tokenUpdateData.totalFees0 += normalizeTokenAmountTo1e18(
+    const incomingFees0 = normalizeTokenAmountTo1e18(
       event.params.amount0,
       Number(token0Instance.decimals)
     );
+    tokenUpdateData.totalFees0 += incomingFees0;
     tokenUpdateData.totalFeesUSD += multiplyBase1e18(
-      tokenUpdateData.totalFees0,
+      incomingFees0,
       token0Instance.pricePerUSDNew
     );
   }
 
   if (token1Instance) {
-    tokenUpdateData.totalFees1 += normalizeTokenAmountTo1e18(
+    const incomingFees1 = normalizeTokenAmountTo1e18(
       event.params.amount1,
       Number(token1Instance.decimals)
     );
+    tokenUpdateData.totalFees1 += incomingFees1;
     tokenUpdateData.totalFeesUSD += multiplyBase1e18(
-      tokenUpdateData.totalFees1,
+      incomingFees1,
       token1Instance.pricePerUSDNew
     );
   }
