@@ -11,12 +11,14 @@ import * as PriceOracle from "../../src/PriceOracle";
 import { abs } from "../../src/Maths";
 
 describe("CLPool Event Handlers", () => {
-  let mockDb: ReturnType<typeof MockDb.createMockDb>;
+  let mockDb: any;
   let updateCLPoolAggregatorStub: sinon.SinonStub;
   let setPricesStub: sinon.SinonStub;
 
   beforeEach(() => {
+
     mockDb = MockDb.createMockDb();
+
     updateCLPoolAggregatorStub = sinon.stub(
       CLPoolAggregatorFunctions,
       "updateCLPoolAggregator"
@@ -28,6 +30,83 @@ describe("CLPool Event Handlers", () => {
 
   afterEach(() => {
     sinon.restore();
+    updateCLPoolAggregatorStub.restore();
+  });
+
+  describe("Collect Event", () => {
+
+    let mockEvent: any;
+    const poolId = "0x1234567890123456789012345678901234567890";
+    let mockCLPoolAggregator: any;
+    let mockEventData: any;
+    let setupDB: any;
+
+    const eventFees = {
+        amount0: 100n * 10n ** 18n,
+        amount1: 200n * 10n ** 6n,
+    };
+
+    beforeEach(() => {
+
+      mockEventData = {
+        block: {
+          number: 123456,
+            timestamp: 1000000,
+            hash: "0xblockhash",
+        },
+        amount0: eventFees.amount0,
+        amount1: eventFees.amount1,
+        chainId: 1,
+        logIndex: 0,
+        srcAddress: poolId,
+      };
+
+      mockEvent = CLPool.Collect.createMockEvent({
+        mockEventData,
+      });
+
+      mockCLPoolAggregator = {
+        id: poolId,
+        chainId: 1,
+        totalFees0: 100n * 10n ** 18n,
+        totalFees1: 200n * 10n ** 18n,
+        totalFeesUSD: 300n * 10n ** 18n,
+      } as CLPoolAggregator;
+    });
+
+    describe("when event is processed", () => {
+
+        beforeEach(async () => {
+            mockDb.entities.CLPoolAggregator.set(mockCLPoolAggregator);
+
+            setupDB = await CLPool.Collect.processEvent({
+                event: mockEvent,
+                mockDb,
+            });
+        });
+
+        it("should create a CLPool_Collect entity", async () => {
+            const expectedId = `${mockEvent.chainId}_${mockEvent.block.number}_${mockEvent.logIndex}`;
+            const collectEntity = setupDB.entities.CLPool_Collect.get(expectedId);
+            expect(collectEntity).to.not.be.undefined;
+            expect(collectEntity?.amount0).to.equal(100n * 10n ** 18n);
+            expect(collectEntity?.amount1).to.equal(200n * 10n ** 6n);
+        });
+
+        it("should update CLPoolAggregator", async () => {
+            expect(updateCLPoolAggregatorStub.calledOnce).to.be.true;
+            const [diff] = updateCLPoolAggregatorStub.firstCall.args;
+
+            expect(diff.totalFees0).to.equal(
+                mockCLPoolAggregator.totalFees0 + eventFees.amount0
+            );
+            expect(diff.totalFees1).to.equal(
+                mockCLPoolAggregator.totalFees1 + (
+                    eventFees.amount1 * (10n ** 18n) / 10n ** 6n
+                )
+            , "It should normalize fees here");
+        });
+    });
   });
 
   describe("Swap Event", () => {
