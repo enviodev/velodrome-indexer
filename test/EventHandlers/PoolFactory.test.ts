@@ -1,8 +1,8 @@
 import { expect } from "chai";
-import { MockDb, PoolFactory } from "../generated/src/TestHelpers.gen";
-import { LiquidityPoolAggregator, Token } from "../generated/src/Types.gen";
-import { TEN_TO_THE_18_BI } from "../src/Constants";
-import { toChecksumAddress } from "../src/Constants";
+import { MockDb, PoolFactory } from "../../generated/src/TestHelpers.gen";
+import { LiquidityPoolAggregator, Token } from "../../generated/src/Types.gen";
+import { TEN_TO_THE_18_BI } from "../../src/Constants";
+import { toChecksumAddress } from "../../src/Constants";
 
 describe("PoolFactory Events", () => {
 

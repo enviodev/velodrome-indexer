@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Pool, MockDb } from "../../generated/src/TestHelpers.gen";
+import { Pool, MockDb } from "../../../generated/src/TestHelpers.gen";
 import { setupCommon } from "./common";
 
 describe("Pool Mint Event", () => {

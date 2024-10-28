@@ -1,7 +1,7 @@
 import { expect } from "chai";
-import { MockDb, Voter } from "../generated/src/TestHelpers.gen";
-import { TokenIdByChain } from "../src/Constants";
-import { Token } from "../generated/src/Types.gen";
+import { MockDb, Voter } from "../../generated/src/TestHelpers.gen";
+import { TokenIdByChain } from "../../src/Constants";
+import { Token } from "../../generated/src/Types.gen";
 
 describe("Voter Events", () => {
   describe("WhitelistToken event", () => {
