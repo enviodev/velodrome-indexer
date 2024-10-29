@@ -1,8 +1,8 @@
 import { expect } from "chai";
-import { Pool, MockDb } from "../../generated/src/TestHelpers.gen";
-import { LiquidityPoolAggregator, Token } from "../../generated/src/Types.gen";
+import { Pool, MockDb } from "../../../generated/src/TestHelpers.gen";
+import { LiquidityPoolAggregator, Token } from "../../../generated/src/Types.gen";
 import { setupCommon } from "./common";
-import { TEN_TO_THE_18_BI, TEN_TO_THE_6_BI, toChecksumAddress, TokenIdByChain } from "../../src/Constants";
+import { TEN_TO_THE_18_BI, TEN_TO_THE_6_BI, toChecksumAddress, TokenIdByChain } from "../../../src/Constants";
 
 describe("Pool Fees Event", () => {
   const { mockToken0Data, mockToken1Data } = setupCommon();
