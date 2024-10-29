@@ -1,15 +1,15 @@
 import { expect } from "chai";
-import { MockDb, Pool } from "../../generated/src/TestHelpers.gen";
-import { LiquidityPoolAggregator, Token } from "../../generated/src/Types.gen";
+import { MockDb, Pool } from "../../../generated/src/TestHelpers.gen";
+import { LiquidityPoolAggregator, Token } from "../../../generated/src/Types.gen";
 import { setupCommon } from "./common";
 import {
   TEN_TO_THE_18_BI,
   TEN_TO_THE_6_BI,
   toChecksumAddress,
   TokenIdByChain,
-} from "../../src/Constants";
+} from "../../../src/Constants";
 import sinon from "sinon";
-import * as PriceOracle from "../../src/PriceOracle";
+import * as PriceOracle from "../../../src/PriceOracle";
 
 describe("Pool Swap Event", () => {
   let mockToken0Data: any;
