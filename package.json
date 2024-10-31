@@ -24,7 +24,7 @@
   "dependencies": {
     "@types/mocha": "^10.0.6",
     "chai": "4.3.10",
-    "envio": "2.0.0-release-test-hasura-20241031181539-fca36d31",
+    "envio": "v2.0.0-release-test-hasura-20241031181539-fca36d31",
     "mocha": "^10.2.0",
     "prettier": "^2.5.1",
     "ts-node": "^10.9.1",
