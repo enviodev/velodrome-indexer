@@ -30,7 +30,7 @@ export function setupCommon() {
     token1_id: mockToken1Data.id,
     totalVolume0: 0n,
     totalVolume1: 0n,
-    totalVolumeUSD: 0n,
+    totalVolumeUSD: 10n * TEN_TO_THE_18_BI,
     totalLiquidityUSD: 10n * TEN_TO_THE_18_BI,
     numberOfSwaps: 0n,
     reserve0: 10000n * TEN_TO_THE_18_BI,

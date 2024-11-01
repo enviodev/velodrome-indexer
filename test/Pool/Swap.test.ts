@@ -28,8 +28,8 @@ describe("Pool Swap Event", () => {
     mockToken1Data = setupData.mockToken1Data;
     mockLiquidityPoolData = setupData.mockLiquidityPoolData;
 
-    expectations.swapAmount0In = 100n * mockToken0Data.decimals;
-    expectations.swapAmount1Out = 99n * mockToken1Data.decimals;
+    expectations.swapAmount0In = 100n * 10n ** mockToken0Data.decimals;
+    expectations.swapAmount1Out = 99n * 10n ** mockToken1Data.decimals;
 
     // The code expects net abounts to be normalized to 1e18
     expectations.expectedNetAmount0 =
@@ -165,7 +165,7 @@ describe("Pool Swap Event", () => {
       );
 
       expect(updatedPool?.totalVolumeUSD).to.equal(
-        expectations.expectedLPVolumeUSD1,
+        mockLiquidityPoolData.totalVolumeUSD + expectations.expectedLPVolumeUSD1,
         "Swap volume in USD should be updated for token 1"
       );
 
@@ -219,7 +219,7 @@ describe("Pool Swap Event", () => {
       );
 
       expect(updatedPool?.totalVolumeUSD).to.equal(
-        expectations.expectedLPVolumeUSD0,
+        expectations.expectedLPVolumeUSD0 + mockLiquidityPoolData.totalVolumeUSD,
         "Total volume USD should be updated."
       );
 
@@ -266,7 +266,7 @@ describe("Pool Swap Event", () => {
       expect(mockPriceOracle.calledOnce).to.be.true;
     });
 
-    it("should create a new Liquidity Pool if it doesn't exist", async () => {
+    it("should update the Liquidity Pool aggregator", async () => {
       const updatedPool = postEventDB.entities.LiquidityPoolAggregator.get(
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
@@ -274,7 +274,7 @@ describe("Pool Swap Event", () => {
       expect(updatedPool?.totalVolume0).to.equal(expectations.expectedNetAmount0);
       expect(updatedPool?.totalVolume1).to.equal(expectations.expectedNetAmount1);
       expect(updatedPool?.totalVolumeUSD).to.equal(
-        expectations.expectedLPVolumeUSD0
+        mockLiquidityPoolData.totalVolumeUSD + expectations.expectedLPVolumeUSD0 
       );
       expect(updatedPool?.numberOfSwaps).to.equal(1n);
       expect(updatedPool?.lastUpdatedTimestamp).to.deep.equal(

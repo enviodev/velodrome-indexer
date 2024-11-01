@@ -116,7 +116,7 @@ Pool.Swap.handlerWithLoader({
 
     if (liquidityPool == undefined) return null;
 
-    const [token0Instance, token1Instance, toUser, isLiquidityPool] =
+    const [token0Instance, token1Instance, user, isLiquidityPool] =
       await Promise.all([
         context.Token.get(liquidityPool.token0_id),
         context.Token.get(liquidityPool.token1_id),
@@ -129,7 +129,7 @@ Pool.Swap.handlerWithLoader({
       token0Instance,
       token1Instance,
       to_address: event.params.to,
-      toUser,
+      user,
       isLiquidityPool: isLiquidityPool != undefined,
     };
   },
@@ -149,7 +149,7 @@ Pool.Swap.handlerWithLoader({
 
     context.Pool_Swap.set(entity);
     if (loaderReturn) {
-      const { liquidityPool, token0Instance, token1Instance, to_address } =
+      const { liquidityPool, token0Instance, token1Instance, to_address, user } =
         loaderReturn;
 
       let tokenUpdateData = {
@@ -190,32 +190,7 @@ Pool.Swap.handlerWithLoader({
           ? tokenUpdateData.netVolumeToken0USD
           : tokenUpdateData.netVolumeToken1USD;
 
-      // add a new user if `to` isn't a liquidity pool and doesn't already exist
-      // as a user
-      if (!(await context.LiquidityPoolAggregator.get(to_address))) {
-        let currentUser = await context.User.get(to_address);
-        if (!currentUser) {
-          let newUser: User = {
-            id: to_address,
-            numberOfSwaps: 1n,
-            joined_at_timestamp: new Date(event.block.timestamp * 1000),
-          };
-          context.User.set(newUser);
-        } else {
-          let existingUser: User = {
-            ...currentUser,
-            numberOfSwaps: currentUser.numberOfSwaps + 1n,
-            joined_at_timestamp:
-              currentUser.joined_at_timestamp <
-              new Date(event.block.timestamp * 1000)
-                ? currentUser.joined_at_timestamp
-                : new Date(event.block.timestamp * 1000),
-          }; // for unordered head mode this correctly categorizes base users who may have joined early on optimism.
-          context.User.set(existingUser);
-        }
-      }
 
-      // Work out relative token pricing base on swaps above.
       const liquidityPoolDiff = {
         totalVolume0: liquidityPool.totalVolume0 + tokenUpdateData.netAmount0,
         totalVolume1: liquidityPool.totalVolume1 + tokenUpdateData.netAmount1,
@@ -237,6 +212,33 @@ Pool.Swap.handlerWithLoader({
       );
 
       const blockDatetime = new Date(event.block.timestamp * 1000);
+
+      // Update user and  create if they don't exist
+      if (!user) {
+        let newUser: User = {
+          id: to_address,
+          numberOfSwaps: 1n,
+          joined_at_timestamp: new Date(event.block.timestamp * 1000),
+        };
+        context.User.set(newUser);
+      } else {
+        let existingUser: User = {
+          ...user,
+          numberOfSwaps: user.numberOfSwaps + 1n,
+          joined_at_timestamp:
+            user.joined_at_timestamp <
+            new Date(event.block.timestamp * 1000)
+              ? user.joined_at_timestamp
+              : new Date(event.block.timestamp * 1000),
+        }; // for unordered head mode this correctly categorizes base users who may have joined early on optimism.
+        try {
+          context.User.set(existingUser);
+        } catch (error) {
+          console.log("Error updating user:", error);
+        }
+      }
+
+      // Try to set prices
       try {
         await set_whitelisted_prices(
           event.chainId,
