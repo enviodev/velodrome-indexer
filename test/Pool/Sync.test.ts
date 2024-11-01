@@ -76,9 +76,9 @@ describe("Pool Sync Event", () => {
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
       expect(updatedPool).to.not.be.undefined;
-      expect(updatedPool?.reserve0).to.equal(expectations.expectedReserve0InMissing);
-      expect(updatedPool?.reserve1).to.equal(expectations.expectedReserve1InMissing);
-      expect(updatedPool?.totalLiquidityUSD).to.equal(0n);
+      expect(updatedPool?.reserve0).to.equal(expectations.expectedReserve0InMissing + mockLiquidityPoolData.reserve0);
+      expect(updatedPool?.reserve1).to.equal(expectations.expectedReserve1InMissing + mockLiquidityPoolData.reserve1);
+      expect(updatedPool?.totalLiquidityUSD).to.equal(mockLiquidityPoolData.totalLiquidityUSD);
     });
   });
 
@@ -105,10 +105,10 @@ describe("Pool Sync Event", () => {
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
       expect(updatedPool).to.not.be.undefined;
-      expect(updatedPool?.reserve0).to.equal(expectations.expectedReserve0);
-      expect(updatedPool?.reserve1).to.equal(expectations.expectedReserve1);
+      expect(updatedPool?.reserve0).to.equal(expectations.expectedReserve0 + mockLiquidityPoolData.reserve0);
+      expect(updatedPool?.reserve1).to.equal(expectations.expectedReserve1 + mockLiquidityPoolData.reserve1);
       expect(updatedPool?.totalLiquidityUSD).to
-        .equal(expectations.expectedLiquidity0USD + expectations.expectedLiquidity1USD);
+        .equal(expectations.expectedLiquidity0USD + expectations.expectedLiquidity1USD + mockLiquidityPoolData.totalLiquidityUSD);
     });
   });
 });

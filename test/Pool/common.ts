@@ -31,6 +31,7 @@ export function setupCommon() {
     totalVolume0: 0n,
     totalVolume1: 0n,
     totalVolumeUSD: 0n,
+    totalLiquidityUSD: 10n * TEN_TO_THE_18_BI,
     numberOfSwaps: 0n,
     reserve0: 10000n * TEN_TO_THE_18_BI,
     reserve1: 20000n * TEN_TO_THE_18_BI,

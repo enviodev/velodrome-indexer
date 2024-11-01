@@ -323,9 +323,9 @@ Pool.Sync.handlerWithLoader({
     }
 
     const liquidityPoolDiff = {
-      reserve0: tokenUpdateData.normalizedReserve0,
-      reserve1: tokenUpdateData.normalizedReserve1,
-      totalLiquidityUSD: tokenUpdateData.totalLiquidityUSD,
+      reserve0: liquidityPool.reserve0 + tokenUpdateData.normalizedReserve0,
+      reserve1: liquidityPool.reserve1 + tokenUpdateData.normalizedReserve1,
+      totalLiquidityUSD: liquidityPool.totalLiquidityUSD + tokenUpdateData.totalLiquidityUSD,
       token0Price: tokenUpdateData.token0PricePerUSDNew,
       token1Price: tokenUpdateData.token1PricePerUSDNew,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
