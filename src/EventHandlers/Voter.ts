@@ -69,6 +69,7 @@ Voter.GaugeCreated.handler(async ({ event, context }) => {
 
 Voter.DistributeReward.handlerWithLoader({
   loader: async ({ event, context }) => {
+
     let poolAddress = getPoolAddressByGaugeAddress(
       event.chainId,
       event.params.gauge

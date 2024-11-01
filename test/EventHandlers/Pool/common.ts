@@ -1,5 +1,5 @@
-import { MockDb } from "../../generated/src/TestHelpers.gen";
-import { TEN_TO_THE_18_BI, TEN_TO_THE_6_BI, TokenIdByChain } from "../../src/Constants";
+import { MockDb } from "../../../generated/src/TestHelpers.gen";
+import { TEN_TO_THE_18_BI, TEN_TO_THE_6_BI, TokenIdByChain } from "../../../src/Constants";
 
 export function setupCommon() {
 

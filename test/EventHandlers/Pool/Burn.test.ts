@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { Pool } from "../../generated/src/TestHelpers.gen";
-import { MockDb } from "../../generated/src/TestHelpers.gen";
+import { Pool } from "../../../generated/src/TestHelpers.gen";
+import { MockDb } from "../../../generated/src/TestHelpers.gen";
 
 describe("Pool Burn Event", () => {
   let mockDb: any;

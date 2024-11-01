@@ -1,14 +1,14 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import { MockDb, CLPool } from "../../generated/src/TestHelpers.gen";
+import { MockDb, CLPool } from "../../../generated/src/TestHelpers.gen";
 import {
   CLPoolAggregator,
   Token,
   CLFactory_PoolCreated,
-} from "../../generated/src/Types.gen";
-import * as CLPoolAggregatorFunctions from "../../src/Aggregators/CLPoolAggregator";
-import * as PriceOracle from "../../src/PriceOracle";
-import { abs } from "../../src/Maths";
+} from "../../../generated/src/Types.gen";
+import * as CLPoolAggregatorFunctions from "../../../src/Aggregators/CLPoolAggregator";
+import * as PriceOracle from "../../../src/PriceOracle";
+import { abs } from "../../../src/Maths";
 import { setupCommon } from "../Pool/common";
 
 describe("CLPool Event Handlers", () => {
