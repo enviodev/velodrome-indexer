@@ -13,10 +13,8 @@ import { multiplyBase1e18 } from "./../Maths";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 import { getErc20TokenDetails } from "../Erc20";
 
-const {
-  getPoolAddressByGaugeAddress,
-  addRewardAddressDetails,
-} = poolLookupStoreManager();
+const { getPoolAddressByGaugeAddress, addRewardAddressDetails } =
+  poolLookupStoreManager();
 
 Voter.Voted.handler(async ({ event, context }) => {
   const entity: Voter_Voted = {
@@ -33,10 +31,13 @@ Voter.Voted.handler(async ({ event, context }) => {
   context.Voter_Voted.set(entity);
 });
 
-Voter.GaugeCreated.contractRegister(({ event, context }) => {
-  context.addVotingReward(event.params.bribeVotingReward);
-  context.addGauge(event.params.gauge);
-});
+Voter.GaugeCreated.contractRegister(
+  ({ event, context }) => {
+    context.addVotingReward(event.params.bribeVotingReward);
+    context.addGauge(event.params.gauge);
+  },
+  { preRegisterDynamicContracts: true }
+);
 
 Voter.GaugeCreated.handler(async ({ event, context }) => {
   const entity: Voter_GaugeCreated = {
@@ -69,7 +70,6 @@ Voter.GaugeCreated.handler(async ({ event, context }) => {
 
 Voter.DistributeReward.handlerWithLoader({
   loader: async ({ event, context }) => {
-
     let poolAddress = getPoolAddressByGaugeAddress(
       event.chainId,
       event.params.gauge
@@ -133,8 +133,12 @@ Voter.DistributeReward.handlerWithLoader({
         };
 
         // Update the LiquidityPoolEntity in the DB
-        updateLiquidityPoolAggregator(lpDiff, currentLiquidityPool, new Date(event.block.timestamp * 1000), context);
-
+        updateLiquidityPoolAggregator(
+          lpDiff,
+          currentLiquidityPool,
+          new Date(event.block.timestamp * 1000),
+          context
+        );
       } else {
         // If there is no pool entity with the particular gauge address, log the error
         context.log.warn(
@@ -147,10 +151,10 @@ Voter.DistributeReward.handlerWithLoader({
 
 /**
  * Handles the WhitelistToken event for the Voter contract.
- * 
+ *
  * This handler is triggered when a WhitelistToken event is emitted by the Voter contract.
  * It creates a new Voter_WhitelistToken entity and stores it in the context.
- * 
+ *
  * The Voter_WhitelistToken entity contains the following fields:
  * - id: A unique identifier for the event, composed of the chain ID, block number, and log index.
  * - whitelister: The address of the entity that performed the whitelisting.
@@ -158,13 +162,15 @@ Voter.DistributeReward.handlerWithLoader({
  * - isWhitelisted: A boolean indicating whether the token is whitelisted.
  * - timestamp: The timestamp of the block in which the event was emitted, converted to a Date object.
  * - chainId: The ID of the blockchain network where the event occurred.
- * 
+ *
  * @param {Object} event - The event object containing details of the WhitelistToken event.
  * @param {Object} context - The context object used to interact with the data store.
  */
 Voter.WhitelistToken.handlerWithLoader({
   loader: async ({ event, context }) => {
-    const token = await context.Token.get(TokenIdByChain(event.params.token, event.chainId));
+    const token = await context.Token.get(
+      TokenIdByChain(event.params.token, event.chainId)
+    );
     return { token };
   },
   handler: async ({ event, context, loaderReturn }) => {
@@ -188,9 +194,12 @@ Voter.WhitelistToken.handlerWithLoader({
       };
 
       context.Token.set(updatedToken as Token);
-      return
+      return;
     } else {
-      const tokenDetails = await getErc20TokenDetails(event.params.token, event.chainId);
+      const tokenDetails = await getErc20TokenDetails(
+        event.params.token,
+        event.chainId
+      );
       const updatedToken: Token = {
         id: TokenIdByChain(event.params.token, event.chainId),
         name: tokenDetails.name,
