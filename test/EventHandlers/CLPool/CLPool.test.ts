@@ -79,7 +79,7 @@ describe("CLPool Event Handlers", () => {
           srcAddress: "0x3333333333333333333333333333333333333333",
         },
       };
-      mockEvent = CLPool.Swap.createMockEvent(eventData);
+      mockEvent = CLPool.Mint.createMockEvent(eventData);
 
       postEventDB = await CLPool.Mint.processEvent({
         event: mockEvent,
@@ -93,8 +93,89 @@ describe("CLPool Event Handlers", () => {
 
     it("should create a mint entity", () => {
       expect(collectedEntity).to.not.be.undefined;
-      expect(collectedEntity?.amount0).to.equal(100n * 10n ** 18n);
-      expect(collectedEntity?.amount1).to.equal(100n * 10n ** 6n);
+      expect(collectedEntity?.amount0).to.equal(expectations.amount0In);
+      expect(collectedEntity?.amount1).to.equal(expectations.amount1In);
+    });
+
+    describe("CLPool Aggregator", () => {
+      let diff: any;
+      beforeEach(() => {
+        [diff] = updateCLPoolAggregatorStub.firstCall.args;
+      });
+
+      it("should update the reserves", () => {
+        expect(diff.reserve0).to.equal(
+          mockCLPoolData.reserve0 +
+          expectations.amount0In,
+          "Reserve 0 should be appropriately updated and normalized");
+        expect(diff.reserve1).to.equal(
+          mockCLPoolData.reserve1 +
+          expectations.amount1In * (10n ** 18n) / (10n ** 6n),
+         "Reserve 1 should be appropriately updated and normalized");
+      });
+      it("should update the total liquidity in USD correctly", () => {
+        expect(diff.totalLiquidityUSD).to.equal(
+          expectations.totalLiquidity,
+         "Liquidity should be updated with appropriate prices");
+      });
+    });
+  });
+
+  describe("Burn Event", () => {
+    let mockEvent: any;
+    let eventData: any;
+
+    let expectations: any = {
+      amount0In: -100n * 10n ** 18n,
+      amount1In: -100n * 10n ** 6n,
+      totalLiquidity: 0n,
+    };
+
+    const { mockToken0Data, mockToken1Data, mockCLPoolData } = setupCommon();
+
+    let postEventDB: any;
+    let collectedEntity: any;
+
+    beforeEach(async () => {
+      const updatedDB1 = mockDb.entities.CLPoolAggregator.set(mockCLPoolData);
+
+      const updatedDB2 = updatedDB1.entities.Token.set(mockToken0Data);
+      const updatedDB3 = updatedDB2.entities.Token.set(mockToken1Data);
+
+      eventData = {
+        sender: "0x4444444444444444444444444444444444444444",
+        to: "0x5555555555555555555555555555555555555555",
+        amount0: expectations.amount0In,
+        amount1: expectations.amount1In,
+        tickUpper: 100000n,
+        tickLower: 100000n,
+        mockEventData: {
+          block: {
+            timestamp: 1000000,
+            number: 123456,
+            hash: "0x1234567890123456789012345678901234567890123456789012345678901234",
+          },
+          chainId: 10,
+          logIndex: 1,
+          srcAddress: "0x3333333333333333333333333333333333333333",
+        },
+      };
+      mockEvent = CLPool.Burn.createMockEvent(eventData);
+
+      postEventDB = await CLPool.Burn.processEvent({
+        event: mockEvent,
+        mockDb: updatedDB3,
+      });
+
+      const expectedId = `${mockEvent.chainId}_${mockEvent.block.number}_${mockEvent.logIndex}`;
+      collectedEntity = postEventDB.entities.CLPool_Burn.get(expectedId);
+
+    });
+
+    it("should create a burn entity", () => {
+      expect(collectedEntity).to.not.be.undefined;
+      expect(collectedEntity?.amount0).to.equal(expectations.amount0In);
+      expect(collectedEntity?.amount1).to.equal(expectations.amount1In);
     });
 
     describe("CLPool Aggregator", () => {
