@@ -5,9 +5,12 @@ import { getErc20TokenDetails } from "../Erc20";
 import { TokenIdByChain } from "../Constants";
 import { generatePoolName } from "../Helpers";
 
-CLFactory.PoolCreated.contractRegister(({ event, context }) => {
-  context.addCLPool(event.params.pool);
-});
+CLFactory.PoolCreated.contractRegister(
+  ({ event, context }) => {
+    context.addCLPool(event.params.pool);
+  },
+  { preRegisterDynamicContracts: true }
+);
 
 CLFactory.PoolCreated.handlerWithLoader({
   loader: async ({ event, context }) => {
@@ -19,7 +22,6 @@ CLFactory.PoolCreated.handlerWithLoader({
     return { poolToken0, poolToken1 };
   },
   handler: async ({ event, context, loaderReturn }) => {
-
     const entity: CLFactory_PoolCreated = {
       id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
       token0: TokenIdByChain(event.params.token0, event.chainId),
