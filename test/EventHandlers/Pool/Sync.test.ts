@@ -24,15 +24,14 @@ describe("Pool Sync Event", () => {
     expectations.reserveAmount1In = 200n * (10n ** mockToken1Data.decimals);
 
 
-    expectations.expectedReserve0 = mockLiquidityPoolData.reserve0 +
-      (expectations.reserveAmount0In * TEN_TO_THE_18_BI) /
+    expectations.expectedReserve0 = (expectations.reserveAmount0In * TEN_TO_THE_18_BI) /
       10n ** mockToken0Data.decimals;
-    expectations.expectedReserve1 = mockLiquidityPoolData.reserve1 +
-      (expectations.reserveAmount1In * TEN_TO_THE_18_BI) /
+    expectations.expectedReserve1 =(expectations.reserveAmount1In * TEN_TO_THE_18_BI) /
       10n ** mockToken1Data.decimals;
 
-    expectations.expectedReserve0InMissing = mockLiquidityPoolData.reserve0 + 100n * (10n ** 18n);
-    expectations.expectedReserve1InMissing = mockLiquidityPoolData.reserve1 + 200n * (10n ** 6n);
+    expectations.expectedReserve0InMissing = expectations.reserveAmount0In;
+    expectations.expectedReserve1InMissing = expectations.reserveAmount1In; 
+
     expectations.expectedLiquidity0USD =
       BigInt(expectations.expectedReserve0 * mockToken0Data.pricePerUSDNew) / TEN_TO_THE_18_BI;
     expectations.expectedLiquidity1USD =
@@ -76,9 +75,9 @@ describe("Pool Sync Event", () => {
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
       expect(updatedPool).to.not.be.undefined;
-      expect(updatedPool?.reserve0).to.equal(expectations.expectedReserve0InMissing + mockLiquidityPoolData.reserve0);
-      expect(updatedPool?.reserve1).to.equal(expectations.expectedReserve1InMissing + mockLiquidityPoolData.reserve1);
-      expect(updatedPool?.totalLiquidityUSD).to.equal(mockLiquidityPoolData.totalLiquidityUSD);
+      expect(updatedPool?.reserve0).to.equal(expectations.expectedReserve0InMissing);
+      expect(updatedPool?.reserve1).to.equal(expectations.expectedReserve1InMissing);
+      expect(updatedPool?.totalLiquidityUSD).to.equal(0n);
     });
   });
 
@@ -105,10 +104,10 @@ describe("Pool Sync Event", () => {
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
       expect(updatedPool).to.not.be.undefined;
-      expect(updatedPool?.reserve0).to.equal(expectations.expectedReserve0 + mockLiquidityPoolData.reserve0);
-      expect(updatedPool?.reserve1).to.equal(expectations.expectedReserve1 + mockLiquidityPoolData.reserve1);
+      expect(updatedPool?.reserve0).to.equal(expectations.expectedReserve0);
+      expect(updatedPool?.reserve1).to.equal(expectations.expectedReserve1);
       expect(updatedPool?.totalLiquidityUSD).to
-        .equal(expectations.expectedLiquidity0USD + expectations.expectedLiquidity1USD + mockLiquidityPoolData.totalLiquidityUSD);
+        .equal(expectations.expectedLiquidity0USD + expectations.expectedLiquidity1USD);
     });
   });
 });
