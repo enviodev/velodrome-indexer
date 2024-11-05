@@ -277,7 +277,7 @@ Pool.Sync.handlerWithLoader({
     const { liquidityPool, token0Instance, token1Instance } = loaderReturn;
 
     const entity: Pool_Sync = {
-      id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+      id: `${event.chainId}_${liquidityPool.id}_${event.block.number}_${event.logIndex}`,
       reserve0: event.params.reserve0,
       reserve1: event.params.reserve1,
       sourceAddress: event.srcAddress,
@@ -325,7 +325,7 @@ Pool.Sync.handlerWithLoader({
     const liquidityPoolDiff = {
       reserve0: tokenUpdateData.normalizedReserve0,
       reserve1: tokenUpdateData.normalizedReserve1,
-      totalLiquidityUSD: tokenUpdateData.totalLiquidityUSD,
+      totalLiquidityUSD: tokenUpdateData.totalLiquidityUSD || liquidityPool.totalLiquidityUSD,
       token0Price: tokenUpdateData.token0PricePerUSDNew,
       token1Price: tokenUpdateData.token1PricePerUSDNew,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),

@@ -77,7 +77,8 @@ describe("Pool Sync Event", () => {
       expect(updatedPool).to.not.be.undefined;
       expect(updatedPool?.reserve0).to.equal(expectations.expectedReserve0InMissing);
       expect(updatedPool?.reserve1).to.equal(expectations.expectedReserve1InMissing);
-      expect(updatedPool?.totalLiquidityUSD).to.equal(0n);
+      expect(updatedPool?.totalLiquidityUSD)
+        .to.equal(mockLiquidityPoolData.totalLiquidityUSD, "totalLiquidityUSD should be the same as the original value");
     });
   });
 

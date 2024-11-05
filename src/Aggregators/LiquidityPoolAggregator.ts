@@ -67,10 +67,5 @@ export function updateLiquidityPoolAggregator(
     UPDATE_INTERVAL)
   ) {
     setLiquidityPoolAggregatorSnapshot(updated, timestamp, context);
-    const snapshotUpdate: LiquidityPoolAggregator = {
-      ...updated,
-      lastSnapshotTimestamp: timestamp,
-    };
-    context.LiquidityPoolAggregator.set(snapshotUpdate);
   }
 }

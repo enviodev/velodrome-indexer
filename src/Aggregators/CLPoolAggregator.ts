@@ -67,10 +67,5 @@ export function updateCLPoolAggregator(
     UPDATE_INTERVAL)
   ) {
     setCLPoolAggregatorSnapshot(updated, timestamp, context);
-    const snapshotTimestampUpdate: CLPoolAggregator = {
-      ...updated,
-      lastSnapshotTimestamp: timestamp,
-    };
-    context.CLPoolAggregator.set(snapshotTimestampUpdate);
   }
 }
