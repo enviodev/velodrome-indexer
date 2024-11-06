@@ -9,13 +9,13 @@ import {
   CLPool_Mint,
   CLPool_SetFeeProtocol,
   CLPool_Swap,
-  CLPoolAggregator,
+  LiquidityPoolAggregator,
   Token,
 } from "generated";
 import { set_whitelisted_prices } from "../PriceOracle";
 import { normalizeTokenAmountTo1e18 } from "../Helpers";
 import { multiplyBase1e18, abs } from "../Maths";
-import { updateCLPoolAggregator } from "../Aggregators/CLPoolAggregator";
+import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 
 /**
  * Updates the fee amounts for a CLPoolAggregator based on event data.
@@ -37,15 +37,15 @@ import { updateCLPoolAggregator } from "../Aggregators/CLPoolAggregator";
  * - `totalFeesUSD`: The updated total fees in USD, calculated using the normalized token fees and their prices.
  */
 function updateCLPoolFees(
-  clPoolAggregator: CLPoolAggregator,
+  liquidityPoolAggregator: LiquidityPoolAggregator,
   event: any,
   token0Instance: Token | undefined,
   token1Instance: Token | undefined
 ) {
   let tokenUpdateData = {
-    totalFees0: clPoolAggregator.totalFees0,
-    totalFees1: clPoolAggregator.totalFees1,
-    totalFeesUSD: clPoolAggregator.totalFeesUSD,
+    totalFees0: liquidityPoolAggregator.totalFees0,
+    totalFees1: liquidityPoolAggregator.totalFees1,
+    totalFeesUSD: liquidityPoolAggregator.totalFeesUSD,
   };
 
   if (token0Instance) {
@@ -76,7 +76,7 @@ function updateCLPoolFees(
 }
 
 function updateCLPoolLiquidity(
-  clPoolAggregator: CLPoolAggregator,
+  liquidityPoolAggregator: LiquidityPoolAggregator,
   event: any,
   token0Instance: Token | undefined,
   token1Instance: Token | undefined
@@ -101,14 +101,14 @@ function updateCLPoolLiquidity(
   if (token0Instance) {
     tokenUpdateData.totalLiquidityUSD += multiplyBase1e18(
       tokenUpdateData.normalizedReserve0,
-      clPoolAggregator.token0Price
+      liquidityPoolAggregator.token0Price
     );
   }
 
   if (token1Instance) {
     tokenUpdateData.totalLiquidityUSD += multiplyBase1e18(
       tokenUpdateData.normalizedReserve1,
-      clPoolAggregator.token1Price
+      liquidityPoolAggregator.token1Price
     );
   }
 
@@ -119,19 +119,19 @@ CLPool.Burn.handlerWithLoader({
   loader: async ({ event, context }) => {
     const pool_id = event.srcAddress;
 
-    const clPoolAggregator = await context.CLPoolAggregator.get(pool_id);
+    const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
 
-    if (!clPoolAggregator) {
+    if (!liquidityPoolAggregator) {
       context.log.error(`CLPoolAggregator ${pool_id} not found during mint`);
       return null;
     }
 
     const [token0Instance, token1Instance] = await Promise.all([
-      context.Token.get(clPoolAggregator.token0_id),
-      context.Token.get(clPoolAggregator.token1_id),
+      context.Token.get(liquidityPoolAggregator.token0_id),
+      context.Token.get(liquidityPoolAggregator.token1_id),
     ]);
 
-    return { clPoolAggregator, token0Instance, token1Instance };
+    return { liquidityPoolAggregator, token0Instance, token1Instance };
   },
 
   handler: async ({ event, context, loaderReturn }) => {
@@ -151,10 +151,10 @@ CLPool.Burn.handlerWithLoader({
     context.CLPool_Burn.set(entity);
 
     if (loaderReturn) {
-      const { clPoolAggregator, token0Instance, token1Instance } = loaderReturn;
+      const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
 
       const tokenUpdateData = updateCLPoolLiquidity(
-        clPoolAggregator,
+        liquidityPoolAggregator,
         event,
         token0Instance,
         token1Instance
@@ -162,18 +162,18 @@ CLPool.Burn.handlerWithLoader({
 
       const liquidityPoolDiff = {
         reserve0:
-          clPoolAggregator.reserve0 + tokenUpdateData.normalizedReserve0,
+          liquidityPoolAggregator.reserve0 + tokenUpdateData.normalizedReserve0,
         reserve1:
-          clPoolAggregator.reserve1 + tokenUpdateData.normalizedReserve1,
+          liquidityPoolAggregator.reserve1 + tokenUpdateData.normalizedReserve1,
         totalLiquidityUSD:
-          clPoolAggregator.totalLiquidityUSD +
+          liquidityPoolAggregator.totalLiquidityUSD +
           tokenUpdateData.totalLiquidityUSD,
         lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       };
 
-      updateCLPoolAggregator(
+      updateLiquidityPoolAggregator(
         liquidityPoolDiff,
-        clPoolAggregator,
+        liquidityPoolAggregator,
         liquidityPoolDiff.lastUpdatedTimestamp,
         context
       );
@@ -193,14 +193,14 @@ CLPool.Collect.handlerWithLoader({
       return null;
     }
 
-    const [token0Instance, token1Instance, clPoolAggregator] =
+    const [token0Instance, token1Instance, liquidityPoolAggregator] =
       await Promise.all([
         context.Token.get(pool_created[0].token0),
         context.Token.get(pool_created[0].token1),
-        context.CLPoolAggregator.get(pool_id),
+        context.LiquidityPoolAggregator.get(pool_id),
       ]);
 
-    return { clPoolAggregator, token0Instance, token1Instance };
+    return { liquidityPoolAggregator, token0Instance, token1Instance };
   },
   handler: async ({ event, context, loaderReturn }) => {
     const entity: CLPool_Collect = {
@@ -218,19 +218,19 @@ CLPool.Collect.handlerWithLoader({
 
     context.CLPool_Collect.set(entity);
 
-    if (loaderReturn && loaderReturn.clPoolAggregator) {
-      const { clPoolAggregator, token0Instance, token1Instance } = loaderReturn;
+    if (loaderReturn && loaderReturn.liquidityPoolAggregator) {
+      const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
 
       const tokenUpdateData = updateCLPoolFees(
-        clPoolAggregator,
+        liquidityPoolAggregator,
         event,
         token0Instance,
         token1Instance
       );
 
-      updateCLPoolAggregator(
+      updateLiquidityPoolAggregator(
         tokenUpdateData,
-        clPoolAggregator,
+        liquidityPoolAggregator,
         new Date(event.block.timestamp * 1000),
         context
       );
@@ -254,7 +254,7 @@ CLPool.CollectFees.handlerWithLoader({
       await Promise.all([
         context.Token.get(pool_created[0].token0),
         context.Token.get(pool_created[0].token1),
-        context.CLPoolAggregator.get(pool_id),
+        context.LiquidityPoolAggregator.get(pool_id),
       ]);
 
     return { clPoolAggregator, token0Instance, token1Instance };
@@ -282,7 +282,7 @@ CLPool.CollectFees.handlerWithLoader({
         token1Instance
       );
 
-      updateCLPoolAggregator(
+      updateLiquidityPoolAggregator(
         tokenUpdateData,
         clPoolAggregator,
         new Date(event.block.timestamp * 1000),
@@ -341,19 +341,19 @@ CLPool.Mint.handlerWithLoader({
   loader: async ({ event, context }) => {
     const pool_id = event.srcAddress;
 
-    const clPoolAggregator = await context.CLPoolAggregator.get(pool_id);
+    const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
 
-    if (!clPoolAggregator) {
-      context.log.error(`CLPoolAggregator ${pool_id} not found during mint`);
+    if (!liquidityPoolAggregator) {
+      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during mint`);
       return null;
     }
 
     const [token0Instance, token1Instance] = await Promise.all([
-      context.Token.get(clPoolAggregator.token0_id),
-      context.Token.get(clPoolAggregator.token1_id),
+      context.Token.get(liquidityPoolAggregator.token0_id),
+      context.Token.get(liquidityPoolAggregator.token1_id),
     ]);
 
-    return { clPoolAggregator, token0Instance, token1Instance };
+    return { liquidityPoolAggregator, token0Instance, token1Instance };
   },
   handler: async ({ event, context, loaderReturn }) => {
     const entity: CLPool_Mint = {
@@ -374,10 +374,10 @@ CLPool.Mint.handlerWithLoader({
     context.CLPool_Mint.set(entity);
 
     if (loaderReturn) {
-      const { clPoolAggregator, token0Instance, token1Instance } = loaderReturn;
+      const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
 
       const tokenUpdateData = updateCLPoolLiquidity(
-        clPoolAggregator,
+        liquidityPoolAggregator,
         event,
         token0Instance,
         token1Instance
@@ -385,18 +385,18 @@ CLPool.Mint.handlerWithLoader({
 
       const liquidityPoolDiff = {
         reserve0:
-          clPoolAggregator.reserve0 + tokenUpdateData.normalizedReserve0,
+          liquidityPoolAggregator.reserve0 + tokenUpdateData.normalizedReserve0,
         reserve1:
-          clPoolAggregator.reserve1 + tokenUpdateData.normalizedReserve1,
+          liquidityPoolAggregator.reserve1 + tokenUpdateData.normalizedReserve1,
         totalLiquidityUSD:
-          clPoolAggregator.totalLiquidityUSD +
+          liquidityPoolAggregator.totalLiquidityUSD +
           tokenUpdateData.totalLiquidityUSD,
         lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       };
 
-      updateCLPoolAggregator(
+      updateLiquidityPoolAggregator(
         liquidityPoolDiff,
-        clPoolAggregator,
+        liquidityPoolAggregator,
         liquidityPoolDiff.lastUpdatedTimestamp,
         context
       );
@@ -431,14 +431,14 @@ CLPool.Swap.handlerWithLoader({
       return null;
     }
 
-    const [token0Instance, token1Instance, clPoolAggregator] =
+    const [token0Instance, token1Instance, liquidityPoolAggregator] =
       await Promise.all([
         context.Token.get(pool_created[0].token0),
         context.Token.get(pool_created[0].token1),
-        context.CLPoolAggregator.get(pool_id),
+        context.LiquidityPoolAggregator.get(pool_id),
       ]);
 
-    return { clPoolAggregator, token0Instance, token1Instance };
+    return { liquidityPoolAggregator, token0Instance, token1Instance };
   },
   handler: async ({ event, context, loaderReturn }) => {
     const entity: CLPool_Swap = {
@@ -457,8 +457,8 @@ CLPool.Swap.handlerWithLoader({
 
     context.CLPool_Swap.set(entity);
 
-    if (loaderReturn && loaderReturn.clPoolAggregator) {
-      const { clPoolAggregator, token0Instance, token1Instance } = loaderReturn;
+    if (loaderReturn && loaderReturn.liquidityPoolAggregator) {
+      const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
 
       let tokenUpdateData = {
         netAmount0: 0n,
@@ -498,23 +498,23 @@ CLPool.Swap.handlerWithLoader({
           ? tokenUpdateData.netVolumeToken0USD
           : tokenUpdateData.netVolumeToken1USD;
 
-      const clPoolAggregatorDiff: Partial<CLPoolAggregator> = {
+      const liquidityPoolAggregatorDiff: Partial<LiquidityPoolAggregator> = {
         totalVolume0:
-          clPoolAggregator.totalVolume0 + tokenUpdateData.netAmount0,
+          liquidityPoolAggregator.totalVolume0 + tokenUpdateData.netAmount0,
         totalVolume1:
-          clPoolAggregator.totalVolume1 + tokenUpdateData.netAmount1,
+          liquidityPoolAggregator.totalVolume1 + tokenUpdateData.netAmount1,
         totalVolumeUSD:
-          clPoolAggregator.totalVolumeUSD + tokenUpdateData.volumeInUSD,
+          liquidityPoolAggregator.totalVolumeUSD + tokenUpdateData.volumeInUSD,
         token0Price:
-          token0Instance?.pricePerUSDNew ?? clPoolAggregator.token0Price,
+          token0Instance?.pricePerUSDNew ?? liquidityPoolAggregator.token0Price,
         token1Price:
-          token1Instance?.pricePerUSDNew ?? clPoolAggregator.token1Price,
-        numberOfSwaps: clPoolAggregator.numberOfSwaps + 1n,
+          token1Instance?.pricePerUSDNew ?? liquidityPoolAggregator.token1Price,
+        numberOfSwaps: liquidityPoolAggregator.numberOfSwaps + 1n,
       };
 
-      updateCLPoolAggregator(
-        clPoolAggregatorDiff,
-        clPoolAggregator,
+      updateLiquidityPoolAggregator(
+        liquidityPoolAggregatorDiff,
+        liquidityPoolAggregator,
         new Date(event.block.timestamp * 1000),
         context
       );

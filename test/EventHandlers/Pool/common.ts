@@ -26,21 +26,6 @@ export function setupCommon() {
   const mockLiquidityPoolData = {
     id: "0x3333333333333333333333333333333333333333",
     chainId: 10,
-    token0_id: mockToken0Data.id,
-    token1_id: mockToken1Data.id,
-    totalVolume0: 0n,
-    totalVolume1: 0n,
-    totalVolumeUSD: 10n * TEN_TO_THE_18_BI,
-    totalLiquidityUSD: 10n * TEN_TO_THE_18_BI,
-    numberOfSwaps: 0n,
-    reserve0: 10000n * TEN_TO_THE_18_BI,
-    reserve1: 20000n * TEN_TO_THE_18_BI,
-  };
-
-
-  const mockCLPoolData = {
-    id: "0x3333333333333333333333333333333333333333",
-    chainId: 10,
     token0_id: mockToken0Data.id, 
     token1_id: mockToken1Data.id,
     token0_address: mockToken0Data.address,
@@ -67,6 +52,5 @@ export function setupCommon() {
     mockToken0Data,
     mockToken1Data,
     mockLiquidityPoolData,
-    mockCLPoolData
   };
 }

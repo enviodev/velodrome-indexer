@@ -1,6 +1,9 @@
 import { expect } from "chai";
 import { MockDb, Pool } from "../../../generated/src/TestHelpers.gen";
-import { LiquidityPoolAggregator, Token } from "../../../generated/src/Types.gen";
+import {
+  LiquidityPoolAggregator,
+  Token,
+} from "../../../generated/src/Types.gen";
 import { setupCommon } from "./common";
 import {
   TEN_TO_THE_18_BI,
@@ -33,22 +36,27 @@ describe("Pool Swap Event", () => {
 
     // The code expects net abounts to be normalized to 1e18
     expectations.expectedNetAmount0 =
-      (expectations.swapAmount0In * TEN_TO_THE_18_BI) /
-      10n ** mockToken0Data.decimals;
-    expectations.expectedNetAmount1 =
-      (expectations.swapAmount1Out * TEN_TO_THE_18_BI) /
-      10n ** mockToken1Data.decimals;
+      expectations.swapAmount0In * (TEN_TO_THE_18_BI / (10n ** mockToken0Data.decimals));
 
-    expectations.expectedLPVolume0 =
-      mockLiquidityPoolData.totalVolume0 + expectations.expectedNetAmount0;
-    expectations.expectedLPVolume1 =
-      mockLiquidityPoolData.totalVolume1 + expectations.expectedNetAmount1;
+    expectations.expectedNetAmount1 =
+      expectations.swapAmount1Out * (TEN_TO_THE_18_BI / (10n ** mockToken1Data.decimals));
+
+    expectations.totalVolume0 =
+      mockLiquidityPoolData.totalVolume0 +
+      expectations.swapAmount0In * (TEN_TO_THE_18_BI / (10n ** mockToken0Data.decimals));
+
+    expectations.totalVolume1 =
+      mockLiquidityPoolData.totalVolume1 +
+      expectations.swapAmount1Out * (TEN_TO_THE_18_BI / (10n ** mockToken1Data.decimals));
 
     // The code expects pricePerUSDNew to be normalized to 1e18
     expectations.expectedLPVolumeUSD0 =
+      mockLiquidityPoolData.totalVolumeUSD +
       expectations.expectedNetAmount0 *
       (mockToken0Data.pricePerUSDNew / TEN_TO_THE_18_BI);
+
     expectations.expectedLPVolumeUSD1 =
+      mockLiquidityPoolData.totalVolumeUSD +
       expectations.expectedNetAmount1 *
       (mockToken1Data.pricePerUSDNew / TEN_TO_THE_18_BI);
 
@@ -118,7 +126,8 @@ describe("Pool Swap Event", () => {
       expect(updatedPool?.totalVolumeUSD).to.equal(
         modifiedMockLiquidityPoolData.totalVolumeUSD
       );
-      expect(updatedPool?.numberOfSwaps).to.equal(1n);
+      expect(updatedPool?.numberOfSwaps).to
+        .equal(mockLiquidityPoolData.numberOfSwaps + 1n, "Swap count should be updated");
       expect(updatedPool?.lastUpdatedTimestamp).to.deep.equal(
         new Date(eventData.mockEventData.block.timestamp * 1000)
       );
@@ -160,17 +169,17 @@ describe("Pool Swap Event", () => {
         "Token0 nominal swap volume should not be updated"
       );
       expect(updatedPool?.totalVolume1).to.equal(
-        expectations.expectedNetAmount1,
+        expectations.totalVolume1,
         "Token1 nominal swap volume should be updated"
       );
 
       expect(updatedPool?.totalVolumeUSD).to.equal(
-        mockLiquidityPoolData.totalVolumeUSD + expectations.expectedLPVolumeUSD1,
+          expectations.expectedLPVolumeUSD1,
         "Swap volume in USD should be updated for token 1"
       );
 
       expect(updatedPool?.numberOfSwaps).to.equal(
-        1n,
+        mockLiquidityPoolData.numberOfSwaps + 1n,
         "Swap count should be updated"
       );
       expect(
@@ -210,7 +219,7 @@ describe("Pool Swap Event", () => {
       expect(updatedPool).to.not.be.undefined;
 
       expect(updatedPool?.totalVolume0).to.equal(
-        expectations.expectedNetAmount0,
+        expectations.totalVolume0,
         "Token0 nominal swap volume should be updated"
       );
       expect(updatedPool?.totalVolume1).to.equal(
@@ -219,12 +228,12 @@ describe("Pool Swap Event", () => {
       );
 
       expect(updatedPool?.totalVolumeUSD).to.equal(
-        expectations.expectedLPVolumeUSD0 + mockLiquidityPoolData.totalVolumeUSD,
+        expectations.expectedLPVolumeUSD0,
         "Total volume USD should be updated."
       );
 
       expect(updatedPool?.numberOfSwaps).to.equal(
-        1n,
+        mockLiquidityPoolData.numberOfSwaps + 1n,
         "Swap count should be updated"
       );
 
@@ -271,12 +280,18 @@ describe("Pool Swap Event", () => {
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
       expect(updatedPool).to.not.be.undefined;
-      expect(updatedPool?.totalVolume0).to.equal(expectations.expectedNetAmount0);
-      expect(updatedPool?.totalVolume1).to.equal(expectations.expectedNetAmount1);
-      expect(updatedPool?.totalVolumeUSD).to.equal(
-        mockLiquidityPoolData.totalVolumeUSD + expectations.expectedLPVolumeUSD0 
+      expect(updatedPool?.totalVolume0).to.equal(
+        expectations.totalVolume0
       );
-      expect(updatedPool?.numberOfSwaps).to.equal(1n);
+      expect(updatedPool?.totalVolume1).to.equal(
+        expectations.totalVolume1
+      );
+      expect(updatedPool?.totalVolumeUSD).to.equal(
+        expectations.expectedLPVolumeUSD0
+      );
+      expect(updatedPool?.numberOfSwaps).to.equal(
+        mockLiquidityPoolData.numberOfSwaps + 1n
+      );
       expect(updatedPool?.lastUpdatedTimestamp).to.deep.equal(
         new Date(eventData.mockEventData.block.timestamp * 1000)
       );
