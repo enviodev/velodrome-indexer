@@ -1,5 +1,5 @@
-import { CLFactory, CLFactory_PoolCreated, CLPoolAggregator } from "generated";
-import { updateCLPoolAggregator } from "../Aggregators/CLPoolAggregator";
+import { CLFactory, CLFactory_PoolCreated, LiquidityPoolAggregator } from "generated";
+import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 import { TokenEntityMapping } from "../CustomTypes";
 import { getErc20TokenDetails } from "../Erc20";
 import { TokenIdByChain } from "../Constants";
@@ -53,7 +53,7 @@ CLFactory.PoolCreated.handlerWithLoader({
       }
     }
 
-    const aggregator: CLPoolAggregator = {
+    const aggregator: LiquidityPoolAggregator = {
       id: event.params.pool,
       chainId: event.chainId,
       name: generatePoolName(
@@ -66,6 +66,7 @@ CLFactory.PoolCreated.handlerWithLoader({
       token0_address: event.params.token0,
       token1_address: event.params.token1,
       isStable: false,
+      isCL: true,
       reserve0: 0n,
       reserve1: 0n,
       totalLiquidityUSD: 0n,
@@ -85,7 +86,7 @@ CLFactory.PoolCreated.handlerWithLoader({
       lastSnapshotTimestamp: new Date(event.block.timestamp * 1000),
     };
 
-    updateCLPoolAggregator(
+    updateLiquidityPoolAggregator(
       aggregator,
       aggregator,
       new Date(event.block.timestamp * 1000),

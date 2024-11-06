@@ -7,6 +7,7 @@ type LiquidityPoolAggregator {
   token0_address: String! # token0 address
   token1_address: String! # token1 address
   isStable: Boolean! # whether the pool is a stable AMM or a volatile AMM
+  isCL: Boolean!
   reserve0: BigInt! @config(precision: 76) # reserve of token0 in token units
   reserve1: BigInt! @config(precision: 76) # reserve of token1 in token units
   totalLiquidityUSD: BigInt! @config(precision: 76) # total liquidity of the swap pool in USD
@@ -28,62 +29,16 @@ type LiquidityPoolAggregator {
 
 # Snapshot of the LiquidityPool entity
 type LiquidityPoolAggregatorSnapshot {
-  id: ID! # address of the pool - number of days since unix epoch time
-  chainId: Int!
-  pool: String! # address of the pool
-  name: String! # name of the pool
-  reserve0: BigInt! @config(precision: 76) # reserve of token0 in token units
-  reserve1: BigInt! @config(precision: 76) # reserve of token1 in token units
-  totalLiquidityUSD: BigInt! @config(precision: 76) # total liquidity of the swap pool in USD
-  totalVolume0: BigInt! @config(precision: 76) # total swap volume of token0 in token units
-  totalVolume1: BigInt! @config(precision: 76) # total swap volume of token1 in token units
-  totalVolumeUSD: BigInt! @config(precision: 76) # total swap volume of the pool in USD
-  totalFees0: BigInt! @config(precision: 76) # total fees collected in token0 units
-  totalFees1: BigInt! @config(precision: 76) # total fees collected in token1 units
-  totalFeesUSD: BigInt! @config(precision: 76) # total fees collected in USD
-  numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps in the pool
-  token0Price: BigInt! @config(precision: 76) # price of token0 relative to token1
-  token1Price: BigInt! @config(precision: 76) # price of token1 relative to token0
-  totalEmissions: BigInt! @config(precision: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
-  totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
-  totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
-  timestamp: Timestamp! # timestamp of last update
-}
-
-type CLPoolAggregator {
   id: ID! # pool address
   chainId: Int! 
   name: String! # name of the pool
+  pool: String! # pool address
   token0_id: String! # token0 id
   token1_id: String! # token1 id
   token0_address: String! # token0 address
   token1_address: String! # token1 address
   isStable: Boolean! # whether the pool is a stable AMM or a volatile AMM
-  reserve0: BigInt! @config(precision: 76) # reserve of token0 in token units
-  reserve1: BigInt! @config(precision: 76) # reserve of token1 in token units
-  totalLiquidityUSD: BigInt! @config(precision: 76) # total liquidity of the swap pool in USD
-  totalVolume0: BigInt! @config(precision: 76) # total swap volume of token0 in token units
-  totalVolume1: BigInt! @config(precision: 76) # total swap volume of token1 in token units
-  totalVolumeUSD: BigInt! @config(precision: 76) # total swap volume of the pool in USD
-  totalFees0: BigInt! @config(precision: 76) # total fees collected in token0 units
-  totalFees1: BigInt! @config(precision: 76) # total fees collected in token1 units
-  totalFeesUSD: BigInt! @config(precision: 76) # total fees collected in USD
-  numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps in the pool
-  token0Price: BigInt! @config(precision: 76) # price of token0 relative to token1
-  token1Price: BigInt! @config(precision: 76) # price of token1 relative to token0
-  totalEmissions: BigInt! @config(precision: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
-  totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
-  totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
-  lastUpdatedTimestamp: Timestamp! # timestamp of last update
-  lastSnapshotTimestamp: Timestamp! # timestamp of last snapshot
-}
-
-# Snapshot of the Concentrated Liquidity Pool entity
-type CLPoolAggregatorSnapshot {
-  id: ID! # address of the pool - number of days since unix epoch time
-  chainId: Int!
-  pool: String! # address of the pool
-  name: String! # name of the pool
+  isCL: Boolean!
   reserve0: BigInt! @config(precision: 76) # reserve of token0 in token units
   reserve1: BigInt! @config(precision: 76) # reserve of token1 in token units
   totalLiquidityUSD: BigInt! @config(precision: 76) # total liquidity of the swap pool in USD
