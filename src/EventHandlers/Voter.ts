@@ -79,6 +79,12 @@ Voter.DistributeReward.handlerWithLoader({
       ? context.LiquidityPoolAggregator.get(poolAddress)
       : null;
 
+    if (!poolAddress) {
+      context.log.warn(
+        `No pool address found for the gauge address ${event.params.gauge.toString()}`
+      );
+    }
+
     const [currentLiquidityPool, rewardToken] = await Promise.all([
       promisePool,
       context.Token.get(
@@ -88,13 +94,6 @@ Voter.DistributeReward.handlerWithLoader({
         )
       ),
     ]);
-
-    // If there is no pool address with the particular gauge address, log the error
-    if (!poolAddress) {
-      context.log.warn(
-        `No pool address found for the gauge address ${event.params.gauge.toString()}`
-      );
-    }
 
     return { currentLiquidityPool, rewardToken };
   },

@@ -83,7 +83,12 @@ VotingReward.NotifyReward.handlerWithLoader({
         };
 
         // Update the LiquidityPoolEntity in the DB
-        updateLiquidityPoolAggregator(lpDiff, currentLiquidityPool, new Date(event.block.timestamp * 1000), context);
+        updateLiquidityPoolAggregator(
+          lpDiff,
+          currentLiquidityPool,
+          new Date(event.block.timestamp * 1000),
+          context
+        );
       }
     }
   },
