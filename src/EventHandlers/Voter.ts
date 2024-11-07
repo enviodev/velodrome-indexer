@@ -5,9 +5,9 @@ import {
   Voter_WhitelistToken,
 } from "generated";
 
-import { LiquidityPoolAggregator, Token } from "./../src/Types.gen";
+import { Token } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
-import { CHAIN_CONSTANTS, TokenIdByChain } from "./../Constants";
+import { CHAIN_CONSTANTS, toChecksumAddress, TokenIdByChain } from "./../Constants";
 import { poolLookupStoreManager } from "./../Store";
 import { multiplyBase1e18 } from "./../Maths";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
@@ -59,9 +59,9 @@ Voter.GaugeCreated.handler(async ({ event, context }) => {
   // The pool entity should be created via PoolCreated event from the PoolFactory contract
   // Store pool details in poolRewardAddressStore
   let currentPoolRewardAddressMapping = {
-    poolAddress: event.params.pool,
-    gaugeAddress: event.params.gauge,
-    bribeVotingRewardAddress: event.params.bribeVotingReward,
+    poolAddress: toChecksumAddress(event.params.pool),
+    gaugeAddress: toChecksumAddress(event.params.gauge),
+    bribeVotingRewardAddress: toChecksumAddress(event.params.bribeVotingReward),
     // feeVotingRewardAddress: event.params.feeVotingReward, // currently not used
   };
 
