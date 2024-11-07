@@ -48,10 +48,12 @@ PoolFactory.PoolCreated.handlerWithLoader({
     const pool: LiquidityPoolAggregator = {
       id: event.params.pool,
       chainId: event.chainId,
+      isCL: false,
       name: generatePoolName(
         poolTokenSymbols[0],
         poolTokenSymbols[1],
-        event.params.stable
+        event.params.stable,
+        false // Pool is not CL
       ),
       token0_id: TokenIdByChain(event.params.token0, event.chainId),
       token1_id: TokenIdByChain(event.params.token1, event.chainId),
