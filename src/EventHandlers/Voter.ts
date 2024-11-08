@@ -75,28 +75,27 @@ Voter.DistributeReward.handlerWithLoader({
       event.params.gauge
     );
 
-    if (poolAddress) {
-      // Load the LiquidityPool entity to be updated,
-      const currentLiquidityPool = await context.LiquidityPoolAggregator.get(
-        poolAddress
-      );
+    const promisePool = poolAddress
+      ? context.LiquidityPoolAggregator.get(poolAddress)
+      : null;
 
-      // Load the reward token (VELO for Optimism and AERO for Base) for conversion of emissions amount into USD
-      const rewardToken = await context.Token.get(
+    if (!poolAddress) {
+      context.log.warn(
+        `No pool address found for the gauge address ${event.params.gauge.toString()}`
+      );
+    }
+
+    const [currentLiquidityPool, rewardToken] = await Promise.all([
+      promisePool,
+      context.Token.get(
         TokenIdByChain(
           CHAIN_CONSTANTS[event.chainId].rewardToken.address,
           event.chainId
         )
-      );
+      ),
+    ]);
 
-      return { currentLiquidityPool, rewardToken };
-    }
-
-    // If there is no pool address with the particular gauge address, log the error
-    context.log.warn(
-      `No pool address found for the gauge address ${event.params.gauge.toString()}`
-    );
-    return null;
+    return { currentLiquidityPool, rewardToken };
   },
   handler: async ({ event, context, loaderReturn }) => {
     if (loaderReturn) {

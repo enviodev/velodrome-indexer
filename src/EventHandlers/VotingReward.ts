@@ -22,15 +22,18 @@ VotingReward.NotifyReward.handlerWithLoader({
       event.srcAddress
     );
 
+    const promisePool = poolAddress
+      ? context.LiquidityPoolAggregator.get(poolAddress)
+      : null;
+
     if (!poolAddress) {
       context.log.warn(
         `No pool address found for the bribe voting address ${event.srcAddress.toString()}`
       );
-      return null;
     }
 
     const [currentLiquidityPool, rewardToken] = await Promise.all([
-      context.LiquidityPoolAggregator.get(poolAddress),
+      promisePool,
       context.Token.get(TokenIdByChain(event.params.reward, event.chainId)),
     ]);
 
@@ -80,7 +83,12 @@ VotingReward.NotifyReward.handlerWithLoader({
         };
 
         // Update the LiquidityPoolEntity in the DB
-        updateLiquidityPoolAggregator(lpDiff, currentLiquidityPool, new Date(event.block.timestamp * 1000), context);
+        updateLiquidityPoolAggregator(
+          lpDiff,
+          currentLiquidityPool,
+          new Date(event.block.timestamp * 1000),
+          context
+        );
       }
     }
   },

@@ -2,6 +2,7 @@ import { TokenInfo, Pool } from "./CustomTypes";
 import dotenv from "dotenv";
 import optimismWhitelistedTokens from "./constants/optimismWhitelistedTokens.json";
 import baseWhitelistedTokens from "./constants/baseWhitelistedTokens.json";
+import modeWhitelistedTokens from "./constants/modeWhitelistedTokens.json";
 import contractABI from "../abis/VeloPriceOracleABI.json";
 import Web3 from "web3";
 
@@ -20,6 +21,9 @@ export const OPTIMISM_WHITELISTED_TOKENS: TokenInfo[] =
   optimismWhitelistedTokens as TokenInfo[];
 export const BASE_WHITELISTED_TOKENS: TokenInfo[] =
   baseWhitelistedTokens as TokenInfo[];
+
+export const MODE_WHITELISTED_TOKENS: TokenInfo[] =
+  modeWhitelistedTokens as TokenInfo[];
 
 export const toChecksumAddress = (address: string) => Web3.utils.toChecksumAddress(address);
 
@@ -70,6 +74,8 @@ const BASE_STABLECOIN_POOLS: Pool[] = [
   },
 ];
 
+const MODE_STABLECOIN_POOLS: Pool[] = [];
+
 // List of pool addresses for testing
 const OPTIMISM_TESTING_POOL_ADDRESSES: string[] = [
   "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b",
@@ -86,6 +92,8 @@ const BASE_TESTING_POOL_ADDRESSES: string[] = [
   "0x9287C921f5d920cEeE0d07d7c58d476E46aCC640", // vAMM-WETH/DAI
   "0x0B25c51637c43decd6CC1C1e3da4518D54ddb528", // sAMM-DOLA/USDbC
 ];
+
+const MODE_TESTING_POOL_ADDRESSES: string[] = [];
 
 // Object containing all the constants for a chain
 type chainConstants = {
@@ -155,6 +163,33 @@ const BASE_CONSTANTS: chainConstants = {
   ),
 };
 
+// Constants for Mode
+const MODE_CONSTANTS: chainConstants = {
+  eth: findToken(MODE_WHITELISTED_TOKENS, "WETH"),
+  usdc: findToken(MODE_WHITELISTED_TOKENS, "USDC"),
+  oracle: {
+    getAddress: (blockNumber: number) => {
+      return "0xC7d87726753d2e7a8823db6c96a4f44e4D502a21";
+    },
+    startBlock: 15407790,
+    updateDelta: 60 * 60, // 1 hour
+  },
+  rewardToken: {
+    address: "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
+    symbol: "XVELO",
+    decimals: 18,
+    createdBlock: 15405191,
+  },
+  rpcURL: process.env.MODE_RPC_URL || "https://mainnet.mode.network",
+  stablecoinPools: MODE_STABLECOIN_POOLS,
+  stablecoinPoolAddresses: MODE_STABLECOIN_POOLS.map((pool) => pool.address),
+  testingPoolAddresses: MODE_TESTING_POOL_ADDRESSES,
+  whitelistedTokens: MODE_WHITELISTED_TOKENS,
+  whitelistedTokenAddresses: MODE_WHITELISTED_TOKENS.map(
+    (token) => token.address
+  ),
+};
+
 /**
  * Create a unique ID for a token on a specific chain. Really should only be used for Token Entities.
  * @param address 
@@ -178,6 +213,7 @@ export const TokenIdByBlock = (address: string, chainId: number, blockNumber: nu
 export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   10: OPTIMISM_CONSTANTS,
   8453: BASE_CONSTANTS,
+  34443: MODE_CONSTANTS
 };
 
 export const CacheCategory = {
