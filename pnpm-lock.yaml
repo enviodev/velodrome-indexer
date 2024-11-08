@@ -15,8 +15,8 @@ importers:
         specifier: 4.3.10
         version: 4.3.10
       envio:
-        specifier: 2.7.2
-        version: 2.7.2
+        specifier: 2.7.3
+        version: 2.7.3
       mocha:
         specifier: ^10.2.0
         version: 10.2.0
@@ -926,48 +926,49 @@ packages:
       once: 1.4.0
     dev: false
 
-  /envio-darwin-arm64@2.7.2:
-    resolution: {integrity: sha512-/p7pEZSXvdoK/tu9mb0rma9IYvLFY7UqiTUC1sYPNzPjYSv13gatW6O95ZnAiSbb8Q7f5Yyx4nPuSXaA/9BPBw==}
+  /envio-darwin-arm64@2.7.3:
+    resolution: {integrity: sha512-jFtqTbGRXlYBvwQJ2iEZwsumGy+19y7e4+OjPM5ZqqoJ1sHNQ70/G1AqnvZYFKD8RuTUN+5ArU5gYc0Tgqu8Ow==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-darwin-x64@2.7.2:
-    resolution: {integrity: sha512-wwToFye0fb9SSpKXZr5VzTZTcErpQbLF9ozxe8q0LLBu04JxjdzdVdLSfU/KwNOgB0NA5YPorRs/a7v9ApGDVQ==}
+  /envio-darwin-x64@2.7.3:
+    resolution: {integrity: sha512-yT7krrqRENpNYvCtyFMlPRGDsUSO0nvrTX0fl28f8xJyD/HAF0nKnU8f6FBiyWCzLzPh8Uby1qK3l+hUVhcktQ==}
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-linux-arm64@2.7.2:
-    resolution: {integrity: sha512-7OaH0G3TDd/oP6/tPWaYmtucPxs5NbE4DAZ8DjKpKMIaOFA3GX1PN6cGnfGMpKqmpL9icFWzLn7epk2y5sUzaQ==}
+  /envio-linux-arm64@2.7.3:
+    resolution: {integrity: sha512-QCJlypEOw3cc93UVkRvYuF9Z3x/n57usb0P85Mz0ADiykxBBd7QWyEFKgmMzQZlLZfgQ0NLHwcPh+92/bGoL/A==}
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-linux-x64@2.7.2:
-    resolution: {integrity: sha512-wbEudlkoYbUzhmozbBpkyQp9GE/326Ys39+u2eY2ehaUZjScOeFqLYa8rTo1nFXk2D4/ES8VHG+5J65cSq7duQ==}
+  /envio-linux-x64@2.7.3:
+    resolution: {integrity: sha512-IRpfHZhlx7dTmtROhuVJONO7otPlwaUmFdb2HEycwgb4hN1+6Xadn5lPuLYmqJFSWgd2lyxn5EdAJWw8KV4qtA==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio@2.7.2:
-    resolution: {integrity: sha512-xscpx31nP0mZKPhqPslg5GSbdE3bI29Ueu8Auq9MQi7Q8hHQFjbLwICxpOhMoUCmJeY3iMSYnIKlL1aGpvo3ow==}
+  /envio@2.7.3:
+    resolution: {integrity: sha512-j/G4Gg+g0xUUf0RgH3PKo0REXwh2blB/t7kYEPFZy9EX3/lOw8fG076ZN7rJ82FzzOjVsQH6RSeW6OFGGWgnLw==}
     hasBin: true
     dependencies:
       rescript: 11.1.3
+      rescript-schema: 8.2.0(rescript@11.1.3)
     optionalDependencies:
-      envio-darwin-arm64: 2.7.2
-      envio-darwin-x64: 2.7.2
-      envio-linux-arm64: 2.7.2
-      envio-linux-x64: 2.7.2
+      envio-darwin-arm64: 2.7.3
+      envio-darwin-x64: 2.7.3
+      envio-linux-arm64: 2.7.3
+      envio-linux-x64: 2.7.3
     dev: false
 
   /es-define-property@1.0.0:
