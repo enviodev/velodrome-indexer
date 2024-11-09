@@ -34,30 +34,25 @@ describe("Pool Swap Event", () => {
     expectations.swapAmount0In = 100n * 10n ** mockToken0Data.decimals;
     expectations.swapAmount1Out = 99n * 10n ** mockToken1Data.decimals;
 
-    // The code expects net abounts to be normalized to 1e18
-    expectations.expectedNetAmount0 =
-      expectations.swapAmount0In * (TEN_TO_THE_18_BI / (10n ** mockToken0Data.decimals));
+    expectations.expectedNetAmount0 = expectations.swapAmount0In;
 
-    expectations.expectedNetAmount1 =
-      expectations.swapAmount1Out * (TEN_TO_THE_18_BI / (10n ** mockToken1Data.decimals));
+    expectations.expectedNetAmount1 = expectations.swapAmount1Out;
 
     expectations.totalVolume0 =
-      mockLiquidityPoolData.totalVolume0 +
-      expectations.swapAmount0In * (TEN_TO_THE_18_BI / (10n ** mockToken0Data.decimals));
+      mockLiquidityPoolData.totalVolume0 + expectations.swapAmount0In;
 
     expectations.totalVolume1 =
-      mockLiquidityPoolData.totalVolume1 +
-      expectations.swapAmount1Out * (TEN_TO_THE_18_BI / (10n ** mockToken1Data.decimals));
+      mockLiquidityPoolData.totalVolume1 + expectations.swapAmount1Out;
 
     // The code expects pricePerUSDNew to be normalized to 1e18
     expectations.expectedLPVolumeUSD0 =
       mockLiquidityPoolData.totalVolumeUSD +
-      expectations.expectedNetAmount0 *
+      expectations.expectedNetAmount0 * (TEN_TO_THE_18_BI / 10n ** mockToken0Data.decimals) *
       (mockToken0Data.pricePerUSDNew / TEN_TO_THE_18_BI);
 
     expectations.expectedLPVolumeUSD1 =
       mockLiquidityPoolData.totalVolumeUSD +
-      expectations.expectedNetAmount1 *
+      expectations.expectedNetAmount1 * (TEN_TO_THE_18_BI / 10n ** mockToken1Data.decimals) *
       (mockToken1Data.pricePerUSDNew / TEN_TO_THE_18_BI);
 
     mockPriceOracle = sinon
@@ -90,8 +85,11 @@ describe("Pool Swap Event", () => {
   });
 
   describe("when both tokens are missing", () => {
-    it("should update the liquidity pool with swap count only", async () => {
-      const modifiedMockLiquidityPoolData = {
+    let updatedPool: any;
+    let modifiedMockLiquidityPoolData: any;
+    beforeEach(async () => {
+
+      modifiedMockLiquidityPoolData = {
         ...mockLiquidityPoolData,
         token0_id: TokenIdByChain(
           "0x9999999999999999999999999999999999999990",
@@ -113,30 +111,43 @@ describe("Pool Swap Event", () => {
         mockDb: updatedDB1,
       });
 
-      const updatedPool = postEventDB.entities.LiquidityPoolAggregator.get(
+      updatedPool = postEventDB.entities.LiquidityPoolAggregator.get(
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
+
+    });
+    it("should update the liquidity pool and timestamp", () => {
       expect(updatedPool).to.not.be.undefined;
-      expect(updatedPool?.totalVolume0).to.equal(
-        modifiedMockLiquidityPoolData.totalVolume0
-      );
-      expect(updatedPool?.totalVolume1).to.equal(
-        modifiedMockLiquidityPoolData.totalVolume1
-      );
-      expect(updatedPool?.totalVolumeUSD).to.equal(
-        modifiedMockLiquidityPoolData.totalVolumeUSD
-      );
-      expect(updatedPool?.numberOfSwaps).to
-        .equal(mockLiquidityPoolData.numberOfSwaps + 1n, "Swap count should be updated");
       expect(updatedPool?.lastUpdatedTimestamp).to.deep.equal(
         new Date(eventData.mockEventData.block.timestamp * 1000)
       );
+    });
+    it("should update the liquidity pool with swap count", async () => {
+      expect(updatedPool?.numberOfSwaps).to
+        .equal(mockLiquidityPoolData.numberOfSwaps + 1n, "Swap count should be updated");
+    });
+    it("should update the liquidity pool with swap volume", () => {
+      expect(updatedPool?.totalVolume0).to.equal(
+        modifiedMockLiquidityPoolData.totalVolume0 + expectations.expectedNetAmount0
+      );
+      expect(updatedPool?.totalVolume1).to.equal(
+        modifiedMockLiquidityPoolData.totalVolume1 + expectations.expectedNetAmount1
+      );
+
+    });
+    it("shouldn't update the liquidity pool volume in USD since it has no prices", () => {
+      expect(updatedPool?.totalVolumeUSD).to.equal(
+        modifiedMockLiquidityPoolData.totalVolumeUSD
+      );
+    });
+    it("should call set_whitelisted_prices", () => {
       expect(mockPriceOracle.calledOnce).to.be.true;
     });
   });
   describe("when token0 is missing", () => {
     let postEventDB: ReturnType<typeof MockDb.createMockDb>;
 
+    let updatedPool: any;
     beforeEach(async () => {
       // Set token0 to a different address not in the db tokens
       mockLiquidityPoolData.token0_id = TokenIdByChain(
@@ -156,23 +167,23 @@ describe("Pool Swap Event", () => {
         event: mockEvent,
         mockDb: updatedDB3,
       });
-    });
-
-    it("should update the liquidity pool with token1 data only", async () => {
-      const updatedPool = postEventDB.entities.LiquidityPoolAggregator.get(
+      updatedPool = postEventDB.entities.LiquidityPoolAggregator.get(
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
-      expect(updatedPool).to.not.be.undefined;
+    });
 
+    it('should update nominal swap volumes', () => {
       expect(updatedPool?.totalVolume0).to.equal(
-        mockLiquidityPoolData.totalVolume0,
-        "Token0 nominal swap volume should not be updated"
+        expectations.totalVolume0,
+        "Token0 nominal swap volume should be updated"
       );
       expect(updatedPool?.totalVolume1).to.equal(
         expectations.totalVolume1,
         "Token1 nominal swap volume should be updated"
       );
+    });
 
+    it("should update the liquidity pool with token1 data only", async () => {
       expect(updatedPool?.totalVolumeUSD).to.equal(
           expectations.expectedLPVolumeUSD1,
         "Swap volume in USD should be updated for token 1"
@@ -191,6 +202,7 @@ describe("Pool Swap Event", () => {
 
   describe("when token1 is missing", () => {
     let postEventDB: ReturnType<typeof MockDb.createMockDb>;
+    let updatedPool: any;
 
     beforeEach(async () => {
       mockLiquidityPoolData.token1_id = TokenIdByChain(
@@ -210,37 +222,43 @@ describe("Pool Swap Event", () => {
         event: mockEvent,
         mockDb: updatedDB3,
       });
-    });
-
-    it("should update the liquidity pool with token0 data only", async () => {
-      const updatedPool = postEventDB.entities.LiquidityPoolAggregator.get(
+      updatedPool = postEventDB.entities.LiquidityPoolAggregator.get(
         toChecksumAddress(eventData.mockEventData.srcAddress)
       );
-      expect(updatedPool).to.not.be.undefined;
+    });
 
+    it('should update nominal swap volumes', () => {
       expect(updatedPool?.totalVolume0).to.equal(
         expectations.totalVolume0,
         "Token0 nominal swap volume should be updated"
       );
       expect(updatedPool?.totalVolume1).to.equal(
-        mockLiquidityPoolData.totalVolume1,
-        "Token1 nominal swap volume in USD should not be updated"
+        expectations.totalVolume1,
+        "Token1 nominal swap volume should be updated"
       );
 
+    });
+
+    it('should update the liquidity pool token prices', () => {
+      expect(
+        mockPriceOracle.calledOnce,
+        "set_whitelisted_prices should be called"
+      ).to.be.true;
+    });
+
+    it('should update swap count', () => {
+      expect(updatedPool?.numberOfSwaps).to.equal(
+        mockLiquidityPoolData.numberOfSwaps + 1n,
+        "Swap count should be updated"
+      );
+    });
+
+    it("should update the liquidity pool USD volume with token0 data only", async () => {
       expect(updatedPool?.totalVolumeUSD).to.equal(
         expectations.expectedLPVolumeUSD0,
         "Total volume USD should be updated."
       );
 
-      expect(updatedPool?.numberOfSwaps).to.equal(
-        mockLiquidityPoolData.numberOfSwaps + 1n,
-        "Swap count should be updated"
-      );
-
-      expect(
-        mockPriceOracle.calledOnce,
-        "set_whitelisted_prices should be called"
-      ).to.be.true;
     });
   });
 
