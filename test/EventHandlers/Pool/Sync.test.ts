@@ -24,18 +24,18 @@ describe("Pool Sync Event", () => {
     expectations.reserveAmount1In = 200n * (10n ** mockToken1Data.decimals);
 
 
-    expectations.expectedReserve0 = (expectations.reserveAmount0In * TEN_TO_THE_18_BI) /
-      10n ** mockToken0Data.decimals;
-    expectations.expectedReserve1 =(expectations.reserveAmount1In * TEN_TO_THE_18_BI) /
-      10n ** mockToken1Data.decimals;
+    expectations.expectedReserve0 = expectations.reserveAmount0In;
+    expectations.expectedReserve1 =expectations.reserveAmount1In;
 
     expectations.expectedReserve0InMissing = expectations.reserveAmount0In;
     expectations.expectedReserve1InMissing = expectations.reserveAmount1In; 
 
     expectations.expectedLiquidity0USD =
-      BigInt(expectations.expectedReserve0 * mockToken0Data.pricePerUSDNew) / TEN_TO_THE_18_BI;
+      expectations.expectedReserve0 * (10n ** (18n - mockToken0Data.decimals)) *
+      mockToken0Data.pricePerUSDNew / TEN_TO_THE_18_BI;
     expectations.expectedLiquidity1USD =
-      BigInt(expectations.expectedReserve1 * mockToken1Data.pricePerUSDNew) / TEN_TO_THE_18_BI;
+      expectations.expectedReserve1 * (10n ** (18n - mockToken1Data.decimals)) *
+      mockToken1Data.pricePerUSDNew / TEN_TO_THE_18_BI;
 
     eventData = {
       reserve0: expectations.reserveAmount0In,

@@ -69,6 +69,7 @@ Pool.Fees.handlerWithLoader({
       totalFeesUSD: 0n,
     };
 
+    tokenUpdateData.totalFees0 = event.params.amount0
     if (token0Instance) {
       tokenUpdateData.totalFees0 = normalizeTokenAmountTo1e18(
         event.params.amount0,
@@ -80,6 +81,7 @@ Pool.Fees.handlerWithLoader({
       );
     }
 
+    tokenUpdateData.totalFees1 = event.params.amount1
     if (token1Instance) {
       tokenUpdateData.totalFees1 = normalizeTokenAmountTo1e18(
         event.params.amount1,
@@ -159,26 +161,26 @@ Pool.Swap.handlerWithLoader({
         volumeInUSD: 0n,
       };
 
+      tokenUpdateData.netAmount0 = event.params.amount0In + event.params.amount0Out;
       if (token0Instance) {
-        tokenUpdateData.netAmount0 = normalizeTokenAmountTo1e18(
+        const normalizedAmount0 = normalizeTokenAmountTo1e18(
           event.params.amount0In + event.params.amount0Out,
           Number(token0Instance.decimals)
         );
-        tokenUpdateData.netAmount0 = abs(tokenUpdateData.netAmount0);
         tokenUpdateData.netVolumeToken0USD = multiplyBase1e18(
-          tokenUpdateData.netAmount0,
+          normalizedAmount0,
           token0Instance.pricePerUSDNew
         );
       }
 
+      tokenUpdateData.netAmount1 = event.params.amount1In + event.params.amount1Out;
       if (token1Instance) {
-        tokenUpdateData.netAmount1 = normalizeTokenAmountTo1e18(
+        const normalizedAmount1 = normalizeTokenAmountTo1e18(
           event.params.amount1In + event.params.amount1Out,
           Number(token1Instance.decimals)
         );
-        tokenUpdateData.netAmount1 = abs(tokenUpdateData.netAmount1);
         tokenUpdateData.netVolumeToken1USD = multiplyBase1e18(
-          tokenUpdateData.netAmount1,
+          normalizedAmount1,
           token1Instance.pricePerUSDNew
         );
       }
@@ -295,18 +297,13 @@ Pool.Sync.handlerWithLoader({
       token1PricePerUSDNew: token1Instance?.pricePerUSDNew ?? liquidityPool.token1Price,
     };
 
-    tokenUpdateData.normalizedReserve0 += normalizeTokenAmountTo1e18(
-      event.params.reserve0,
-      Number(token0Instance?.decimals || 18)
-    );
-
-    tokenUpdateData.normalizedReserve1 += normalizeTokenAmountTo1e18(
-      event.params.reserve1,
-      Number(token1Instance?.decimals || 18)
-    );
 
     // Update price and liquidity if the token is priced
     if (token0Instance) {
+      tokenUpdateData.normalizedReserve0 += normalizeTokenAmountTo1e18(
+        event.params.reserve0,
+        Number(token0Instance?.decimals || 18)
+      );
       tokenUpdateData.token0PricePerUSDNew = token0Instance.pricePerUSDNew;
       tokenUpdateData.totalLiquidityUSD += multiplyBase1e18(
         tokenUpdateData.normalizedReserve0,
@@ -315,6 +312,11 @@ Pool.Sync.handlerWithLoader({
     }
 
     if (token1Instance) {
+      tokenUpdateData.normalizedReserve1 += normalizeTokenAmountTo1e18(
+        event.params.reserve1,
+        Number(token1Instance?.decimals || 18)
+    );
+
       tokenUpdateData.token1PricePerUSDNew = token1Instance.pricePerUSDNew;
       tokenUpdateData.totalLiquidityUSD += multiplyBase1e18(
         tokenUpdateData.normalizedReserve1,
@@ -323,8 +325,8 @@ Pool.Sync.handlerWithLoader({
     }
 
     const liquidityPoolDiff = {
-      reserve0: tokenUpdateData.normalizedReserve0,
-      reserve1: tokenUpdateData.normalizedReserve1,
+      reserve0: event.params.reserve0,
+      reserve1: event.params.reserve1,
       totalLiquidityUSD: tokenUpdateData.totalLiquidityUSD || liquidityPool.totalLiquidityUSD,
       token0Price: tokenUpdateData.token0PricePerUSDNew,
       token1Price: tokenUpdateData.token1PricePerUSDNew,
