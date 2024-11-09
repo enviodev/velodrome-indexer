@@ -42,32 +42,34 @@ function updateCLPoolFees(
   token0Instance: Token | undefined,
   token1Instance: Token | undefined
 ) {
+
   let tokenUpdateData = {
     totalFees0: liquidityPoolAggregator.totalFees0,
     totalFees1: liquidityPoolAggregator.totalFees1,
     totalFeesUSD: liquidityPoolAggregator.totalFeesUSD,
   };
 
+  tokenUpdateData.totalFees0 += event.params.amount0;
+  tokenUpdateData.totalFees1 += event.params.amount1;
+
   if (token0Instance) {
-    const incomingFees0 = normalizeTokenAmountTo1e18(
+    const normalizedFees0 = normalizeTokenAmountTo1e18(
       event.params.amount0,
       Number(token0Instance.decimals)
     );
-    tokenUpdateData.totalFees0 += incomingFees0;
     tokenUpdateData.totalFeesUSD += multiplyBase1e18(
-      incomingFees0,
+      normalizedFees0,
       token0Instance.pricePerUSDNew
     );
   }
 
   if (token1Instance) {
-    const incomingFees1 = normalizeTokenAmountTo1e18(
+    const normalizedFees1 = normalizeTokenAmountTo1e18(
       event.params.amount1,
       Number(token1Instance.decimals)
     );
-    tokenUpdateData.totalFees1 += incomingFees1;
     tokenUpdateData.totalFeesUSD += multiplyBase1e18(
-      incomingFees1,
+      normalizedFees1,
       token1Instance.pricePerUSDNew
     );
   }
@@ -81,24 +83,26 @@ function updateCLPoolLiquidity(
   token0Instance: Token | undefined,
   token1Instance: Token | undefined
 ) {
+
   let tokenUpdateData = {
     totalLiquidityUSD: 0n,
+    reserve0: 0n,
+    reserve1: 0n,
     normalizedReserve0: 0n,
     normalizedReserve1: 0n,
   };
 
-  // Update normalized reserves regardles of whether the token is priced
-  tokenUpdateData.normalizedReserve0 += normalizeTokenAmountTo1e18(
-    event.params.amount0,
-    Number(token0Instance?.decimals || 18)
-  );
+  // Update reserves regardles of whether the token is priced
+  tokenUpdateData.reserve0 += event.params.amount0;
 
-  tokenUpdateData.normalizedReserve1 += normalizeTokenAmountTo1e18(
-    event.params.amount1,
-    Number(token1Instance?.decimals || 18)
-  );
+  tokenUpdateData.reserve1 += event.params.amount1;
 
   if (token0Instance) {
+    tokenUpdateData.normalizedReserve0 += normalizeTokenAmountTo1e18(
+      event.params.amount0,
+      Number(token0Instance.decimals || 18)
+    );
+
     tokenUpdateData.totalLiquidityUSD += multiplyBase1e18(
       tokenUpdateData.normalizedReserve0,
       liquidityPoolAggregator.token0Price
@@ -106,6 +110,10 @@ function updateCLPoolLiquidity(
   }
 
   if (token1Instance) {
+    tokenUpdateData.normalizedReserve1 += normalizeTokenAmountTo1e18(
+      event.params.amount1,
+      Number(token1Instance.decimals || 18)
+    );
     tokenUpdateData.totalLiquidityUSD += multiplyBase1e18(
       tokenUpdateData.normalizedReserve1,
       liquidityPoolAggregator.token1Price
@@ -162,9 +170,9 @@ CLPool.Burn.handlerWithLoader({
 
       const liquidityPoolDiff = {
         reserve0:
-          liquidityPoolAggregator.reserve0 + tokenUpdateData.normalizedReserve0,
+          liquidityPoolAggregator.reserve0 + tokenUpdateData.reserve0,
         reserve1:
-          liquidityPoolAggregator.reserve1 + tokenUpdateData.normalizedReserve1,
+          liquidityPoolAggregator.reserve1 + tokenUpdateData.reserve1,
         totalLiquidityUSD:
           liquidityPoolAggregator.totalLiquidityUSD +
           tokenUpdateData.totalLiquidityUSD,
@@ -385,9 +393,9 @@ CLPool.Mint.handlerWithLoader({
 
       const liquidityPoolDiff = {
         reserve0:
-          liquidityPoolAggregator.reserve0 + tokenUpdateData.normalizedReserve0,
+          liquidityPoolAggregator.reserve0 + tokenUpdateData.reserve0,
         reserve1:
-          liquidityPoolAggregator.reserve1 + tokenUpdateData.normalizedReserve1,
+          liquidityPoolAggregator.reserve1 + tokenUpdateData.reserve1,
         totalLiquidityUSD:
           liquidityPoolAggregator.totalLiquidityUSD +
           tokenUpdateData.totalLiquidityUSD,
@@ -460,6 +468,7 @@ CLPool.Swap.handlerWithLoader({
     if (loaderReturn && loaderReturn.liquidityPoolAggregator) {
       const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
 
+      // Delta that will be added to the liquidity pool aggregator
       let tokenUpdateData = {
         netAmount0: 0n,
         netAmount1: 0n,
@@ -468,26 +477,27 @@ CLPool.Swap.handlerWithLoader({
         volumeInUSD: 0n,
       };
 
+      tokenUpdateData.netAmount0 = abs(event.params.amount0);
+      tokenUpdateData.netAmount1 = abs(event.params.amount1); 
+
       if (token0Instance) {
-        tokenUpdateData.netAmount0 = normalizeTokenAmountTo1e18(
-          event.params.amount0,
+        const normalizedAmount0 = normalizeTokenAmountTo1e18(
+          abs(event.params.amount0),
           Number(token0Instance.decimals)
         );
-        tokenUpdateData.netAmount0 = abs(tokenUpdateData.netAmount0);
         tokenUpdateData.netVolumeToken0USD = multiplyBase1e18(
-          tokenUpdateData.netAmount0,
+          normalizedAmount0,
           token0Instance.pricePerUSDNew
         );
       }
 
       if (token1Instance) {
-        tokenUpdateData.netAmount1 = normalizeTokenAmountTo1e18(
-          event.params.amount1,
+        const normalizedAmount1 = normalizeTokenAmountTo1e18(
+          abs(event.params.amount1),
           Number(token1Instance.decimals)
         );
-        tokenUpdateData.netAmount1 = abs(tokenUpdateData.netAmount1);
         tokenUpdateData.netVolumeToken1USD = multiplyBase1e18(
-          tokenUpdateData.netAmount1,
+          normalizedAmount1,
           token1Instance.pricePerUSDNew
         );
       }

@@ -107,11 +107,11 @@ describe("CLPool Event Handlers", () => {
         expect(diff.reserve0).to.equal(
           mockLiquidityPoolData.reserve0 +
           expectations.amount0In,
-          "Reserve 0 should be appropriately updated and normalized");
+          "Reserve 0 should be appropriately updated");
         expect(diff.reserve1).to.equal(
           mockLiquidityPoolData.reserve1 +
-          expectations.amount1In * (10n ** 18n) / (10n ** 6n),
-         "Reserve 1 should be appropriately updated and normalized");
+          expectations.amount1In,
+         "Reserve 1 should be appropriately updated");
       });
       it("should update the total liquidity in USD correctly", () => {
         expect(diff.totalLiquidityUSD).to.equal(
@@ -188,11 +188,11 @@ describe("CLPool Event Handlers", () => {
         expect(diff.reserve0).to.equal(
           mockLiquidityPoolData.reserve0 +
           expectations.amount0In,
-          "Reserve 0 should be appropriately updated and normalized");
+          "Reserve 0 should be appropriately updated");
         expect(diff.reserve1).to.equal(
           mockLiquidityPoolData.reserve1 +
-          expectations.amount1In * (10n ** 18n) / (10n ** 6n),
-         "Reserve 1 should be appropriately updated and normalized");
+          expectations.amount1In,
+         "Reserve 1 should be appropriately updated");
       });
       it("should update the total liquidity in USD correctly", () => {
         expect(diff.totalLiquidityUSD).to.equal(
@@ -270,9 +270,7 @@ describe("CLPool Event Handlers", () => {
           mockLiquidityPoolData.totalFees0 + eventFees.amount0
         );
         expect(diff.totalFees1).to.equal(
-          mockLiquidityPoolData.totalFees1 +
-            (eventFees.amount1 * 10n ** 18n) / 10n ** 6n,
-          "It should normalize fees here"
+          mockLiquidityPoolData.totalFees1 + eventFees.amount1
         );
       });
     });
@@ -351,9 +349,7 @@ describe("CLPool Event Handlers", () => {
           mockLiquidityPoolData.totalFees0 + eventFees.amount0
         );
         expect(diff.totalFees1).to.equal(
-          mockLiquidityPoolData.totalFees1 +
-            (eventFees.amount1 * 10n ** 18n) / 10n ** 6n,
-          "It should normalize fees here"
+          mockLiquidityPoolData.totalFees1 + eventFees.amount1
         );
       });
 
@@ -444,10 +440,7 @@ describe("CLPool Event Handlers", () => {
           mockLiquidityPoolData.totalVolume0 + abs(mockEvent.params.amount0)
         );
         expect(diff.totalVolume1).to.equal(
-          mockLiquidityPoolData.totalVolume1 +
-            (abs(mockEvent.params.amount1) * 10n ** 18n) /
-              10n ** mockToken1Data.decimals,
-          "It should normalize the volume 18 decimals. Note here the incoming decimals are 6."
+          mockLiquidityPoolData.totalVolume1 + abs(mockEvent.params.amount1)
         );
       });
 
@@ -505,12 +498,11 @@ describe("CLPool Event Handlers", () => {
         expect(updateLiquidityPoolAggregatorStub.calledOnce).to.be.true;
         const [diff] = updateLiquidityPoolAggregatorStub.firstCall.args;
 
-        expect(diff.totalVolume0).to.equal(mockLiquidityPoolData.totalVolume0); // Unchanged
+        expect(diff.totalVolume0).to.equal(
+          mockLiquidityPoolData.totalVolume0 + abs(mockEvent.params.amount0)
+        );
         expect(diff.totalVolume1).to.equal(
-          mockLiquidityPoolData.totalVolume1 +
-            (abs(mockEvent.params.amount1) * 10n ** 18n) /
-              10n ** mockToken1Data.decimals,
-          "It should normalize the volume 18 decimals. Note here the incoming decimals are 6."
+          mockLiquidityPoolData.totalVolume1 + abs(mockEvent.params.amount1)
         );
         expect(diff.totalVolumeUSD).to.equal(
           mockLiquidityPoolData.totalVolumeUSD +
