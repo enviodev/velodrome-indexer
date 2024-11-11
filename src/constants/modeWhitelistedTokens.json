@@ -36,15 +36,15 @@
     "createdBlock": 15405187
   },
   {
-    "address": "0xd988097fb8612cc24eeC14542bC03424c656005f",
-    "symbol": "USDC",
-    "decimals": 6,
-    "createdBlock": 15405187
-  },
-  {
     "address": "0x4200000000000000000000000000000000000006",
     "symbol": "WETH",
     "decimals": 18,
+    "createdBlock": 15405187
+  },
+  {
+    "address": "0xd988097fb8612cc24eeC14542bC03424c656005f",
+    "symbol": "USDC",
+    "decimals": 6,
     "createdBlock": 15405187
   }
 ]
