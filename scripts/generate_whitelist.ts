@@ -13,6 +13,11 @@ const CHAIN_ARGS = {
         RPC_URL: Deno.env.get("OPTIMISM_RPC_URL"),
         TOKENS_FILE: "src/constants/Velodrome-Whitelisted.csv",
         OUTPUT_FILE: "src/constants/optimismWhitelistedTokens.json"
+    },
+    "mode": {
+        RPC_URL: Deno.env.get("MODE_RPC_URL"),
+        TOKENS_FILE: "src/constants/Mode-Whitelisted.csv",
+        OUTPUT_FILE: "src/constants/modeWhitelistedTokens.json"
     }
 }
 
