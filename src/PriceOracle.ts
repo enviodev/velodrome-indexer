@@ -92,7 +92,7 @@ export async function set_whitelisted_prices(
 ): Promise<void> {
   // Skip if not yet available
   let startBlock =
-    CHAIN_CONSTANTS[chainId].oracle.startBlock || Number.MAX_SAFE_INTEGER;
+    CHAIN_CONSTANTS[chainId].oracle.startBlock;
 
   if (blockNumber < startBlock) return;
 
@@ -105,8 +105,7 @@ export async function set_whitelisted_prices(
   if (!tokensNeedUpdate) return;
 
   // Get token data for chain
-  const tokenData =
-    chainId === 10 ? OPTIMISM_WHITELISTED_TOKENS : BASE_WHITELISTED_TOKENS;
+  const tokenData = CHAIN_CONSTANTS[chainId].whitelistedTokens;
 
   // Get prices from oracle and filter if token is not created yet
   const addresses = tokenData
@@ -177,6 +176,7 @@ export async function set_whitelisted_prices(
         chainId: chainId,
         lastUpdatedTimestamp: blockDatetime,
     };
+
     context.TokenPriceSnapshot.set(tokenPrice);
   }
 
