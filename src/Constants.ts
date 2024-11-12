@@ -169,9 +169,9 @@ const MODE_CONSTANTS: chainConstants = {
   usdc: findToken(MODE_WHITELISTED_TOKENS, "USDC"),
   oracle: {
     getAddress: (blockNumber: number) => {
-      return "0xC7d87726753d2e7a8823db6c96a4f44e4D502a21";
+      return "0xE50621a0527A43534D565B67D64be7C79807F269";
     },
-    startBlock: 15407790,
+    startBlock: 15591759,
     updateDelta: 60 * 60, // 1 hour
   },
   rewardToken: {
