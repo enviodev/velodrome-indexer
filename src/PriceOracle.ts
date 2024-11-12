@@ -92,7 +92,7 @@ export async function set_whitelisted_prices(
 ): Promise<void> {
   // Skip if not yet available
   let startBlock =
-    CHAIN_CONSTANTS[chainId].oracle.startBlock || Number.MAX_SAFE_INTEGER;
+    CHAIN_CONSTANTS[chainId].oracle.startBlock;
 
   if (blockNumber < startBlock) return;
 
