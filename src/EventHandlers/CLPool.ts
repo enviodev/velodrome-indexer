@@ -170,11 +170,11 @@ CLPool.Burn.handlerWithLoader({
 
       const liquidityPoolDiff = {
         reserve0:
-          liquidityPoolAggregator.reserve0 + tokenUpdateData.reserve0,
+          liquidityPoolAggregator.reserve0 - tokenUpdateData.reserve0,
         reserve1:
-          liquidityPoolAggregator.reserve1 + tokenUpdateData.reserve1,
+          liquidityPoolAggregator.reserve1 - tokenUpdateData.reserve1,
         totalLiquidityUSD:
-          liquidityPoolAggregator.totalLiquidityUSD +
+          liquidityPoolAggregator.totalLiquidityUSD -
           tokenUpdateData.totalLiquidityUSD,
         lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       };
