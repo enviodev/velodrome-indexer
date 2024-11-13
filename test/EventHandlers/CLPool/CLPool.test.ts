@@ -126,8 +126,8 @@ describe("CLPool Event Handlers", () => {
     let eventData: any;
 
     let expectations: any = {
-      amount0In: -100n * 10n ** 18n,
-      amount1In: -100n * 10n ** 6n,
+      amount0In: 100n * 10n ** 18n,
+      amount1In: 100n * 10n ** 6n,
       totalLiquidity: 0n,
     };
 
@@ -186,11 +186,11 @@ describe("CLPool Event Handlers", () => {
 
       it("should update the reserves", () => {
         expect(diff.reserve0).to.equal(
-          mockLiquidityPoolData.reserve0 +
+          mockLiquidityPoolData.reserve0 -
           expectations.amount0In,
           "Reserve 0 should be appropriately updated");
         expect(diff.reserve1).to.equal(
-          mockLiquidityPoolData.reserve1 +
+          mockLiquidityPoolData.reserve1 -
           expectations.amount1In,
          "Reserve 1 should be appropriately updated");
       });
