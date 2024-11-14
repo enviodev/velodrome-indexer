@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import optimismWhitelistedTokens from "./constants/optimismWhitelistedTokens.json";
 import baseWhitelistedTokens from "./constants/baseWhitelistedTokens.json";
 import modeWhitelistedTokens from "./constants/modeWhitelistedTokens.json";
+import liskWhitelistedTokens from "./constants/liskWhitelistedTokens.json";
 import contractABI from "../abis/VeloPriceOracleABI.json";
 import Web3 from "web3";
 
@@ -24,6 +25,9 @@ export const BASE_WHITELISTED_TOKENS: TokenInfo[] =
 
 export const MODE_WHITELISTED_TOKENS: TokenInfo[] =
   modeWhitelistedTokens as TokenInfo[];
+
+export const LISK_WHITELISTED_TOKENS: TokenInfo[] =
+  liskWhitelistedTokens as TokenInfo[];
 
 export const toChecksumAddress = (address: string) => Web3.utils.toChecksumAddress(address);
 
@@ -163,6 +167,33 @@ const BASE_CONSTANTS: chainConstants = {
   ),
 };
 
+// Constants for Lisk
+const LISK_CONSTANTS: chainConstants = {
+  eth: findToken(LISK_WHITELISTED_TOKENS, "WETH"),
+  usdc: findToken(LISK_WHITELISTED_TOKENS, "USDC"),
+  oracle: {
+    getAddress: (blockNumber: number) => {
+      return "0xE50621a0527A43534D565B67D64be7C79807F269";
+    },
+    startBlock: 15591759,
+    updateDelta: 60 * 60, // 1 hour
+  },
+  rewardToken: {
+    address: "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
+    symbol: "XVELO",
+    decimals: 18,
+    createdBlock: 15405191,
+  },
+  rpcURL: process.env.MODE_RPC_URL || "wss://lisk.drpc.org",
+  stablecoinPools: [],
+  stablecoinPoolAddresses: [],
+  testingPoolAddresses: [],
+  whitelistedTokens: LISK_WHITELISTED_TOKENS,
+  whitelistedTokenAddresses: LISK_WHITELISTED_TOKENS.map(
+    (token) => token.address
+  ),
+};
+
 // Constants for Mode
 const MODE_CONSTANTS: chainConstants = {
   eth: findToken(MODE_WHITELISTED_TOKENS, "WETH"),
@@ -213,7 +244,8 @@ export const TokenIdByBlock = (address: string, chainId: number, blockNumber: nu
 export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   10: OPTIMISM_CONSTANTS,
   8453: BASE_CONSTANTS,
-  34443: MODE_CONSTANTS
+  34443: MODE_CONSTANTS,
+  1135: LISK_CONSTANTS
 };
 
 export const CacheCategory = {
