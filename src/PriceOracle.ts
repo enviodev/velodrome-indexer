@@ -1,4 +1,6 @@
 import {
+  OPTIMISM_WHITELISTED_TOKENS,
+  BASE_WHITELISTED_TOKENS,
   CHAIN_CONSTANTS,
   TokenIdByChain,
   CacheCategory,
