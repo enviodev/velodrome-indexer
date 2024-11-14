@@ -16,14 +16,8 @@ describe("CLPool Event Handlers", () => {
   let updateLiquidityPoolAggregatorStub: sinon.SinonStub;
   let setPricesStub: sinon.SinonStub;
 
-  let mockToken0Data: any;
-  let mockToken1Data: any;
-  let mockLiquidityPoolData: any;
-
   beforeEach(() => {
     mockDb = MockDb.createMockDb();
-
-    const { mockToken0Data, mockToken1Data, mockLiquidityPoolData } = setupCommon();
 
     updateLiquidityPoolAggregatorStub = sinon.stub(
       LiquidityPoolAggregatorFunctions,
@@ -237,13 +231,7 @@ describe("CLPool Event Handlers", () => {
 
     describe("when event is processed", () => {
       beforeEach(async () => {
-        let updatedDB = mockDb.entities.CLFactory_PoolCreated.set({
-          id: `1_123456_0`,
-          token0: token0Id,
-          token1: token1Id,
-          pool: poolId,
-        } as CLFactory_PoolCreated);
-        updatedDB = updatedDB.entities.Token.set(mockToken0Data);
+        let updatedDB = mockDb.entities.Token.set(mockToken0Data);
         updatedDB = updatedDB.entities.Token.set(mockToken1Data);
         updatedDB =
           updatedDB.entities.LiquidityPoolAggregator.set(mockLiquidityPoolData);
@@ -314,13 +302,7 @@ describe("CLPool Event Handlers", () => {
       let diff: any;
 
       beforeEach(async () => {
-        let updatedDB = mockDb.entities.CLFactory_PoolCreated.set({
-          id: `1_123456_0`,
-          token0: token0Id,
-          token1: token1Id,
-          pool: poolId,
-        } as CLFactory_PoolCreated);
-        updatedDB = updatedDB.entities.Token.set(mockToken0Data as Token);
+        let updatedDB = mockDb.entities.Token.set(mockToken0Data as Token);
         updatedDB = updatedDB.entities.Token.set(mockToken1Data as Token);
         updatedDB =
           updatedDB.entities.LiquidityPoolAggregator.set(mockLiquidityPoolData as LiquidityPoolAggregator);
@@ -399,21 +381,13 @@ describe("CLPool Event Handlers", () => {
 
     describe("when tokens exist", () => {
       beforeEach(async () => {
-        let updatedDB = mockDb.entities.CLFactory_PoolCreated.set({
-          id: `1_123456_0`,
-          token0: token0Id,
-          token1: token1Id,
-          pool: poolId,
-        } as CLFactory_PoolCreated);
-
-        let updatedDB2 = updatedDB.entities.LiquidityPoolAggregator.set(mockLiquidityPoolData as LiquidityPoolAggregator);
-        let updatedDB3 = updatedDB2.entities.Token.set(mockToken0Data as Token);
-        let updatedDB4 = updatedDB3.entities.Token.set(mockToken1Data as Token);
-        mockDb = updatedDB4;
+        let updatedDB = mockDb.entities.LiquidityPoolAggregator.set(mockLiquidityPoolData as LiquidityPoolAggregator);
+        updatedDB = updatedDB.entities.Token.set(mockToken0Data as Token);
+        updatedDB = updatedDB.entities.Token.set(mockToken1Data as Token);
 
         const result = await CLPool.Swap.processEvent({
           event: mockEvent,
-          mockDb,
+          mockDb: updatedDB,
         });
         swapEntity = result.entities.CLPool_Swap.get(`1_123456_0`);
         aggregatorCalls = updateLiquidityPoolAggregatorStub.firstCall.args;
@@ -477,20 +451,12 @@ describe("CLPool Event Handlers", () => {
 
     describe("when tokens do not exist", () => {
       beforeEach(async () => {
-        let updatedDB = mockDb.entities.CLFactory_PoolCreated.set({
-          id: `1_123456_0`,
-          token0: token0Id,
-          token1: token1Id,
-          pool: poolId,
-        } as CLFactory_PoolCreated);
-
-        let updatedDB2 =
-          updatedDB.entities.LiquidityPoolAggregator.set(mockLiquidityPoolData);
-        let updatedDB3 = updatedDB2.entities.Token.set(mockToken1Data);
+        let updatedDB = mockDb.entities.LiquidityPoolAggregator.set(mockLiquidityPoolData);
+        updatedDB = updatedDB.entities.Token.set(mockToken1Data);
 
         await CLPool.Swap.processEvent({
           event: mockEvent,
-          mockDb: updatedDB3,
+          mockDb: updatedDB,
         });
       });
 
