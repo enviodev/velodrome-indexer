@@ -192,20 +192,18 @@ CLPool.Burn.handlerWithLoader({
 CLPool.Collect.handlerWithLoader({
   loader: async ({ event, context }) => {
     const pool_id = event.srcAddress;
-    const pool_created = await context.CLFactory_PoolCreated.getWhere.pool.eq(
-      pool_id
-    );
 
-    if (!pool_created || pool_created.length === 0) {
-      context.log.error(`Pool ${pool_id} not found during collect`);
+    const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
+
+    if (!liquidityPoolAggregator) {
+      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during collect`);
       return null;
     }
 
-    const [token0Instance, token1Instance, liquidityPoolAggregator] =
+    const [token0Instance, token1Instance] =
       await Promise.all([
-        context.Token.get(pool_created[0].token0),
-        context.Token.get(pool_created[0].token1),
-        context.LiquidityPoolAggregator.get(pool_id),
+        context.Token.get(liquidityPoolAggregator.token0_id),
+        context.Token.get(liquidityPoolAggregator.token1_id),
       ]);
 
     return { liquidityPoolAggregator, token0Instance, token1Instance };
@@ -249,23 +247,21 @@ CLPool.Collect.handlerWithLoader({
 CLPool.CollectFees.handlerWithLoader({
   loader: async ({ event, context }) => {
     const pool_id = event.srcAddress;
-    const pool_created = await context.CLFactory_PoolCreated.getWhere.pool.eq(
-      pool_id
-    );
+    const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
 
-    if (!pool_created || pool_created.length === 0) {
-      context.log.error(`Pool ${pool_id} not found during collect`);
+    if (!liquidityPoolAggregator) {
+      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during collect fees`);
       return null;
     }
 
-    const [token0Instance, token1Instance, clPoolAggregator] =
+
+    const [token0Instance, token1Instance] =
       await Promise.all([
-        context.Token.get(pool_created[0].token0),
-        context.Token.get(pool_created[0].token1),
-        context.LiquidityPoolAggregator.get(pool_id),
+        context.Token.get(liquidityPoolAggregator.token0_id),
+        context.Token.get(liquidityPoolAggregator.token1_id),
       ]);
 
-    return { clPoolAggregator, token0Instance, token1Instance };
+    return { liquidityPoolAggregator, token0Instance, token1Instance };
   },
   handler: async ({ event, context, loaderReturn }) => {
     const entity: CLPool_CollectFees = {
@@ -280,11 +276,11 @@ CLPool.CollectFees.handlerWithLoader({
 
     context.CLPool_CollectFees.set(entity);
 
-    if (loaderReturn && loaderReturn.clPoolAggregator) {
-      const { clPoolAggregator, token0Instance, token1Instance } = loaderReturn;
+    if (loaderReturn && loaderReturn.liquidityPoolAggregator) {
+      const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
 
       const tokenUpdateData = updateCLPoolFees(
-        clPoolAggregator,
+        liquidityPoolAggregator,
         event,
         token0Instance,
         token1Instance
@@ -292,7 +288,7 @@ CLPool.CollectFees.handlerWithLoader({
 
       updateLiquidityPoolAggregator(
         tokenUpdateData,
-        clPoolAggregator,
+        liquidityPoolAggregator,
         new Date(event.block.timestamp * 1000),
         context
       );
@@ -348,7 +344,6 @@ CLPool.Initialize.handler(async ({ event, context }) => {
 CLPool.Mint.handlerWithLoader({
   loader: async ({ event, context }) => {
     const pool_id = event.srcAddress;
-
     const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
 
     if (!liquidityPoolAggregator) {
@@ -430,21 +425,17 @@ CLPool.SetFeeProtocol.handler(async ({ event, context }) => {
 CLPool.Swap.handlerWithLoader({
   loader: async ({ event, context }) => {
     const pool_id = event.srcAddress;
-    const pool_created = await context.CLFactory_PoolCreated.getWhere.pool.eq(
-      pool_id
-    );
+    const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
 
-    if (!pool_created || pool_created.length === 0) {
+    if (!liquidityPoolAggregator) {
       context.log.error(`Pool ${pool_id} not found during swap`);
       return null;
     }
 
-    const [token0Instance, token1Instance, liquidityPoolAggregator] =
-      await Promise.all([
-        context.Token.get(pool_created[0].token0),
-        context.Token.get(pool_created[0].token1),
-        context.LiquidityPoolAggregator.get(pool_id),
-      ]);
+    const [token0Instance, token1Instance] = await Promise.all([
+      context.Token.get(liquidityPoolAggregator.token0_id),
+      context.Token.get(liquidityPoolAggregator.token1_id),
+    ]);
 
     return { liquidityPoolAggregator, token0Instance, token1Instance };
   },
