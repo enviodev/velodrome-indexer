@@ -38,13 +38,18 @@ describe("CLPool Event Handlers", () => {
     let mockEvent: any;
     let eventData: any;
 
+
+    const { mockToken0Data, mockToken1Data, mockLiquidityPoolData } = setupCommon();
+
     let expectations: any = {
       amount0In: 100n * 10n ** 18n,
       amount1In: 100n * 10n ** 6n,
-      totalLiquidity: 400n * 10n ** 18n,
+      totalLiquidityUSD: 0n,
     };
 
-    const { mockToken0Data, mockToken1Data, mockLiquidityPoolData } = setupCommon();
+    expectations.totalLiquidityUSD =
+      (mockLiquidityPoolData.reserve0 + expectations.amount0In) * mockToken0Data.pricePerUSDNew / ( 10n ** (mockToken0Data.decimals) )  +
+      (mockLiquidityPoolData.reserve1 + expectations.amount1In) * mockToken1Data.pricePerUSDNew / ( 10n ** (mockToken1Data.decimals) );
 
     let postEventDB: any;
     let collectedEntity: any;
@@ -109,7 +114,7 @@ describe("CLPool Event Handlers", () => {
       });
       it("should update the total liquidity in USD correctly", () => {
         expect(diff.totalLiquidityUSD).to.equal(
-          expectations.totalLiquidity,
+          expectations.totalLiquidityUSD,
          "Liquidity should be updated with appropriate prices");
       });
     });
@@ -172,28 +177,6 @@ describe("CLPool Event Handlers", () => {
       expect(collectedEntity?.amount1).to.equal(expectations.amount1In);
     });
 
-    describe("CLPool Aggregator", () => {
-      let diff: any;
-      beforeEach(() => {
-        [diff] = updateLiquidityPoolAggregatorStub.firstCall.args;
-      });
-
-      it("should update the reserves", () => {
-        expect(diff.reserve0).to.equal(
-          mockLiquidityPoolData.reserve0 -
-          expectations.amount0In,
-          "Reserve 0 should be appropriately updated");
-        expect(diff.reserve1).to.equal(
-          mockLiquidityPoolData.reserve1 -
-          expectations.amount1In,
-         "Reserve 1 should be appropriately updated");
-      });
-      it("should update the total liquidity in USD correctly", () => {
-        expect(diff.totalLiquidityUSD).to.equal(
-          expectations.totalLiquidity,
-         "Liquidity should be updated with appropriate prices");
-      });
-    });
   });
 
   describe("Collect Event", () => {
@@ -202,18 +185,20 @@ describe("CLPool Event Handlers", () => {
     let setupDB: any;
     const { mockToken0Data, mockToken1Data, mockLiquidityPoolData } = setupCommon();
     const poolId = mockLiquidityPoolData.id; 
-    const token0Id = mockToken0Data.id;
-    const token1Id = mockToken1Data.id;
-
-    const eventFees = {
-      amount0: 100n * 10n ** 18n,
-      amount1: 200n * 10n ** 6n,
+    let expectations: any = {
+      amount0In: 100n * 10n ** 18n,
+      amount1In: 100n * 10n ** 6n,
+      totalLiquidityUSD: 0n,
     };
+
+    expectations.totalLiquidityUSD =
+      (mockLiquidityPoolData.reserve0 - expectations.amount0In) * mockToken0Data.pricePerUSDNew / ( 10n ** (mockToken0Data.decimals) )  +
+      (mockLiquidityPoolData.reserve1 - expectations.amount1In) * mockToken1Data.pricePerUSDNew / ( 10n ** (mockToken1Data.decimals) );
 
     beforeEach(() => {
       mockEventData = {
-        amount0: eventFees.amount0,
-        amount1: eventFees.amount1,
+        amount0: expectations.amount0In,
+        amount1: expectations.amount1In,
         mockEventData: {
           block: {
             number: 123456,
@@ -246,20 +231,31 @@ describe("CLPool Event Handlers", () => {
         const expectedId = `${mockEvent.chainId}_${mockEvent.block.number}_${mockEvent.logIndex}`;
         const collectEntity = setupDB.entities.CLPool_Collect.get(expectedId);
         expect(collectEntity).to.not.be.undefined;
-        expect(collectEntity?.amount0).to.equal(100n * 10n ** 18n);
-        expect(collectEntity?.amount1).to.equal(200n * 10n ** 6n);
+        expect(collectEntity?.amount0).to.equal(expectations.amount0In);
+        expect(collectEntity?.amount1).to.equal(expectations.amount1In);
       });
 
-      it("should update LiquidityPoolAggregator", async () => {
-        expect(updateLiquidityPoolAggregatorStub.calledOnce).to.be.true;
-        const [diff] = updateLiquidityPoolAggregatorStub.firstCall.args;
+      describe("CLPool Aggregator", () => {
+        let diff: any;
+        beforeEach(() => {
+          [diff] = updateLiquidityPoolAggregatorStub.firstCall.args;
+        });
 
-        expect(diff.totalFees0).to.equal(
-          mockLiquidityPoolData.totalFees0 + eventFees.amount0
-        );
-        expect(diff.totalFees1).to.equal(
-          mockLiquidityPoolData.totalFees1 + eventFees.amount1
-        );
+        it("should update the reserves", () => {
+          expect(diff.reserve0).to.equal(
+            mockLiquidityPoolData.reserve0 -
+            expectations.amount0In,
+            "Reserve 0 should be appropriately updated");
+          expect(diff.reserve1).to.equal(
+            mockLiquidityPoolData.reserve1 -
+            expectations.amount1In,
+          "Reserve 1 should be appropriately updated");
+        });
+        it("should update the total liquidity in USD correctly", () => {
+          expect(diff.totalLiquidityUSD).to.equal(
+            expectations.totalLiquidityUSD,
+          "Liquidity should be updated with appropriate prices");
+        });
       });
     });
   });
@@ -274,8 +270,6 @@ describe("CLPool Event Handlers", () => {
     };
     const { mockToken0Data, mockToken1Data, mockLiquidityPoolData} = setupCommon();
     const poolId = mockLiquidityPoolData.id; 
-    const token0Id = mockToken0Data.id;
-    const token1Id = mockToken1Data.id;
 
     beforeEach(() => {
       mockEventData = {

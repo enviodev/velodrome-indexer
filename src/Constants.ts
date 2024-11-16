@@ -178,12 +178,7 @@ const LISK_CONSTANTS: chainConstants = {
     startBlock: 15591759,
     updateDelta: 60 * 60, // 1 hour
   },
-  rewardToken: {
-    address: "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
-    symbol: "XVELO",
-    decimals: 18,
-    createdBlock: 15405191,
-  },
+  rewardToken: findToken(LISK_WHITELISTED_TOKENS, "XVELO"),
   rpcURL: process.env.MODE_RPC_URL || "wss://lisk.drpc.org",
   stablecoinPools: [],
   stablecoinPoolAddresses: [],
@@ -205,12 +200,7 @@ const MODE_CONSTANTS: chainConstants = {
     startBlock: 15591759,
     updateDelta: 60 * 60, // 1 hour
   },
-  rewardToken: {
-    address: "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
-    symbol: "XVELO",
-    decimals: 18,
-    createdBlock: 15405191,
-  },
+  rewardToken: findToken(MODE_WHITELISTED_TOKENS, "XVELO"),
   rpcURL: process.env.MODE_RPC_URL || "https://mainnet.mode.network",
   stablecoinPools: MODE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: MODE_STABLECOIN_POOLS.map((pool) => pool.address),
