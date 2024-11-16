@@ -347,19 +347,28 @@ describe("CLPool Event Handlers", () => {
 
     const { mockToken0Data, mockToken1Data, mockLiquidityPoolData } = setupCommon();
     const poolId = mockLiquidityPoolData.id; 
-    const token0Id = mockToken0Data.id;
-    const token1Id = mockToken1Data.id;
+
+    let expectations: any = {
+      amount0In: -10n * 10n ** 18n,
+      amount1In: 10n * 10n ** 6n,
+      totalLiquidityUSD: 0n,
+    };
+
+    // Note because the swap is negative for token 0, we add it to the reserve
+    expectations.totalLiquidityUSD =
+      (mockLiquidityPoolData.reserve0 + expectations.amount0In) * mockToken0Data.pricePerUSDNew / ( 10n ** (mockToken0Data.decimals) )  +
+      (mockLiquidityPoolData.reserve1 + expectations.amount1In) * mockToken1Data.pricePerUSDNew / ( 10n ** (mockToken1Data.decimals) );
 
     beforeEach(async () => {
 
       mockEvent = CLPool.Swap.createMockEvent({
         sender: "0xsender",
         recipient: "0xrecipient",
-        amount0: -100n * 10n ** 18n, // Negative for outgoing
-        amount1: 200n * 10n ** 6n, // Positive for incoming
+        amount0: expectations.amount0In,
+        amount1: expectations.amount1In,
         sqrtPriceX96: 1n << 96n,
         liquidity: 1000000n,
-        tick: 0n,
+        tick: 111111n,
         mockEventData: {
           block: {
             number: 123456,
@@ -391,11 +400,11 @@ describe("CLPool Event Handlers", () => {
         expect(swapEntity).to.not.be.undefined;
         expect(swapEntity?.sender).to.equal("0xsender");
         expect(swapEntity?.recipient).to.equal("0xrecipient");
-        expect(swapEntity?.amount0).to.equal(-100n * 10n ** 18n);
-        expect(swapEntity?.amount1).to.equal(200n * 10n ** 6n);
+        expect(swapEntity?.amount0).to.equal(expectations.amount0In);
+        expect(swapEntity?.amount1).to.equal(expectations.amount1In);
         expect(swapEntity?.sqrtPriceX96).to.equal(1n << 96n);
-        expect(swapEntity?.liquidity).to.equal(1000000n);
-        expect(swapEntity?.tick).to.equal(0n);
+        expect(swapEntity?.liquidity).to.equal(mockEvent.params.liquidity);
+        expect(swapEntity?.tick).to.equal(mockEvent.params.tick);
       });
 
       it("should update LiquidityPoolAggregator", async () => {
@@ -430,6 +439,17 @@ describe("CLPool Event Handlers", () => {
         const [diff] = aggregatorCalls;
         expect(diff.token0Price).to.equal(1n * 10n ** 18n);
         expect(diff.token1Price).to.equal(1n * 10n ** 18n);
+      });
+
+      it("should update reserve amounts correctly", async () => {
+        const [diff] = aggregatorCalls;
+        expect(diff.reserve0).to.equal(mockLiquidityPoolData.reserve0 + expectations.amount0In);
+        expect(diff.reserve1).to.equal(mockLiquidityPoolData.reserve1 + expectations.amount1In);
+      });
+
+      it("should update total liquidity in USD correctly", async () => {
+        const [diff] = aggregatorCalls;
+        expect(diff.totalLiquidityUSD).to.equal(expectations.totalLiquidityUSD);
       });
 
       it("should call set_whitelisted_prices", async () => {

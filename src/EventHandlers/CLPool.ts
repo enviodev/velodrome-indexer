@@ -511,6 +511,13 @@ CLPool.Swap.handlerWithLoader({
         tokenUpdateData.netVolumeToken0USD != 0n
           ? tokenUpdateData.netVolumeToken0USD
           : tokenUpdateData.netVolumeToken1USD;
+      
+      const reserveResult = updateCLPoolLiquidity(
+        liquidityPoolAggregator,
+        event,
+        token0Instance,
+        token1Instance
+      );
 
       const liquidityPoolAggregatorDiff: Partial<LiquidityPoolAggregator> = {
         totalVolume0:
@@ -524,6 +531,9 @@ CLPool.Swap.handlerWithLoader({
         token1Price:
           token1Instance?.pricePerUSDNew ?? liquidityPoolAggregator.token1Price,
         numberOfSwaps: liquidityPoolAggregator.numberOfSwaps + 1n,
+        reserve0: liquidityPoolAggregator.reserve0 + reserveResult.reserve0,
+        reserve1: liquidityPoolAggregator.reserve1 + reserveResult.reserve1,
+        totalLiquidityUSD: reserveResult.addTotalLiquidityUSD,
       };
 
       updateLiquidityPoolAggregator(
