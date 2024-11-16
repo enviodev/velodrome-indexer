@@ -18,23 +18,22 @@ import { multiplyBase1e18, abs } from "../Maths";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 
 /**
- * Updates the fee amounts for a CLPoolAggregator based on event data.
- *
- * This function calculates the new total fees for both tokens in a liquidity pool
- * and their equivalent value in USD. It normalizes the token amounts to a base of 1e18
- * for consistent calculations and updates the total fees in the aggregator.
- *
- * @param clPoolAggregator - The current state of the CLPoolAggregator, containing existing fee data.
- * @param event - The event data containing the fee amounts for token0 and token1.
- * @param token0Instance - The instance of token0, containing its decimals and price per USD.
- * @param token1Instance - The instance of token1, containing its decimals and price per USD.
- *
- * @returns An object containing the updated total fees for token0, token1, and their equivalent in USD.
- *
- * The returned object has the following structure:
- * - `totalFees0`: The updated total fees for token0, normalized to 1e18.
- * - `totalFees1`: The updated total fees for token1, normalized to 1e18.
- * - `totalFeesUSD`: The updated total fees in USD, calculated using the normalized token fees and their prices.
+ * Updates the fee-related metrics for a Concentrated Liquidity Pool.
+ * 
+ * This function calculates the total fees collected in both tokens and USD value.
+ * The USD values are computed by:
+ * 1. Normalizing token amounts to 18 decimals
+ * 2. Multiplying by the token's USD price
+ * 
+ * @param liquidityPoolAggregator - The current state of the liquidity pool
+ * @param event - The event containing fee collection data (amount0, amount1)
+ * @param token0Instance - Token instance for token0, containing decimals and price data
+ * @param token1Instance - Token instance for token1, containing decimals and price data
+ * 
+ * @returns {Object} Updated fee metrics
+ * @returns {bigint} .totalFees0 - Cumulative fees collected in token0
+ * @returns {bigint} .totalFees1 - Cumulative fees collected in token1
+ * @returns {bigint} .totalFeesUSD - Cumulative fees collected in USD
  */
 function updateCLPoolFees(
   liquidityPoolAggregator: LiquidityPoolAggregator,
@@ -77,6 +76,32 @@ function updateCLPoolFees(
   return tokenUpdateData;
 }
 
+/**
+ * Updates the liquidity-related metrics for a Concentrated Liquidity Pool.
+ * 
+ * This function calculates both addition and subtraction of liquidity to handle
+ * various pool operations (mint, burn, collect). For each token:
+ * 1. Normalizes reserve amounts to 18 decimals
+ * 2. Calculates USD value using token prices
+ * 3. Computes both addition and subtraction scenarios
+ * 
+ * @param liquidityPoolAggregator - The current state of the liquidity pool
+ * @param event - The event containing liquidity change data (amount0, amount1)
+ * @param token0Instance - Token instance for token0, containing decimals and price data
+ * @param token1Instance - Token instance for token1, containing decimals and price data
+ * 
+ * @returns {Object} Updated liquidity metrics
+ * @returns {bigint} .reserve0 - New token0 reserve amount
+ * @returns {bigint} .reserve1 - New token1 reserve amount
+ * @returns {bigint} .addTotalLiquidity0USD - USD value if adding token0 liquidity
+ * @returns {bigint} .subTotalLiquidity0USD - USD value if removing token0 liquidity
+ * @returns {bigint} .addTotalLiquidity1USD - USD value if adding token1 liquidity
+ * @returns {bigint} .subTotalLiquidity1USD - USD value if removing token1 liquidity
+ * @returns {bigint} .addTotalLiquidityUSD - Total USD value for liquidity addition
+ * @returns {bigint} .subTotalLiquidityUSD - Total USD value for liquidity removal
+ * @returns {bigint} .normalizedReserve0 - Reserve0 normalized to 18 decimals
+ * @returns {bigint} .normalizedReserve1 - Reserve1 normalized to 18 decimals
+ */
 function updateCLPoolLiquidity(
   liquidityPoolAggregator: LiquidityPoolAggregator,
   event: any,
@@ -85,63 +110,76 @@ function updateCLPoolLiquidity(
 ) {
 
   let tokenUpdateData = {
-    totalLiquidityUSD: 0n,
+    addTotalLiquidity0USD: 0n,
+    subTotalLiquidity0USD: 0n,
+    addTotalLiquidity1USD: 0n,
+    subTotalLiquidity1USD: 0n,
+    addTotalLiquidityUSD: 0n,
+    subTotalLiquidityUSD: 0n,
     reserve0: 0n,
     reserve1: 0n,
     normalizedReserve0: 0n,
     normalizedReserve1: 0n,
   };
 
-  // Update reserves regardles of whether the token is priced
-  tokenUpdateData.reserve0 += event.params.amount0;
+  // Return new token reserve amounts
+  tokenUpdateData.reserve0 = event.params.amount0;
+  tokenUpdateData.reserve1 = event.params.amount1;
 
-  tokenUpdateData.reserve1 += event.params.amount1;
-
+  // Update liquidity amounts in USD. Computes both the addition and subtraction of liquidity
+  // from event params.
   if (token0Instance) {
-    tokenUpdateData.normalizedReserve0 += normalizeTokenAmountTo1e18(
-      event.params.amount0,
+    const normalizedReserveAdd0 = normalizeTokenAmountTo1e18(
+      liquidityPoolAggregator.reserve0 + tokenUpdateData.reserve0,
+      Number(token0Instance.decimals || 18)
+    );
+    const normalizedReserveSub0 = normalizeTokenAmountTo1e18(
+      liquidityPoolAggregator.reserve0 - tokenUpdateData.reserve0,
       Number(token0Instance.decimals || 18)
     );
 
-    tokenUpdateData.totalLiquidityUSD += multiplyBase1e18(
-      tokenUpdateData.normalizedReserve0,
+    tokenUpdateData.addTotalLiquidity0USD = multiplyBase1e18(
+      normalizedReserveAdd0,
+      liquidityPoolAggregator.token0Price
+    );
+
+    tokenUpdateData.subTotalLiquidity0USD = multiplyBase1e18(
+      normalizedReserveSub0,
       liquidityPoolAggregator.token0Price
     );
   }
 
   if (token1Instance) {
-    tokenUpdateData.normalizedReserve1 += normalizeTokenAmountTo1e18(
-      event.params.amount1,
+    const normalizedReserveAdd1 = normalizeTokenAmountTo1e18(
+      liquidityPoolAggregator.reserve1 + tokenUpdateData.reserve1,
       Number(token1Instance.decimals || 18)
     );
-    tokenUpdateData.totalLiquidityUSD += multiplyBase1e18(
-      tokenUpdateData.normalizedReserve1,
+    const normalizedReserveSub1 = normalizeTokenAmountTo1e18(
+      liquidityPoolAggregator.reserve1 - tokenUpdateData.reserve1,
+      Number(token1Instance.decimals || 18)
+    );
+
+    tokenUpdateData.addTotalLiquidity1USD = multiplyBase1e18(
+      normalizedReserveAdd1,
+      liquidityPoolAggregator.token1Price
+    );
+
+    tokenUpdateData.subTotalLiquidity1USD = multiplyBase1e18(
+      normalizedReserveSub1,
       liquidityPoolAggregator.token1Price
     );
   }
+
+  tokenUpdateData.addTotalLiquidityUSD = tokenUpdateData.addTotalLiquidity0USD + tokenUpdateData.addTotalLiquidity1USD;
+  tokenUpdateData.subTotalLiquidityUSD = tokenUpdateData.subTotalLiquidity0USD + tokenUpdateData.subTotalLiquidity1USD;
 
   return tokenUpdateData;
 }
 
 CLPool.Burn.handlerWithLoader({
   loader: async ({ event, context }) => {
-    const pool_id = event.srcAddress;
-
-    const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
-
-    if (!liquidityPoolAggregator) {
-      context.log.error(`CLPoolAggregator ${pool_id} not found during mint`);
-      return null;
-    }
-
-    const [token0Instance, token1Instance] = await Promise.all([
-      context.Token.get(liquidityPoolAggregator.token0_id),
-      context.Token.get(liquidityPoolAggregator.token1_id),
-    ]);
-
-    return { liquidityPoolAggregator, token0Instance, token1Instance };
+    return null;
   },
-
   handler: async ({ event, context, loaderReturn }) => {
     const entity: CLPool_Burn = {
       id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
@@ -157,35 +195,6 @@ CLPool.Burn.handlerWithLoader({
     };
 
     context.CLPool_Burn.set(entity);
-
-    if (loaderReturn) {
-      const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
-
-      const tokenUpdateData = updateCLPoolLiquidity(
-        liquidityPoolAggregator,
-        event,
-        token0Instance,
-        token1Instance
-      );
-
-      const liquidityPoolDiff = {
-        reserve0:
-          liquidityPoolAggregator.reserve0 - tokenUpdateData.reserve0,
-        reserve1:
-          liquidityPoolAggregator.reserve1 - tokenUpdateData.reserve1,
-        totalLiquidityUSD:
-          liquidityPoolAggregator.totalLiquidityUSD -
-          tokenUpdateData.totalLiquidityUSD,
-        lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
-      };
-
-      updateLiquidityPoolAggregator(
-        liquidityPoolDiff,
-        liquidityPoolAggregator,
-        liquidityPoolDiff.lastUpdatedTimestamp,
-        context
-      );
-    }
   },
 });
 
@@ -224,23 +233,31 @@ CLPool.Collect.handlerWithLoader({
 
     context.CLPool_Collect.set(entity);
 
-    if (loaderReturn && loaderReturn.liquidityPoolAggregator) {
+    if (loaderReturn) {
       const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
 
-      const tokenUpdateData = updateCLPoolFees(
+      const tokenUpdateData = updateCLPoolLiquidity(
         liquidityPoolAggregator,
         event,
         token0Instance,
         token1Instance
       );
 
+      const liquidityPoolDiff = {
+        reserve0: liquidityPoolAggregator.reserve0 - tokenUpdateData.reserve0,
+        reserve1: liquidityPoolAggregator.reserve1 - tokenUpdateData.reserve1,
+        totalLiquidityUSD: tokenUpdateData.subTotalLiquidityUSD,
+        lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
+      };
+
       updateLiquidityPoolAggregator(
-        tokenUpdateData,
+        liquidityPoolDiff,
         liquidityPoolAggregator,
-        new Date(event.block.timestamp * 1000),
+        liquidityPoolDiff.lastUpdatedTimestamp,
         context
       );
     }
+
   },
 });
 
@@ -387,13 +404,9 @@ CLPool.Mint.handlerWithLoader({
       );
 
       const liquidityPoolDiff = {
-        reserve0:
-          liquidityPoolAggregator.reserve0 + tokenUpdateData.reserve0,
-        reserve1:
-          liquidityPoolAggregator.reserve1 + tokenUpdateData.reserve1,
-        totalLiquidityUSD:
-          liquidityPoolAggregator.totalLiquidityUSD +
-          tokenUpdateData.totalLiquidityUSD,
+        reserve0: liquidityPoolAggregator.reserve0 + tokenUpdateData.reserve0,
+        reserve1: liquidityPoolAggregator.reserve1 + tokenUpdateData.reserve1,
+        totalLiquidityUSD: tokenUpdateData.addTotalLiquidityUSD,
         lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       };
 
