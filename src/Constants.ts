@@ -175,7 +175,7 @@ const LISK_CONSTANTS: chainConstants = {
     getAddress: (blockNumber: number) => {
       return "0xE50621a0527A43534D565B67D64be7C79807F269";
     },
-    startBlock: 15591759,
+    startBlock: 8380726,
     updateDelta: 60 * 60, // 1 hour
   },
   rewardToken: findToken(LISK_WHITELISTED_TOKENS, "XVELO"),
