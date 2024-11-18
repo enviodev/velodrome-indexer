@@ -296,15 +296,34 @@ CLPool.CollectFees.handlerWithLoader({
     if (loaderReturn && loaderReturn.liquidityPoolAggregator) {
       const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
 
-      const tokenUpdateData = updateCLPoolFees(
+      const tokenUpdateData = updateCLPoolLiquidity(
         liquidityPoolAggregator,
         event,
         token0Instance,
         token1Instance
       );
 
+      const tokenUpdateFeesData = updateCLPoolFees(
+        liquidityPoolAggregator,
+        event,
+        token0Instance,
+        token1Instance
+      );
+
+      let liquidityPoolDiff = {
+        reserve0: liquidityPoolAggregator.reserve0 - tokenUpdateData.reserve0,
+        reserve1: liquidityPoolAggregator.reserve1 - tokenUpdateData.reserve1,
+        totalLiquidityUSD: tokenUpdateData.subTotalLiquidityUSD,
+        lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
+      };
+
+      liquidityPoolDiff = {
+        ...liquidityPoolDiff,
+        ...tokenUpdateFeesData,
+      };
+
       updateLiquidityPoolAggregator(
-        tokenUpdateData,
+        liquidityPoolDiff,
         liquidityPoolAggregator,
         new Date(event.block.timestamp * 1000),
         context
