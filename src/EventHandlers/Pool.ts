@@ -64,31 +64,33 @@ Pool.Fees.handlerWithLoader({
     const { liquidityPool, token0Instance, token1Instance } = loaderReturn;
 
     let tokenUpdateData = {
-      totalFees0: 0n,
-      totalFees1: 0n,
+      totalFees0: event.params.amount0,
+      totalFees1: event.params.amount1,
+      totalFeesNormalized0: 0n,
+      totalFeesNormalized1: 0n,
       totalFeesUSD: 0n,
     };
 
     tokenUpdateData.totalFees0 = event.params.amount0
     if (token0Instance) {
-      tokenUpdateData.totalFees0 = normalizeTokenAmountTo1e18(
+      tokenUpdateData.totalFeesNormalized0 = normalizeTokenAmountTo1e18(
         event.params.amount0,
         Number(token0Instance.decimals)
       );
       tokenUpdateData.totalFeesUSD += multiplyBase1e18(
-        tokenUpdateData.totalFees0,
+        tokenUpdateData.totalFeesNormalized0,
         token0Instance.pricePerUSDNew
       );
     }
 
     tokenUpdateData.totalFees1 = event.params.amount1
     if (token1Instance) {
-      tokenUpdateData.totalFees1 = normalizeTokenAmountTo1e18(
+      tokenUpdateData.totalFeesNormalized1 = normalizeTokenAmountTo1e18(
         event.params.amount1,
         Number(token1Instance.decimals)
       );
       tokenUpdateData.totalFeesUSD += multiplyBase1e18(
-        tokenUpdateData.totalFees1,
+        tokenUpdateData.totalFeesNormalized1,
         token1Instance.pricePerUSDNew
       );
     }
