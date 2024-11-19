@@ -38,7 +38,6 @@ SuperchainPoolFactory.RootPoolCreated.handlerWithLoader({
     if (loaderReturn) {
       const { poolChainId } = loaderReturn;
       entity.poolChainId = poolChainId;
-      console.log(entity);
     }
 
     context.SuperchainPoolFactory_RootPoolCreated.set(entity as SuperchainPoolFactory_RootPoolCreated);
