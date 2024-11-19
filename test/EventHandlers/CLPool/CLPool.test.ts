@@ -276,6 +276,11 @@ describe("CLPool Event Handlers", () => {
     expectations.totalLiquidityUSD =
       (mockLiquidityPoolData.reserve0 - expectations.amount0In) * mockToken0Data.pricePerUSDNew / ( 10n ** (mockToken0Data.decimals) )  +
       (mockLiquidityPoolData.reserve1 - expectations.amount1In) * mockToken1Data.pricePerUSDNew / ( 10n ** (mockToken1Data.decimals) );
+    
+    expectations.totalFeesUSD =
+          mockLiquidityPoolData.totalFeesUSD +
+            (expectations.amount0In / 10n ** (mockToken0Data.decimals) ) * mockToken0Data.pricePerUSDNew +
+            (expectations.amount1In / 10n ** (mockToken1Data.decimals) ) * mockToken1Data.pricePerUSDNew;
 
     beforeEach(() => {
       mockEventData = {
@@ -336,12 +341,8 @@ describe("CLPool Event Handlers", () => {
       });
 
       it("should correctly update total fees in USD", async () => {
-        expect(diff.totalFeesUSD).to.equal(
-          mockLiquidityPoolData.totalFeesUSD +
-            (expectations.amount0In * mockToken0Data.pricePerUSDNew) / 10n ** 18n +
-            (expectations.amount1In / 10n ** 6n) * mockToken1Data.pricePerUSDNew,
-          "It should correctly update total fees in USD"
-        );
+        expect(diff.totalFeesUSD).to.equal(expectations.totalFeesUSD,
+          "It should correctly update total fees in USD");
       });
       describe("CLPool Aggregator", () => {
         let diff: any;
