@@ -8,6 +8,14 @@ field_selection:
   transaction_fields:
     - "hash"
 contracts:
+  - name: SuperchainPoolFactory
+    handler: src/EventHandlers/SuperchainPoolFactory.ts
+    events:
+      - event: RootPoolCreated(address indexed token0, address indexed token1, bool indexed stable, address pool, uint256 length)
+  - name: SuperchainCLFactory
+    handler: src/EventHandlers/SuperchainCLFactory.ts
+    events:
+      - event: RootPoolCreated(address indexed token0, address indexed token1, int24 indexed tickSpacing, uint256 chainid, address pool)
   - name: PoolFactory
     handler: src/EventHandlers/PoolFactory.ts
     events:
@@ -89,9 +97,15 @@ networks:
       - name: PoolFactory
         address:
           - 0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a
+      - name: SuperchainPoolFactory
+        address:
+          - 0x31832f2a97Fd20664D76Cc421207669b55CE4BC0
       - name: CLFactory
         address:
           - 0xCc0bDDB707055e04e497aB22a59c2aF4391cd12F
+      - name: SuperchainCLFactory
+        address:
+          - 0x04625B046C69577EfC40e6c0Bb83CDBAfab5a55F
       - name: Pool
         address:
       - name: Voter

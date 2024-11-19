@@ -344,3 +344,26 @@ type Voter_WhitelistToken {
   timestamp: Timestamp!
   chainId: Int!
 }
+
+type SuperchainCLFactory_RootPoolCreated {
+  id: ID!
+  token0: String!
+  token1: String!
+  tickSpacing: BigInt! @config(precision: 76)
+  pool: String! @index
+  timestamp: Timestamp!
+  poolChainId: Int!
+  chainId: Int!
+}
+
+type SuperchainPoolFactory_RootPoolCreated {
+  id: ID!
+  token0: String!
+  token1: String!
+  stable: Boolean!
+  pool: String! @index
+  timestamp: Timestamp!
+  poolChainId: Int!
+  chainId: Int!
+  length: BigInt! @config(precision: 76)
+}
