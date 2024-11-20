@@ -133,6 +133,11 @@ Voter.DistributeReward.handlerWithLoader({
           Number(rewardToken.decimals)
         );
 
+        let normalizedVotesDepositedAmount = normalizeTokenAmountTo1e18(
+          BigInt(tokensDeposited.toString()),
+          Number(rewardToken.decimals)
+        );
+
         // If the reward token does not have a price in USD, log
         if (rewardToken.pricePerUSDNew == 0n) {
           context.log.warn(
@@ -145,8 +150,15 @@ Voter.DistributeReward.handlerWithLoader({
           rewardToken.pricePerUSDNew
         );
 
+        let normalizedVotesDepositedAmountUsd = multiplyBase1e18(
+          normalizedVotesDepositedAmount,
+          rewardToken.pricePerUSDNew
+        );
+
         // Create a new instance of LiquidityPoolEntity to be updated in the DB
         let lpDiff = {
+          totalVotesDeposited: tokensDeposited,
+          totalVotesDepositedUSD: normalizedVotesDepositedAmountUsd,
           totalEmissions:
             currentLiquidityPool.totalEmissions + normalizedEmissionsAmount,
           totalEmissionsUSD:

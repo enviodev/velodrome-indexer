@@ -75,6 +75,8 @@ PoolFactory.PoolCreated.handlerWithLoader({
       totalEmissions: 0n,
       totalEmissionsUSD: 0n,
       totalBribesUSD: 0n,
+      totalVotesDeposited: 0n,
+      totalVotesDepositedUSD: 0n,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       lastSnapshotTimestamp: new Date(event.block.timestamp * 1000),
     };

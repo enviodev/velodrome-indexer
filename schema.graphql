@@ -20,6 +20,8 @@ type LiquidityPoolAggregator {
   numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps in the pool
   token0Price: BigInt! @config(precision: 76) # price of token0 relative to token1
   token1Price: BigInt! @config(precision: 76) # price of token1 relative to token0
+  totalVotesDeposited: BigInt! @config(precision: 76) # total votes for the pool
+  totalVotesDepositedUSD: BigInt! @config(precision: 76) # total votes for the pool in USD
   totalEmissions: BigInt! @config(precision: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
   totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
   totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
@@ -51,6 +53,8 @@ type LiquidityPoolAggregatorSnapshot {
   numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps in the pool
   token0Price: BigInt! @config(precision: 76) # price of token0 relative to token1
   token1Price: BigInt! @config(precision: 76) # price of token1 relative to token0
+  totalVotesDeposited: BigInt! @config(precision: 76) # total votes for the pool
+  totalVotesDepositedUSD: BigInt! @config(precision: 76) # total votes for the pool in USD
   totalEmissions: BigInt! @config(precision: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
   totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
   totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
