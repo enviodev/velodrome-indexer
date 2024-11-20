@@ -206,6 +206,17 @@ type Voter_Voted {
   chainId: Int!
 }
 
+type Voter_DistributeReward {
+  id: ID!
+  sender: String!
+  pool: String!
+  gauge: String!
+  amount: BigInt! @config(precision: 76)
+  tokensDeposited: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
 type Voter_GaugeCreated {
   id: ID!
   poolFactory: String!

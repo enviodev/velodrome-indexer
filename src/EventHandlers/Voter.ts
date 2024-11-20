@@ -3,6 +3,7 @@ import {
   Voter_GaugeCreated,
   Voter_Voted,
   Voter_WhitelistToken,
+  Voter_DistributeReward,
 } from "generated";
 
 import { Token } from "./../src/Types.gen";
@@ -12,9 +13,19 @@ import { poolLookupStoreManager } from "./../Store";
 import { multiplyBase1e18 } from "./../Maths";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 import { getErc20TokenDetails } from "../Erc20";
+import Web3 from "web3";
+import ERC20GaugeABI from "../../abis/ERC20.json";
 
 const { getPoolAddressByGaugeAddress, addRewardAddressDetails } =
   poolLookupStoreManager();
+
+async function getTokensDeposited(gaugeAddress: string, eventChainId: number): Promise<BigInt> {
+    const rpcURL = CHAIN_CONSTANTS[eventChainId].rpcURL;
+    const web3 = new Web3(rpcURL);
+    const contract = new web3.eth.Contract(ERC20GaugeABI, gaugeAddress);
+    const tokensDeposited = await contract.methods.balanceOf(gaugeAddress).call();
+    return BigInt(tokensDeposited?.toString() || '0');
+}
 
 Voter.Voted.handler(async ({ event, context }) => {
   const entity: Voter_Voted = {
@@ -75,6 +86,14 @@ Voter.DistributeReward.handlerWithLoader({
       event.params.gauge
     );
 
+    let tokensDeposited: BigInt = 0n;
+
+    try {
+      tokensDeposited = await getTokensDeposited(event.params.gauge, event.chainId);
+    } catch (error) {
+      context.log.warn(`Error getting tokens deposited for gauge ${event.params.gauge}: ${error}`);
+    }
+
     const promisePool = poolAddress
       ? context.LiquidityPoolAggregator.get(poolAddress)
       : null;
@@ -95,11 +114,12 @@ Voter.DistributeReward.handlerWithLoader({
       ),
     ]);
 
-    return { currentLiquidityPool, rewardToken };
+    return { currentLiquidityPool, rewardToken, tokensDeposited };
   },
   handler: async ({ event, context, loaderReturn }) => {
+
     if (loaderReturn) {
-      const { currentLiquidityPool, rewardToken } = loaderReturn;
+      const { currentLiquidityPool, rewardToken, tokensDeposited } = loaderReturn;
 
       // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
       // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point
@@ -144,7 +164,21 @@ Voter.DistributeReward.handlerWithLoader({
           `No pool entity or reward token found for the gauge address ${event.params.gauge.toString()}`
         );
       }
+
+      const entity: Voter_DistributeReward = {
+        id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+        sender: event.params.sender,
+        gauge: event.params.gauge,
+        amount: BigInt(event.params.amount),
+        pool: currentLiquidityPool?.id || "",
+        tokensDeposited: BigInt(tokensDeposited.toString()),
+        timestamp: new Date(event.block.timestamp * 1000),
+        chainId: event.chainId,
+      };
+
+      context.Voter_DistributeReward.set(entity);
     }
+
   },
 });
 
