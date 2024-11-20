@@ -19,10 +19,11 @@ import ERC20GaugeABI from "../../abis/ERC20.json";
 const { getPoolAddressByGaugeAddress, addRewardAddressDetails } =
   poolLookupStoreManager();
 
-async function getTokensDeposited(gaugeAddress: string, eventChainId: number): Promise<BigInt> {
+// Fetch the number of tokens deposited in the gauge contract.
+async function getTokensDeposited(rewardTokenAddress: string, gaugeAddress: string, eventChainId: number): Promise<BigInt> {
     const rpcURL = CHAIN_CONSTANTS[eventChainId].rpcURL;
     const web3 = new Web3(rpcURL);
-    const contract = new web3.eth.Contract(ERC20GaugeABI, gaugeAddress);
+    const contract = new web3.eth.Contract(ERC20GaugeABI, rewardTokenAddress);
     const tokensDeposited = await contract.methods.balanceOf(gaugeAddress).call();
     return BigInt(tokensDeposited?.toString() || '0');
 }
@@ -88,8 +89,11 @@ Voter.DistributeReward.handlerWithLoader({
 
     let tokensDeposited: BigInt = 0n;
 
+    const rewardTokenInfo = CHAIN_CONSTANTS[event.chainId].rewardToken(event.block.number);
+    const rewardTokenAddress = rewardTokenInfo.address;
+
     try {
-      tokensDeposited = await getTokensDeposited(event.params.gauge, event.chainId);
+      tokensDeposited = await getTokensDeposited(rewardTokenAddress, event.params.gauge, event.chainId);
     } catch (error) {
       context.log.warn(`Error getting tokens deposited for gauge ${event.params.gauge}: ${error}`);
     }
@@ -108,7 +112,7 @@ Voter.DistributeReward.handlerWithLoader({
       promisePool,
       context.Token.get(
         TokenIdByChain(
-          CHAIN_CONSTANTS[event.chainId].rewardToken.address,
+          rewardTokenAddress,
           event.chainId
         )
       ),
