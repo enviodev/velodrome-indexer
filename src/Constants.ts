@@ -234,7 +234,7 @@ const FRAXTAL_CONSTANTS: chainConstants = {
     getAddress: (blockNumber: number) => {
       return "0xE50621a0527A43534D565B67D64be7C79807F269";
     },
-    startBlock: 15591759,
+    startBlock: 12640176,
     updateDelta: 60 * 60, // 1 hour
   },
   rewardToken: (blockNumber: number) => findToken(FRAXTAL_WHITELISTED_TOKENS, "XVELO"),
