@@ -4,6 +4,7 @@ import optimismWhitelistedTokens from "./constants/optimismWhitelistedTokens.jso
 import baseWhitelistedTokens from "./constants/baseWhitelistedTokens.json";
 import modeWhitelistedTokens from "./constants/modeWhitelistedTokens.json";
 import liskWhitelistedTokens from "./constants/liskWhitelistedTokens.json";
+import fraxtalWhitelistedTokens from "./constants/fraxtalWhitelistedTokens.json";
 import contractABI from "../abis/VeloPriceOracleABI.json";
 import Web3 from "web3";
 
@@ -28,6 +29,9 @@ export const MODE_WHITELISTED_TOKENS: TokenInfo[] =
 
 export const LISK_WHITELISTED_TOKENS: TokenInfo[] =
   liskWhitelistedTokens as TokenInfo[];
+
+export const FRAXTAL_WHITELISTED_TOKENS: TokenInfo[] =
+  fraxtalWhitelistedTokens as TokenInfo[];
 
 export const toChecksumAddress = (address: string) => Web3.utils.toChecksumAddress(address);
 
@@ -222,6 +226,28 @@ const MODE_CONSTANTS: chainConstants = {
   ),
 };
 
+// Constants for Fraxtal
+const FRAXTAL_CONSTANTS: chainConstants = {
+  eth: findToken(FRAXTAL_WHITELISTED_TOKENS, "wfrxETH"),
+  usdc: findToken(FRAXTAL_WHITELISTED_TOKENS, "FRAX"),
+  oracle: {
+    getAddress: (blockNumber: number) => {
+      return "0xE50621a0527A43534D565B67D64be7C79807F269";
+    },
+    startBlock: 15591759,
+    updateDelta: 60 * 60, // 1 hour
+  },
+  rewardToken: (blockNumber: number) => findToken(FRAXTAL_WHITELISTED_TOKENS, "XVELO"),
+  rpcURL: process.env.FRAXTAL_RPC_URL || "https://rpc.frax.com",
+  stablecoinPools: [],
+  stablecoinPoolAddresses: [],
+  testingPoolAddresses: [],
+  whitelistedTokens: FRAXTAL_WHITELISTED_TOKENS,
+  whitelistedTokenAddresses: FRAXTAL_WHITELISTED_TOKENS.map(
+    (token) => token.address
+  ),
+};
+
 /**
  * Create a unique ID for a token on a specific chain. Really should only be used for Token Entities.
  * @param address 
@@ -246,7 +272,8 @@ export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   10: OPTIMISM_CONSTANTS,
   8453: BASE_CONSTANTS,
   34443: MODE_CONSTANTS,
-  1135: LISK_CONSTANTS
+  1135: LISK_CONSTANTS,
+  252: FRAXTAL_CONSTANTS
 };
 
 export const CacheCategory = {
