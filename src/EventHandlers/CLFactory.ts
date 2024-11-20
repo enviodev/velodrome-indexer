@@ -60,7 +60,7 @@ CLFactory.PoolCreated.handlerWithLoader({
         poolTokenSymbols[0],
         poolTokenSymbols[1],
         false, // Pool is not stable
-        true // Pool is CL
+        Number(event.params.tickSpacing) // Pool is CL
       ),
       token0_id: TokenIdByChain(event.params.token0, event.chainId),
       token1_id: TokenIdByChain(event.params.token1, event.chainId),

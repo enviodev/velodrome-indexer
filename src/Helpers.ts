@@ -17,7 +17,7 @@ export function generatePoolName(
   token0Symbol: string,
   token1Symbol: string,
   isStable: boolean,
-  isCL: boolean
+  clTickSpacing: number
 ): string {
   let poolType = "";
   if (isStable) {
@@ -25,8 +25,8 @@ export function generatePoolName(
   } else {
     poolType = "Volatile";
   }
-  if (isCL) {
-    poolType = "CL";
+  if (clTickSpacing != 0) {
+    poolType = "CL-" + clTickSpacing;
   }
   return `${poolType} AMM - ${token0Symbol}/${token1Symbol}`;
 }
