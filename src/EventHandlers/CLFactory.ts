@@ -80,6 +80,8 @@ CLFactory.PoolCreated.handlerWithLoader({
       numberOfSwaps: 0n,
       token0Price: 0n,
       token1Price: 0n,
+      totalVotesDeposited: 0n,
+      totalVotesDepositedUSD: 0n,
       totalEmissions: 0n,
       totalEmissionsUSD: 0n,
       totalBribesUSD: 0n,

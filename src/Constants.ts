@@ -108,7 +108,7 @@ type chainConstants = {
     startBlock: number;
     updateDelta: number;
   };
-  rewardToken: TokenInfo;
+  rewardToken: (blockNumber: number) => TokenInfo;
   rpcURL: string;
   stablecoinPools: Pool[];
   stablecoinPoolAddresses: string[];
@@ -130,7 +130,18 @@ const OPTIMISM_CONSTANTS: chainConstants = {
     startBlock: 107676013,
     updateDelta: 60 * 60, // 1 hour
   },
-  rewardToken: findToken(OPTIMISM_WHITELISTED_TOKENS, "VELO"),
+  rewardToken: (blockNumber: number) => {
+    if (blockNumber < 105896880) {
+      return findToken(OPTIMISM_WHITELISTED_TOKENS, "VELO");
+    }
+
+    return {
+      address: "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db",
+      symbol: "VELO",
+      decimals: 18,
+      createdBlock: 105896880
+    }
+  },
   rpcURL: process.env.OPTIMISM_RPC_URL || "https://rpc.ankr.com/optimism",
   stablecoinPools: OPTIMISM_STABLECOIN_POOLS,
   stablecoinPoolAddresses: OPTIMISM_STABLECOIN_POOLS.map(
@@ -156,7 +167,7 @@ const BASE_CONSTANTS: chainConstants = {
     startBlock: 3219857,
     updateDelta: 60 * 60, // 1 hour
   },
-  rewardToken: findToken(BASE_WHITELISTED_TOKENS, "AERO"),
+  rewardToken: (blockNumber: Number) => findToken(BASE_WHITELISTED_TOKENS, "AERO"),
   rpcURL: process.env.BASE_RPC_URL || "https://base.publicnode.com",
   stablecoinPools: BASE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: BASE_STABLECOIN_POOLS.map((pool) => pool.address),
@@ -178,7 +189,7 @@ const LISK_CONSTANTS: chainConstants = {
     startBlock: 8380726,
     updateDelta: 60 * 60, // 1 hour
   },
-  rewardToken: findToken(LISK_WHITELISTED_TOKENS, "XVELO"),
+  rewardToken: (blockNumber: number) => findToken(LISK_WHITELISTED_TOKENS, "XVELO"),
   rpcURL: process.env.MODE_RPC_URL || "wss://lisk.drpc.org",
   stablecoinPools: [],
   stablecoinPoolAddresses: [],
@@ -200,7 +211,7 @@ const MODE_CONSTANTS: chainConstants = {
     startBlock: 15591759,
     updateDelta: 60 * 60, // 1 hour
   },
-  rewardToken: findToken(MODE_WHITELISTED_TOKENS, "XVELO"),
+  rewardToken: (blockNumber: number) => findToken(MODE_WHITELISTED_TOKENS, "XVELO"),
   rpcURL: process.env.MODE_RPC_URL || "https://mainnet.mode.network",
   stablecoinPools: MODE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: MODE_STABLECOIN_POOLS.map((pool) => pool.address),
