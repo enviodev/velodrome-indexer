@@ -53,7 +53,7 @@ PoolFactory.PoolCreated.handlerWithLoader({
         poolTokenSymbols[0],
         poolTokenSymbols[1],
         event.params.stable,
-        false // Pool is not CL
+        0 // Pool is not CL
       ),
       token0_id: TokenIdByChain(event.params.token0, event.chainId),
       token1_id: TokenIdByChain(event.params.token1, event.chainId),
@@ -75,6 +75,8 @@ PoolFactory.PoolCreated.handlerWithLoader({
       totalEmissions: 0n,
       totalEmissionsUSD: 0n,
       totalBribesUSD: 0n,
+      totalVotesDeposited: 0n,
+      totalVotesDepositedUSD: 0n,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       lastSnapshotTimestamp: new Date(event.block.timestamp * 1000),
     };

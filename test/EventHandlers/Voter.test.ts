@@ -112,10 +112,12 @@ describe("Voter Events", () => {
      * @see {@link ../../.cache/guagetopool-10.json} for a mapping between gauge and pool that exists.
      */
     const chainId = 10; // Optimism
-    const poolAddress = "0x904f14F9ED81d0b0a40D8169B28592aac5687158";
-    const gaugeAddress = "0x91f2e5c009d3742188fa77619582402681d73f98";
+    const poolAddress = "0x478946BcD4a5a22b316470F5486fAfb928C0bA25";
+    const gaugeAddress = "0xa75127121d28a9bf848f3b70e7eea26570aa7700";
+    const blockNumber = 105896881;
 
-    const rewardTokenAddress = CHAIN_CONSTANTS[chainId].rewardToken.address;
+    const rewardTokenInfo = CHAIN_CONSTANTS[chainId].rewardToken(blockNumber);
+    const rewardTokenAddress = rewardTokenInfo.address;
 
     beforeEach(() => {
       mockDb = MockDb.createMockDb();
@@ -126,7 +128,7 @@ describe("Voter Events", () => {
         amount: 1000n * 10n ** 18n, // 1000 tokens with 18 decimals
         mockEventData: {
           block: {
-            number: 123456,
+            number: blockNumber,
             timestamp: 1000000,
             hash: "0xblockhash",
           },
@@ -143,6 +145,8 @@ describe("Voter Events", () => {
 
     describe("when reward token and liquidity pool exist", () => {
       let resultDB: ReturnType<typeof MockDb.createMockDb>;
+      let updatedDB: ReturnType<typeof MockDb.createMockDb>;
+      let expectedId: string;
       
       beforeEach(async () => {
         // Setup mock reward token
@@ -179,20 +183,33 @@ describe("Voter Events", () => {
           numberOfSwaps: 0n,
           token0Price: 0n,
           token1Price: 0n,
+          totalVotesDeposited: 0n,
+          totalVotesDepositedUSD: 0n,
           totalEmissions: 1000n * 10n ** 18n,
           totalEmissionsUSD: 2000n * 10n ** 18n,
           totalBribesUSD: 0n,
         } as LiquidityPoolAggregator;
 
         // Set entities in the mock database
-        const updatedDB1 = mockDb.entities.Token.set(rewardToken);
-        const updatedDB2 = updatedDB1.entities.LiquidityPoolAggregator.set(liquidityPool);
+        updatedDB = mockDb.entities.Token.set(rewardToken);
+        updatedDB = updatedDB.entities.LiquidityPoolAggregator.set(liquidityPool);
+
+        expectedId = `${chainId}_${mockEvent.block.number}_${mockEvent.logIndex}`;
 
         // Process the event
         resultDB = await Voter.DistributeReward.processEvent({
           event: mockEvent,
-          mockDb: updatedDB2,
+          mockDb: updatedDB,
         });
+      });
+
+      it("should create a new DistributeReward entity", () => {
+        const entity = resultDB.entities.Voter_DistributeReward.get(expectedId);
+        expect(entity).to.not.be.undefined;
+        expect(entity?.amount).to.equal(1000n * 10n ** 18n);
+        expect(entity?.tokensDeposited).to.not.equal(0n);
+        expect(entity?.timestamp).to.deep.equal(new Date(1000000 * 1000));
+        expect(entity?.chainId).to.equal(chainId);
       });
 
       it("should update the liquidity pool aggregator with emissions data", () => {
@@ -200,6 +217,13 @@ describe("Voter Events", () => {
         expect(updatedPool).to.not.be.undefined;
         expect(updatedPool?.totalEmissions).to.equal(2000n * 10n ** 18n, "Should add 1000 tokens to existing 1000");
         expect(updatedPool?.totalEmissionsUSD).to.equal(4000n * 10n ** 18n, "Should add $2000 (1000 tokens * $2) to existing $2000");
+        expect(updatedPool?.lastUpdatedTimestamp).to.deep.equal(new Date(1000000 * 1000));
+      });
+      it("should update the liquidity pool aggregator with votes deposited data", () => {
+        const updatedPool = resultDB.entities.LiquidityPoolAggregator.get(poolAddress);
+        expect(updatedPool).to.not.be.undefined;
+        expect(updatedPool?.totalVotesDeposited).to.not.equal(0n, "Should have votes deposited");
+        expect(updatedPool?.totalVotesDepositedUSD).to.not.equal(0n , "Should have USD value for votes deposited");
         expect(updatedPool?.lastUpdatedTimestamp).to.deep.equal(new Date(1000000 * 1000));
       });
     });

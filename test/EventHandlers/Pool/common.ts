@@ -43,6 +43,8 @@ export function setupCommon() {
     numberOfSwaps: 1n,
     token0Price: 1n * TEN_TO_THE_18_BI,
     token1Price: 1n * TEN_TO_THE_18_BI,
+    totalVotesDeposited: 1n,
+    totalVotesDepositedUSD: 1n * TEN_TO_THE_18_BI,
     totalEmissions: 1n,
     totalEmissionsUSD: 1n * TEN_TO_THE_18_BI,
     totalBribesUSD: 1n * TEN_TO_THE_18_BI,
