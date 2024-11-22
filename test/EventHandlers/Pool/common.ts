@@ -48,6 +48,7 @@ export function setupCommon() {
     totalEmissions: 1n,
     totalEmissionsUSD: 1n * TEN_TO_THE_18_BI,
     totalBribesUSD: 1n * TEN_TO_THE_18_BI,
+    gaugeIsAlive: true,
   };
 
   return {

@@ -77,6 +77,7 @@ PoolFactory.PoolCreated.handlerWithLoader({
       totalBribesUSD: 0n,
       totalVotesDeposited: 0n,
       totalVotesDepositedUSD: 0n,
+      gaugeIsAlive: false,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       lastSnapshotTimestamp: new Date(event.block.timestamp * 1000),
     };

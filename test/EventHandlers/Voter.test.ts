@@ -112,9 +112,10 @@ describe("Voter Events", () => {
      * @see {@link ../../.cache/guagetopool-10.json} for a mapping between gauge and pool that exists.
      */
     const chainId = 10; // Optimism
+    const voterAddress = "0x41C914ee0c7E1A5edCD0295623e6dC557B5aBf3C";
     const poolAddress = "0x478946BcD4a5a22b316470F5486fAfb928C0bA25";
     const gaugeAddress = "0xa75127121d28a9bf848f3b70e7eea26570aa7700";
-    const blockNumber = 105896881;
+    const blockNumber = 128357873;
 
     const rewardTokenInfo = CHAIN_CONSTANTS[chainId].rewardToken(blockNumber);
     const rewardTokenAddress = rewardTokenInfo.address;
@@ -134,6 +135,7 @@ describe("Voter Events", () => {
           },
           chainId: chainId,
           logIndex: 0,
+          srcAddress: voterAddress
         },
       });
 
@@ -225,6 +227,11 @@ describe("Voter Events", () => {
         expect(updatedPool?.totalVotesDeposited).to.not.equal(0n, "Should have votes deposited");
         expect(updatedPool?.totalVotesDepositedUSD).to.not.equal(0n , "Should have USD value for votes deposited");
         expect(updatedPool?.lastUpdatedTimestamp).to.deep.equal(new Date(1000000 * 1000));
+      });
+      it("should update the liquidity pool aggregator with gauge is alive data", () => {
+        const updatedPool = resultDB.entities.LiquidityPoolAggregator.get(poolAddress);
+        expect(updatedPool).to.not.be.undefined;
+        expect(updatedPool?.gaugeIsAlive).to.be.true;
       });
     });
   });

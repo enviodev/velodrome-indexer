@@ -25,6 +25,7 @@ type LiquidityPoolAggregator {
   totalEmissions: BigInt! @config(precision: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
   totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
   totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
+  gaugeIsAlive: Boolean! # whether the gauge is alive
   lastUpdatedTimestamp: Timestamp! # timestamp of last update
   lastSnapshotTimestamp: Timestamp! # timestamp of last snapshot
 }
@@ -58,6 +59,7 @@ type LiquidityPoolAggregatorSnapshot {
   totalEmissions: BigInt! @config(precision: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
   totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
   totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
+  gaugeIsAlive: Boolean! # whether the gauge is alive
   timestamp: Timestamp! # timestamp of last update
 }
 
