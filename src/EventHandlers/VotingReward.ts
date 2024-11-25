@@ -11,6 +11,7 @@ import { multiplyBase1e18 } from "./../Maths";
 import { poolLookupStoreManager } from "./../Store";
 import { TokenIdByChain } from "../Constants";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
+import { getTokenPriceData, TokenPriceData } from "../PriceOracle";
 
 //// global state!
 const { getPoolAddressByBribeVotingRewardAddress } = poolLookupStoreManager();
@@ -32,10 +33,22 @@ VotingReward.NotifyReward.handlerWithLoader({
       );
     }
 
-    const [currentLiquidityPool, rewardToken] = await Promise.all([
+    let rewardToken: TokenPriceData | null = null;
+
+    const [currentLiquidityPool, storedToken] = await Promise.all([
       promisePool,
       context.Token.get(TokenIdByChain(event.params.reward, event.chainId)),
     ]);
+
+    if (!storedToken) {
+      const rewardTokenDetails = await getTokenPriceData(event.params.reward, event.block.number, event.chainId);
+      rewardToken = rewardTokenDetails;
+    } else {
+      rewardToken = {
+        pricePerUSDNew: storedToken.pricePerUSDNew,
+        decimals: storedToken.decimals
+      }
+    }
 
     return { currentLiquidityPool, rewardToken };
   },
