@@ -4,6 +4,8 @@ import { TokenIdByChain, CHAIN_CONSTANTS } from "../../src/Constants";
 import { Token, LiquidityPoolAggregator } from "../../generated/src/Types.gen";
 import * as Store from "../../src/Store";
 import sinon from "sinon";
+import { setupCommon } from "./Pool/common";
+import * as Common from "../../src/EventHandlers/Voter/common";
 
 describe("Voter Events", () => {
   describe("WhitelistToken event", () => {
@@ -139,19 +141,27 @@ describe("Voter Events", () => {
         },
       });
 
+
     });
 
-    afterEach(() => {
-      sinon.restore();
-    });
 
     describe("when reward token and liquidity pool exist", () => {
       let resultDB: ReturnType<typeof MockDb.createMockDb>;
       let updatedDB: ReturnType<typeof MockDb.createMockDb>;
       let expectedId: string;
+
+      const { mockLiquidityPoolData, mockToken0Data, mockToken1Data } = setupCommon();
+      let expectations: any = {};
       
       beforeEach(async () => {
-        // Setup mock reward token
+        const rewardTokenInfo = CHAIN_CONSTANTS[chainId].rewardToken(blockNumber);
+        const rewardTokenAddress = rewardTokenInfo.address;
+        const liquidityPool: LiquidityPoolAggregator = {
+          ...mockLiquidityPoolData,
+          id: poolAddress,
+          chainId: chainId,
+        } as LiquidityPoolAggregator;
+
         const rewardToken: Token = {
           id: TokenIdByChain(rewardTokenAddress, chainId),
           address: rewardTokenAddress,
@@ -163,34 +173,19 @@ describe("Voter Events", () => {
           isWhitelisted: true,
         } as Token;
 
-        // Setup mock liquidity pool
-        const liquidityPool: LiquidityPoolAggregator = {
-          id: poolAddress,
-          chainId: chainId,
-          name: "Test Pool",
-          token0_id: "token0-10",
-          token1_id: "token1-10",
-          token0_address: "0xtoken0",
-          token1_address: "0xtoken1",
-          isStable: false,
-          reserve0: 0n,
-          reserve1: 0n,
-          totalLiquidityUSD: 0n,
-          totalVolume0: 0n,
-          totalVolume1: 0n,
-          totalVolumeUSD: 0n,
-          totalFees0: 0n,
-          totalFees1: 0n,
-          totalFeesUSD: 0n,
-          numberOfSwaps: 0n,
-          token0Price: 0n,
-          token1Price: 0n,
-          totalVotesDeposited: 0n,
-          totalVotesDepositedUSD: 0n,
-          totalEmissions: 1000n * 10n ** 18n,
-          totalEmissionsUSD: 2000n * 10n ** 18n,
-          totalBribesUSD: 0n,
-        } as LiquidityPoolAggregator;
+        expectations = {
+          totalEmissions: liquidityPool.totalEmissions + mockEvent.params.amount,
+          totalEmissionsUSD: liquidityPool.totalEmissionsUSD + 
+            mockEvent.params.amount * rewardToken.pricePerUSDNew / 10n ** rewardToken.decimals,
+          getTokensDeposited: 500n * 10n ** 18n,
+          getTokensDepositedUSD: 500n * 10n ** 18n * rewardToken.pricePerUSDNew / 10n ** rewardToken.decimals,
+        };
+
+        sinon.stub(Common, "getIsAlive").resolves(true);
+        sinon.stub(Common, "getTokensDeposited").resolves(expectations.getTokensDeposited);
+        sinon.stub(Store.poolLookupStoreManager(), "getPoolAddressByGaugeAddress")
+          .returns(poolAddress);
+
 
         // Set entities in the mock database
         updatedDB = mockDb.entities.Token.set(rewardToken);
@@ -205,27 +200,32 @@ describe("Voter Events", () => {
         });
       });
 
+      afterEach(() => {
+        sinon.restore();
+      });
+
       it("should create a new DistributeReward entity", () => {
-        const entity = resultDB.entities.Voter_DistributeReward.get(expectedId);
-        expect(entity).to.not.be.undefined;
-        expect(entity?.amount).to.equal(1000n * 10n ** 18n);
-        expect(entity?.tokensDeposited).to.not.equal(0n);
-        expect(entity?.timestamp).to.deep.equal(new Date(1000000 * 1000));
-        expect(entity?.chainId).to.equal(chainId);
+        const distributeRewardEntity = resultDB.entities.Voter_DistributeReward.get(expectedId);
+        expect(distributeRewardEntity).to.not.be.undefined;
+        expect(distributeRewardEntity?.chainId).to.equal(chainId);
+        expect(distributeRewardEntity?.amount).to.equal(mockEvent.params.amount);
+        expect(distributeRewardEntity?.tokensDeposited).to.equal(expectations.getTokensDeposited);
       });
 
       it("should update the liquidity pool aggregator with emissions data", () => {
         const updatedPool = resultDB.entities.LiquidityPoolAggregator.get(poolAddress);
         expect(updatedPool).to.not.be.undefined;
-        expect(updatedPool?.totalEmissions).to.equal(2000n * 10n ** 18n, "Should add 1000 tokens to existing 1000");
-        expect(updatedPool?.totalEmissionsUSD).to.equal(4000n * 10n ** 18n, "Should add $2000 (1000 tokens * $2) to existing $2000");
+        expect(updatedPool?.totalEmissions).to.equal(expectations.totalEmissions);
+        expect(updatedPool?.totalEmissionsUSD).to.equal(expectations.totalEmissionsUSD);
+        expect(updatedPool?.gaugeIsAlive).to.be.true;
+        expect(updatedPool?.totalVotesDeposited).to.equal(expectations.getTokensDeposited);
         expect(updatedPool?.lastUpdatedTimestamp).to.deep.equal(new Date(1000000 * 1000));
       });
       it("should update the liquidity pool aggregator with votes deposited data", () => {
         const updatedPool = resultDB.entities.LiquidityPoolAggregator.get(poolAddress);
         expect(updatedPool).to.not.be.undefined;
-        expect(updatedPool?.totalVotesDeposited).to.not.equal(0n, "Should have votes deposited");
-        expect(updatedPool?.totalVotesDepositedUSD).to.not.equal(0n , "Should have USD value for votes deposited");
+        expect(updatedPool?.totalVotesDeposited).to.equal(expectations.getTokensDeposited, "Should have votes deposited");
+        expect(updatedPool?.totalVotesDepositedUSD).to.equal(expectations.getTokensDepositedUSD, "Should have USD value for votes deposited");
         expect(updatedPool?.lastUpdatedTimestamp).to.deep.equal(new Date(1000000 * 1000));
       });
       it("should update the liquidity pool aggregator with gauge is alive data", () => {
