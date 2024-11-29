@@ -85,6 +85,7 @@ CLFactory.PoolCreated.handlerWithLoader({
       totalEmissions: 0n,
       totalEmissionsUSD: 0n,
       totalBribesUSD: 0n,
+      gaugeIsAlive: false,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       lastSnapshotTimestamp: new Date(event.block.timestamp * 1000),
     };

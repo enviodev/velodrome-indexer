@@ -9,6 +9,35 @@ import {
 import { Token, TokenPriceSnapshot } from "./src/Types.gen";
 import { Cache, ShapePricesList } from "./cache";
 import { createHash } from "crypto";
+import { getErc20TokenDetails } from "./Erc20";
+
+export interface TokenPriceData {
+  pricePerUSDNew: bigint;
+  decimals: bigint;
+}
+
+export async function getTokenPriceData(tokenAddress: string, blockNumber: number, chainId: number): Promise<TokenPriceData> {
+  const tokenDetails = await getErc20TokenDetails(
+    tokenAddress,
+    chainId
+  );
+
+  const WETH_ADDRESS = CHAIN_CONSTANTS[chainId].eth.address;
+  const USDC_ADDRESS = CHAIN_CONSTANTS[chainId].usdc.address;
+
+  let tokenPrice: bigint = 0n;
+  let tokenDecimals: bigint = 0n;
+
+  try {
+    const prices = await read_prices([tokenAddress, WETH_ADDRESS, USDC_ADDRESS], chainId, blockNumber);
+    tokenPrice = BigInt(prices[0]);
+    tokenDecimals = BigInt(tokenDetails.decimals);
+  } catch (error) {
+    console.error("Error fetching token price", error);
+  }
+  return { pricePerUSDNew: tokenPrice, decimals: tokenDecimals };
+  
+}
 
 
 /**
