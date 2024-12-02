@@ -96,7 +96,7 @@ Voter.DistributeReward.handlerWithLoader({
     try {
       tokensDeposited = await getTokensDeposited(rewardTokenAddress, event.params.gauge, event.block.number, event.chainId);
     } catch (error) {
-      context.log.warn(`Error getting tokens deposited for gauge ${event.params.gauge}: ${error}`);
+      context.log.warn(`Error getting tokens deposited for gauge ${event.params.gauge} on chain ${event.chainId}`);
     }
 
     const promisePool = poolAddress
