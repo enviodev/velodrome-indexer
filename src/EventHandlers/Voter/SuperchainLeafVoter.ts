@@ -110,7 +110,7 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
 
     if (!poolAddress) {
       context.log.warn(
-        `No pool address found for the gauge address ${event.params.gauge.toString()}`
+        `No pool address found for the gauge address ${event.params.gauge.toString()} on chain ${event.chainId}`
       );
     }
 
