@@ -88,7 +88,7 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
     try {
       isAlive = await getIsAlive(event.srcAddress, event.params.gauge, event.block.number, event.chainId);
     } catch (error) {
-      context.log.warn(`Error getting isAlive for gauge ${event.params.gauge}: ${error}`);
+      context.log.warn(`Error getting isAlive for gauge ${event.params.gauge} on chain ${event.chainId}`);
     }
 
     try {
@@ -178,7 +178,7 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
       } else {
         // If there is no pool entity with the particular gauge address, log the error
         context.log.warn(
-          `No pool entity or reward token found for the gauge address ${event.params.gauge.toString()}`
+          `No pool entity or reward token found for the gauge address ${event.params.gauge.toString()} on chain ${event.chainId}`
         );
       }
 
