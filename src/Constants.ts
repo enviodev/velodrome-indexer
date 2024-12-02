@@ -190,7 +190,7 @@ const LISK_CONSTANTS: chainConstants = {
     updateDelta: 60 * 60, // 1 hour
   },
   rewardToken: (blockNumber: number) => findToken(LISK_WHITELISTED_TOKENS, "XVELO"),
-  rpcURL: process.env.MODE_RPC_URL || "wss://lisk.drpc.org",
+  rpcURL: process.env.LISK_RPC_URL || "https://lisk.drpc.org",
   stablecoinPools: [],
   stablecoinPoolAddresses: [],
   testingPoolAddresses: [],
