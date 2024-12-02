@@ -24,6 +24,10 @@ The indexer is written in TypeScript.
   - The event handlers are written in TypeScript for Velodrome indexer.
   - Consists of a `loader` and a `handler` function for each event - see [here](https://docs.envio.dev/docs/event-handlers) for detailed explanation of the purpose of the two functions.
   - Makes use of custom helper functions and types in `/src` directory - these have been added to minimize code duplication and refactored to increase readability of the overall codebase.
+- `.env`
+  - Remove `.example` from `.env` and add variables to customize secrets in the handlers and configuration.
+  - `.env` variables will be included using the [dotenv](https://www.dotenv.org/docs/) library.
+  - Assert in deployment that the variables are included if they are necessary for the project.
 
 ### Development
 
