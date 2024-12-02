@@ -8,7 +8,11 @@ import {
 
 import { Token } from "generated/src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "../../Helpers";
-import { CHAIN_CONSTANTS, toChecksumAddress, TokenIdByChain } from "../../Constants";
+import {
+  CHAIN_CONSTANTS,
+  toChecksumAddress,
+  TokenIdByChain,
+} from "../../Constants";
 import { poolLookupStoreManager } from "../../Store";
 import { multiplyBase1e18 } from "../../Maths";
 import { updateLiquidityPoolAggregator } from "../../Aggregators/LiquidityPoolAggregator";
@@ -17,7 +21,6 @@ import { getIsAlive, getTokensDeposited } from "./common";
 
 const { getPoolAddressByGaugeAddress, addRewardAddressDetails } =
   poolLookupStoreManager();
-
 
 SuperchainLeafVoter.Voted.handler(async ({ event, context }) => {
   const entity: Voter_Voted = {
@@ -64,7 +67,9 @@ SuperchainLeafVoter.GaugeCreated.handler(async ({ event, context }) => {
   let currentPoolRewardAddressMapping = {
     poolAddress: toChecksumAddress(event.params.pool),
     gaugeAddress: toChecksumAddress(event.params.gauge),
-    bribeVotingRewardAddress: toChecksumAddress(event.params.incentiveVotingReward),
+    bribeVotingRewardAddress: toChecksumAddress(
+      event.params.incentiveVotingReward
+    ),
     // feeVotingRewardAddress: event.params.feeVotingReward, // currently not used
   };
 
@@ -80,22 +85,24 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
 
     let tokensDeposited: BigInt = 0n;
 
-    const rewardTokenInfo = CHAIN_CONSTANTS[event.chainId].rewardToken(event.block.number);
+    const rewardTokenInfo = CHAIN_CONSTANTS[event.chainId].rewardToken(
+      event.block.number
+    );
     const rewardTokenAddress = rewardTokenInfo.address;
 
     let isAlive: boolean = false;
 
-    try {
-      isAlive = await getIsAlive(event.srcAddress, event.params.gauge, event.block.number, event.chainId);
-    } catch (error) {
-      context.log.warn(`Error getting isAlive for gauge ${event.params.gauge}: ${error}`);
-    }
+    // try {
+    //   isAlive = await getIsAlive(event.srcAddress, event.params.gauge, event.block.number, event.chainId);
+    // } catch (error) {
+    //   context.log.warn(`Error getting isAlive for gauge ${event.params.gauge}: ${error}`);
+    // }
 
-    try {
-      tokensDeposited = await getTokensDeposited(rewardTokenAddress, event.params.gauge, event.block.number, event.chainId);
-    } catch (error) {
-      context.log.warn(`Error getting tokens deposited for gauge ${event.params.gauge}: ${error}`);
-    }
+    // try {
+    //   tokensDeposited = await getTokensDeposited(rewardTokenAddress, event.params.gauge, event.block.number, event.chainId);
+    // } catch (error) {
+    //   context.log.warn(`Error getting tokens deposited for gauge ${event.params.gauge}: ${error}`);
+    // }
 
     const promisePool = poolAddress
       ? context.LiquidityPoolAggregator.get(poolAddress)
@@ -109,20 +116,15 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
 
     const [currentLiquidityPool, rewardToken] = await Promise.all([
       promisePool,
-      context.Token.get(
-        TokenIdByChain(
-          rewardTokenAddress,
-          event.chainId
-        )
-      ),
+      context.Token.get(TokenIdByChain(rewardTokenAddress, event.chainId)),
     ]);
 
     return { currentLiquidityPool, rewardToken, tokensDeposited, isAlive };
   },
   handler: async ({ event, context, loaderReturn }) => {
-
     if (loaderReturn) {
-      const { isAlive, currentLiquidityPool, rewardToken, tokensDeposited } = loaderReturn;
+      const { isAlive, currentLiquidityPool, rewardToken, tokensDeposited } =
+        loaderReturn;
 
       // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
       // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point
@@ -195,7 +197,6 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
 
       context.Voter_DistributeReward.set(entity);
     }
-
   },
 });
 
