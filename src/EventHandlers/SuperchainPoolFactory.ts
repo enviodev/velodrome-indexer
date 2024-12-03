@@ -1,14 +1,16 @@
 import { SuperchainPoolFactory, SuperchainPoolFactory_RootPoolCreated } from "generated";
 import { CHAIN_CONSTANTS } from "../Constants";
-import Web3 from "web3";
 import SuperchainPoolABI from "../../abis/SuperchainPoolABI.json";
 
 async function getPoolChainId(poolAddress: string, eventChainId: number) {
-    const rpcURL = CHAIN_CONSTANTS[eventChainId].rpcURL;
-    const web3 = new Web3(rpcURL);
-    const contract = new web3.eth.Contract(SuperchainPoolABI, poolAddress);
-    const chainId = await contract.methods.chainid().call();
-    return Number(chainId);
+    const ethClient = CHAIN_CONSTANTS[eventChainId].eth_client;
+    const { result } = await ethClient.simulateContract({
+        address: poolAddress as `0x${string}`,
+        abi: SuperchainPoolABI,
+        functionName: 'chainid',
+        args: [],
+    })
+    return Number(result);
 }
 
 SuperchainPoolFactory.RootPoolCreated.handlerWithLoader({

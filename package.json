@@ -28,6 +28,7 @@
     "mocha": "^10.2.0",
     "prettier": "^2.5.1",
     "ts-node": "^10.9.1",
+    "viem": "2.21.0",
     "web3": "^4.0.1"
   },
   "optionalDependencies": {

@@ -5,7 +5,9 @@ import baseWhitelistedTokens from "./constants/baseWhitelistedTokens.json";
 import modeWhitelistedTokens from "./constants/modeWhitelistedTokens.json";
 import liskWhitelistedTokens from "./constants/liskWhitelistedTokens.json";
 import contractABI from "../abis/VeloPriceOracleABI.json";
-import Web3 from "web3";
+import { Web3 } from "web3";
+import { optimism, base, lisk, mode } from 'viem/chains';
+import { createPublicClient, http, PublicClient } from 'viem';
 
 dotenv.config();
 
@@ -38,15 +40,6 @@ const findToken = (tokens: TokenInfo[], symbol: string): TokenInfo => {
   if (!token) throw new Error(`Token ${symbol} not found`);
   return token;
 };
-
-export function getPriceOracleContract(chainId: number, blockNumber: number) {
-  const contractAddress =
-    CHAIN_CONSTANTS[chainId].oracle.getAddress(blockNumber);
-  const rpcURL = CHAIN_CONSTANTS[chainId].rpcURL;
-  const web3 = new Web3(rpcURL);
-  const contract = new web3.eth.Contract(contractABI, contractAddress);
-  return contract;
-}
 
 // List of stablecoin pools with their token0, token1 and name
 const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
@@ -110,7 +103,7 @@ type chainConstants = {
     updateDelta: number;
   };
   rewardToken: (blockNumber: number) => TokenInfo;
-  rpcURL: string;
+  eth_client: PublicClient;
   stablecoinPools: Pool[];
   stablecoinPoolAddresses: string[];
   testingPoolAddresses: string[];
@@ -143,7 +136,14 @@ const OPTIMISM_CONSTANTS: chainConstants = {
       createdBlock: 105896880,
     };
   },
-  rpcURL: process.env.ENVIO_OPTIMISM_RPC_URL || "https://rpc.ankr.com/optimism",
+  eth_client: createPublicClient({
+    chain: optimism,
+    transport: http(process.env.ENVIO_OPTIMISM_RPC_URL || "https://rpc.ankr.com/optimism", {
+      retryCount: 10,
+      retryDelay: 1000,
+      batch: false
+    }),
+  }) as PublicClient,
   stablecoinPools: OPTIMISM_STABLECOIN_POOLS,
   stablecoinPoolAddresses: OPTIMISM_STABLECOIN_POOLS.map(
     (pool) => pool.address
@@ -170,7 +170,13 @@ const BASE_CONSTANTS: chainConstants = {
   },
   rewardToken: (blockNumber: Number) =>
     findToken(BASE_WHITELISTED_TOKENS, "AERO"),
-  rpcURL: process.env.ENVIO_BASE_RPC_URL || "https://base.publicnode.com",
+  eth_client: createPublicClient({
+    chain: base,
+    transport: http(process.env.ENVIO_BASE_RPC_URL || "https://base.publicnode.com", {
+      retryCount: 10,
+      retryDelay: 1000,
+    }),
+  }) as PublicClient,
   stablecoinPools: BASE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: BASE_STABLECOIN_POOLS.map((pool) => pool.address),
   testingPoolAddresses: BASE_TESTING_POOL_ADDRESSES,
@@ -193,7 +199,13 @@ const LISK_CONSTANTS: chainConstants = {
   },
   rewardToken: (blockNumber: number) =>
     findToken(LISK_WHITELISTED_TOKENS, "XVELO"),
-  rpcURL: process.env.ENVIO_LISK_RPC_URL || "https://lisk.drpc.org",
+  eth_client: createPublicClient({
+    chain: lisk,
+    transport: http(process.env.ENVIO_LISK_RPC_URL || "https://lisk.drpc.org", {
+      retryCount: 10,
+      retryDelay: 1000,
+    }),
+  }) as PublicClient,
   stablecoinPools: [],
   stablecoinPoolAddresses: [],
   testingPoolAddresses: [],
@@ -216,7 +228,13 @@ const MODE_CONSTANTS: chainConstants = {
   },
   rewardToken: (blockNumber: number) =>
     findToken(MODE_WHITELISTED_TOKENS, "XVELO"),
-  rpcURL: process.env.ENVIO_MODE_RPC_URL || "https://mainnet.mode.network",
+  eth_client: createPublicClient({
+    chain: mode,
+    transport: http(process.env.ENVIO_MODE_RPC_URL || "https://mainnet.mode.network", {
+      retryCount: 10,
+      retryDelay: 1000,
+    }),
+  }) as PublicClient,
   stablecoinPools: MODE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: MODE_STABLECOIN_POOLS.map((pool) => pool.address),
   testingPoolAddresses: MODE_TESTING_POOL_ADDRESSES,

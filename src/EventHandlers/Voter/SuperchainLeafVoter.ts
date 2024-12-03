@@ -111,20 +111,8 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
       const { currentLiquidityPool, rewardToken } =
         loaderReturn;
 
-      let isAlive: boolean = false;
-      let tokensDeposited: BigInt = 0n;
-
-      try {
-        isAlive = await getIsAlive(event.srcAddress, event.params.gauge, event.block.number, event.chainId);
-      } catch (error) {
-        context.log.warn(`Error getting isAlive for gauge ${event.params.gauge} on chain ${event.chainId}`);
-      }
-
-      try {
-        tokensDeposited = await getTokensDeposited(rewardToken.address, event.params.gauge, event.block.number, event.chainId);
-      } catch (error) {
-        context.log.warn(`Error getting tokens deposited for gauge ${event.params.gauge} on chain ${event.chainId}`);
-      }
+      const isAlive = await getIsAlive(event.srcAddress, event.params.gauge, event.block.number, event.chainId);
+      const tokensDeposited = await getTokensDeposited(rewardToken.address, event.params.gauge, event.block.number, event.chainId);
 
       // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
       // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point

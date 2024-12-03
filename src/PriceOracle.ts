@@ -4,13 +4,12 @@ import {
   CacheCategory,
   toChecksumAddress,
   TokenIdByBlock,
-  getPriceOracleContract
 } from "./Constants";
 import { Token, TokenPriceSnapshot } from "./src/Types.gen";
 import { Cache, ShapePricesList } from "./cache";
 import { createHash } from "crypto";
 import { getErc20TokenDetails } from "./Erc20";
-
+import PriceOracleABI from "../abis/VeloPriceOracleABI.json";
 export interface TokenPriceData {
   pricePerUSDNew: bigint;
   decimals: bigint;
@@ -82,13 +81,19 @@ export async function read_prices(
   chainId: number,
   blockNumber: number
 ): Promise<string[]> {
-  const contract = getPriceOracleContract(chainId, blockNumber);
+
+  const ethClient = CHAIN_CONSTANTS[chainId].eth_client;
   const numAddrs = addrs.length - 1;
+
   try {
-    const prices: string[] = await contract.methods
-      .getManyRatesWithConnectors(numAddrs, addrs)
-      .call({}, blockNumber);
-    return prices;
+    const { result } = await ethClient.simulateContract({
+      address: CHAIN_CONSTANTS[chainId].oracle.getAddress(blockNumber) as `0x${string}`,
+      abi: PriceOracleABI,
+      functionName: 'getManyRatesWithConnectors',
+      args: [numAddrs, addrs],
+      blockNumber: BigInt(blockNumber),
+    });
+    return result;
   } catch (error) {
     return addrs.map(() => "-1");
   }

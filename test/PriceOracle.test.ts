@@ -27,22 +27,13 @@ describe("PriceOracle", () => {
       read: readStub
     } as any);
 
-    mockContract = {
-        methods: {
-            getManyRatesWithConnectors: sinon.stub().returns({
-                call: sinon.stub().resolves(["1000000000000000000", "2000000000000000000"]) // 1 USD and 2 USD
-            })
-        }
-    };
-
     mockContext = {
         Token: { set: sinon.stub(), get: sinon.stub() },
         TokenPriceSnapshot: { set: sinon.stub(), get: sinon.stub() }
     };
 
-    const dep = require("../src/Constants");
-    sinon.stub(dep, "getPriceOracleContract")
-        .returns(mockContract);
+    mockContract = sinon.stub(CHAIN_CONSTANTS[chainId].eth_client, "simulateContract")
+        .returns({ result: ["1000000000000000000", "2000000000000000000"] } as any);
   });
 
   afterEach(() => {
@@ -116,9 +107,7 @@ describe("PriceOracle", () => {
 
     it("should handle errors when fetching prices", async () => {
       // Make the contract call throw an error
-      mockContract.methods.getManyRatesWithConnectors.returns({
-        call: sinon.stub().rejects(new Error("API Error"))
-      });
+      mockContract.rejects(new Error("API Error"));
 
       const timeDelta = CHAIN_CONSTANTS[chainId].oracle.updateDelta * 1000;
       const updatedBlockDatetime = new Date(blockDatetime.getTime() + 5 * timeDelta);

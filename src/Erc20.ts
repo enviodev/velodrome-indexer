@@ -1,5 +1,3 @@
-import { Web3 } from "web3";
-
 import { CHAIN_CONSTANTS } from "./Constants";
 
 import { Cache } from "./cache";
@@ -39,11 +37,7 @@ export async function getErc20TokenDetails(
     `[getErc20TokenDetails] Cache miss for address: ${contractAddress}`
   );
 
-  const rpcURL = CHAIN_CONSTANTS[chainId].rpcURL;
-  console.log(`[getErc20TokenDetails] Using RPC URL: ${rpcURL}`);
-
-  const web3 = new Web3(rpcURL);
-  const erc20token = new web3.eth.Contract(contractABI, contractAddress);
+  const ethClient = CHAIN_CONSTANTS[chainId].eth_client;
 
   try {
     console.log(
@@ -51,33 +45,24 @@ export async function getErc20TokenDetails(
     );
 
     const [name, decimals, symbol] = await Promise.all([
-      erc20token.methods
-        .name()
-        .call()
-        .catch((e) => {
-          console.error(
-            `[getErc20TokenDetails] Error fetching name: ${e.message}`
-          );
-          return "";
-        }),
-      erc20token.methods
-        .decimals()
-        .call()
-        .catch((e) => {
-          console.error(
-            `[getErc20TokenDetails] Error fetching decimals: ${e.message}`
-          );
-          return 0;
-        }),
-      erc20token.methods
-        .symbol()
-        .call()
-        .catch((e) => {
-          console.error(
-            `[getErc20TokenDetails] Error fetching symbol: ${e.message}`
-          );
-          return "";
-        }),
+      ethClient.simulateContract({
+        address: contractAddress as `0x${string}`,
+        abi: contractABI,
+        functionName: 'name',
+        args: [],
+      }),
+      ethClient.simulateContract({
+        address: contractAddress as `0x${string}`,
+        abi: contractABI,
+        functionName: 'decimals',
+        args: [],
+      }),
+      ethClient.simulateContract({
+        address: contractAddress as `0x${string}`,
+        abi: contractABI,
+        functionName: 'symbol',
+        args: [],
+      }),
     ]);
 
     console.log(
