@@ -30,8 +30,8 @@ importers:
         specifier: 2.21.0
         version: 2.21.0(typescript@5.2.2)(zod@3.22.4)
       web3:
-        specifier: ^4.0.1
-        version: 4.4.0(typescript@5.2.2)(zod@3.22.4)
+        specifier: ^4.15.0
+        version: 4.15.0(typescript@5.2.2)(zod@3.22.4)
     optionalDependencies:
       generated:
         specifier: ./generated
@@ -196,6 +196,11 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
 
+  '@ethereumjs/rlp@5.0.2':
+    resolution: {integrity: sha512-DziebCdg4JpGlEqEdGgXmjqcFoJi+JGulUXwEjsZGAscAQ7MyD/7LE/GVCP29vEQxKc7AAwjT3A2ywHp2xfoCA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   '@glennsl/rescript-fetch@0.2.0':
     resolution: {integrity: sha512-0tsEqJ/6/WBm02prM4RYG+qpnNTaB8QKKIeQHXdDaE4C5YfA/nzjxMNW3CjsGIaEgyrAmmIXFS0kx24UjvOI6A==}
 
@@ -212,18 +217,14 @@ packages:
   '@noble/curves@1.2.0':
     resolution: {integrity: sha512-oYclrNgRaM9SsBUBVbb8M6DTV7ZHRTKugureoYEncY5c65HOmRzvSiTE3y5CYaPYJA/GVkrhXEoF0M3Ya9PMnw==}
 
-  '@noble/curves@1.3.0':
-    resolution: {integrity: sha512-t01iSXPuN+Eqzb4eBX0S5oubSqXbK/xXa1Ne18Hj8f9pStxztHCE2gfboSp/dZRLSqfuLpRK2nDXDK+W9puocA==}
-
   '@noble/curves@1.4.0':
     resolution: {integrity: sha512-p+4cb332SFCrReJkCYe8Xzm0OWi4Jji5jVdIZRL/PmacmDkFNw6MrrV+gGpiPxLHbV+zKFRywUWbaseT+tZRXg==}
 
+  '@noble/curves@1.4.2':
+    resolution: {integrity: sha512-TavHr8qycMChk8UwMld0ZDRvatedkzWfH8IiaeGCfymOP5i0hSCozz9vHOL0nkwk7HRMlFnAiKpS2jrUmSybcw==}
+
   '@noble/hashes@1.3.2':
     resolution: {integrity: sha512-MVC8EAQp7MvEcm30KWENFjgR+Mkmf+D189XJTkFIlwohU5hcBbn1ZkKq7KVTi2Hme3PMGF390DaL52beVrIihQ==}
-    engines: {node: '>= 16'}
-
-  '@noble/hashes@1.3.3':
-    resolution: {integrity: sha512-V7/fPHgl+jsVPXqqeOzT8egNj2iBIVt+ECeMMG8TdcnTikP3oaBtUVqpT/gYCR68aEBJSF+XbYUxStjbFMqIIA==}
     engines: {node: '>= 16'}
 
   '@noble/hashes@1.4.0':
@@ -243,14 +244,8 @@ packages:
   '@scure/base@1.1.9':
     resolution: {integrity: sha512-8YKhl8GHiNI/pU2VMaofa2Tor7PJRAjwQLBBuilkJ9L5+13yVbC7JO/wS7piioAvPSwR3JKM1IJ/u4xQzbcXKg==}
 
-  '@scure/bip32@1.3.3':
-    resolution: {integrity: sha512-LJaN3HwRbfQK0X1xFSi0Q9amqOgzQnnDngIt+ZlsBC3Bm7/nE7K0kwshZHyaru79yIVRv/e1mQAjZyuZG6jOFQ==}
-
   '@scure/bip32@1.4.0':
     resolution: {integrity: sha512-sVUpc0Vq3tXCkDGYVWGIZTRfnvu8LoTDaev7vbwh0omSvVORONr960MQWdKqJDCReIEmTj3PAr73O3aoxz7OPg==}
-
-  '@scure/bip39@1.2.2':
-    resolution: {integrity: sha512-HYf9TUXG80beW+hGAt3TRM8wU6pQoYur9iNypTROm42dorCGmLnFe3eWjz3gOq6G62H2WRh0FCzAR1PI+29zIA==}
 
   '@scure/bip39@1.3.0':
     resolution: {integrity: sha512-disdg7gHuTDZtY+ZdkmLpPCk7fxZSu3gBiEGuoC1XYxv9cGx3Z6cpTggCgW6odSOOIXCiDjuGejW+aJKCY/pIQ==}
@@ -390,8 +385,8 @@ packages:
     resolution: {integrity: sha512-Hdw8qdNiqdJ8LqT0iK0sVzkFbzg6fhnQqqfWhBDxcHZvU75+B+ayzTy8x+k5Ix0Y92XOhOUlx74ps+bA6BeYMQ==}
     engines: {node: '>=8'}
 
-  available-typed-arrays@1.0.5:
-    resolution: {integrity: sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==}
+  available-typed-arrays@1.0.7:
+    resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
 
   balanced-match@1.0.2:
@@ -666,8 +661,8 @@ packages:
     resolution: {integrity: sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==}
     engines: {node: '>= 0.6'}
 
-  ethereum-cryptography@2.1.3:
-    resolution: {integrity: sha512-BlwbIL7/P45W8FGW2r7LGuvoEZ+7PWsniMvQ4p5s2xCyw9tmaDlpfsN9HjAucbF+t/qpVHwZUisgfK24TCW8aA==}
+  ethereum-cryptography@2.2.1:
+    resolution: {integrity: sha512-r/W8lkHSiTLxUxW8Rf3u4HGB0xQweG2RyETjywylKZSzLWoWAijRz8WCuOtJ6wah+avllXBqZuk29HCCvhEIRg==}
 
   ethers@6.8.0:
     resolution: {integrity: sha512-zrFbmQRlraM+cU5mE4CZTLBurZTs2gdp2ld0nG/f3ecBK+x6lZ69KSxBqZ4NjclxwfTxl5LeNufcBbMsTdY53Q==}
@@ -676,6 +671,9 @@ packages:
   event-target-shim@5.0.1:
     resolution: {integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==}
     engines: {node: '>=6'}
+
+  eventemitter3@5.0.1:
+    resolution: {integrity: sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==}
 
   events@3.3.0:
     resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
@@ -785,8 +783,8 @@ packages:
     resolution: {integrity: sha512-l3LCuF6MgDNwTDKkdYGEihYjt5pRPbEg46rtlmnSPlUbgmB8LOIrKJbYYFBSbnPaJexMKtiPO8hmeRjRz2Td+A==}
     engines: {node: '>= 0.4'}
 
-  has-tostringtag@1.0.0:
-    resolution: {integrity: sha512-kFjcSNhnlGV1kyoGk7OXKSawH5JOb/LzUc5w9B02hOTO0dfFRjbHQKvg1d6cf3HbeUmtU9VbbV3qzZ2Teh97WQ==}
+  has-tostringtag@1.0.2:
+    resolution: {integrity: sha512-NqADB8VjPFLM2V0VvHUewwwsw0ZWBaIdgo+ieHtK3hasLz4qeCRjYcqfB6AQrBggRKppKF8L52/VqdVsO47Dlw==}
     engines: {node: '>= 0.4'}
 
   hasown@2.0.0:
@@ -909,8 +907,8 @@ packages:
     resolution: {integrity: sha512-YWnfyRwxL/+SsrWYfOpUtz5b3YD+nyfkHvjbcanzk8zgyO4ASD67uVMRt8k5bM4lLMDnXfriRhOpemw+NfT1eA==}
     engines: {node: '>=8'}
 
-  is-typed-array@1.1.12:
-    resolution: {integrity: sha512-Z14TF2JNG8Lss5/HMqt0//T9JeHXttXy5pH/DBU4vi98ozO2btxzq9MwYDZYnKwU8nRsz/+GVFVRDq3DkVuSPg==}
+  is-typed-array@1.1.13:
+    resolution: {integrity: sha512-uZ25/bUAlUY5fR4OKT4rZQEBrzQWYV9ZJYGGsUmEJ6thodVJ1HX64ePQ6Z0qPWP+m+Uq6e9UugrE38jeYsDSMw==}
     engines: {node: '>= 0.4'}
 
   is-unicode-supported@0.1.0:
@@ -1203,6 +1201,10 @@ packages:
   pino@8.16.1:
     resolution: {integrity: sha512-3bKsVhBmgPjGV9pyn4fO/8RtoVDR8ssW1ev819FsRXlRNgW8gR/9Kx+gCK4UPWd4JjrRDLWpzd/pb1AyWm3MGA==}
     hasBin: true
+
+  possible-typed-array-names@1.0.0:
+    resolution: {integrity: sha512-d7Uw+eZoloe0EHDIYoe+bQ5WXnGMOpmiZFTuMWCwpjzzkL2nTjcKiAk4hh8TjnGye2TwWOk3UXucZ+3rbmBa8Q==}
+    engines: {node: '>= 0.4'}
 
   postgres@3.4.1:
     resolution: {integrity: sha512-Wasjv6WEzrZXbwKByR2RGD7MBfj7VBqco3hYWz8ifzSAp6tb2L6MlmcKFzkmgV1jT7/vKlcSa+lxXZeTdeVMzQ==}
@@ -1510,76 +1512,80 @@ packages:
       typescript:
         optional: true
 
-  web3-core@4.3.2:
-    resolution: {integrity: sha512-uIMVd/j4BgOnwfpY8ZT+QKubOyM4xohEhFZXz9xB8wimXWMMlYVlIK/TbfHqFolS9uOerdSGhsMbcK9lETae8g==}
+  web3-core@4.7.0:
+    resolution: {integrity: sha512-skP4P56fhlrE+rIuS4WY9fTdja1DPml2xrrDmv+vQhPtmSFBs7CqesycIRLQh4dK1D4de/a23tkX6DLYdUt3nA==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3-errors@1.1.4:
-    resolution: {integrity: sha512-WahtszSqILez+83AxGecVroyZsMuuRT+KmQp4Si5P4Rnqbczno1k748PCrZTS1J4UCPmXMG2/Vt+0Bz2zwXkwQ==}
+  web3-errors@1.3.0:
+    resolution: {integrity: sha512-j5JkAKCtuVMbY3F5PYXBqg1vWrtF4jcyyMY1rlw8a4PV67AkqlepjGgpzWJZd56Mt+TvHy6DA1F/3Id8LatDSQ==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3-eth-abi@4.2.0:
-    resolution: {integrity: sha512-x7dUCmk6th+5N63s5kUusoNtsDJKUUQgl9+jECvGTBOTiyHe/V6aOY0120FUjaAGaapOnR7BImQdhqHv6yT2YQ==}
+  web3-eth-abi@4.4.0:
+    resolution: {integrity: sha512-RQzt9W93OgFBwOdNGcc9ulCyYt4zmRAMkKGbEdp3wcN4vmwTlRhh21+akj2ND4bg3C3RUiP4yprYgDEyN0/Fmg==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3-eth-accounts@4.1.1:
-    resolution: {integrity: sha512-9JqhRi1YhO1hQOEmmBHgEGsME/B1FHMxpA/AK3vhpvQ8QeP6KbJW+cForTLfPpUbkmPxnRunG4PNNaETNlZfrA==}
+  web3-eth-accounts@4.3.0:
+    resolution: {integrity: sha512-7UX3rJiNgHYoqrO1WRPks/9J5Mh2x5N9HAd9QsOM8zfKY2rwSyCIIQM03OFXDEQRZ/ztycKTHgeLStmhlUUKIQ==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3-eth-contract@4.2.0:
-    resolution: {integrity: sha512-K7bUypsomTs8/Oa0Lgvq5plsSB5afgKJ79NMuXxvC5jfV+AxNrQyKcr5Vd5yEGNqrdQuIPduGQa8DpuY+rMe1g==}
+  web3-eth-contract@4.7.1:
+    resolution: {integrity: sha512-D9nHCclq4lj2CX1sOrGga1UFA9CNBWZV6NGwNr6WjbBGIFl9ui2mivE9c3vNGEfSMnvKEq/zE83N+eGOwcWZlg==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3-eth-ens@4.0.8:
-    resolution: {integrity: sha512-nj0JfeD45BbzVJcVYpUJnSo8iwDcY9CQ7CZhhIVVOFjvpMAPw0zEwjTvZEIQyCW61OoDG9xcBzwxe2tZoYhMRw==}
+  web3-eth-ens@4.4.0:
+    resolution: {integrity: sha512-DeyVIS060hNV9g8dnTx92syqvgbvPricE3MerCxe/DquNZT3tD8aVgFfq65GATtpCgDDJffO2bVeHp3XBemnSQ==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
   web3-eth-iban@4.0.7:
     resolution: {integrity: sha512-8weKLa9KuKRzibC87vNLdkinpUE30gn0IGY027F8doeJdcPUfsa4IlBgNC4k4HLBembBB2CTU0Kr/HAOqMeYVQ==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3-eth-personal@4.0.8:
-    resolution: {integrity: sha512-sXeyLKJ7ddQdMxz1BZkAwImjqh7OmKxhXoBNF3isDmD4QDpMIwv/t237S3q4Z0sZQamPa/pHebJRWVuvP8jZdw==}
+  web3-eth-personal@4.1.0:
+    resolution: {integrity: sha512-RFN83uMuvA5cu1zIwwJh9A/bAj0OBxmGN3tgx19OD/9ygeUZbifOL06jgFzN0t+1ekHqm3DXYQM8UfHpXi7yDQ==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3-eth@4.4.0:
-    resolution: {integrity: sha512-HswKdzF44wUrciRAtEJaml9O7rDYDxElHmFs+27WcO3nel2zku+n0xs4e2ZAehfrCZ+05/y7TgnOZnaDU8Fb/A==}
+  web3-eth@4.11.0:
+    resolution: {integrity: sha512-nZIJ/8FOOj5aEXoS8p9puuX5jLyzewZv3nXqoKNtu531/vA/yIiU/EtPnAV62RvVMcbDSiF/BLVFdBZCsVMJbg==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3-net@4.0.7:
-    resolution: {integrity: sha512-SzEaXFrBjY25iQGk5myaOfO9ZyfTwQEa4l4Ps4HDNVMibgZji3WPzpjq8zomVHMwi8bRp6VV7YS71eEsX7zLow==}
+  web3-net@4.1.0:
+    resolution: {integrity: sha512-WWmfvHVIXWEoBDWdgKNYKN8rAy6SgluZ0abyRyXOL3ESr7ym7pKWbfP4fjApIHlYTh8tNqkrdPfM4Dyi6CA0SA==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3-providers-http@4.1.0:
-    resolution: {integrity: sha512-6qRUGAhJfVQM41E5t+re5IHYmb5hSaLc02BE2MaRQsz2xKA6RjmHpOA5h/+ojJxEpI9NI2CrfDKOAgtJfoUJQg==}
+  web3-providers-http@4.2.0:
+    resolution: {integrity: sha512-IPMnDtHB7dVwaB7/mMxAZzyq7d5ezfO1+Vw0bNfAeIi7gaDlJiggp85SdyAfOgov8AMUA/dyiY72kQ0KmjXKvQ==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
   web3-providers-ipc@4.0.7:
     resolution: {integrity: sha512-YbNqY4zUvIaK2MHr1lQFE53/8t/ejHtJchrWn9zVbFMGXlTsOAbNoIoZWROrg1v+hCBvT2c9z8xt7e/+uz5p1g==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3-providers-ws@4.0.7:
-    resolution: {integrity: sha512-n4Dal9/rQWjS7d6LjyEPM2R458V8blRm0eLJupDEJOOIBhGYlxw5/4FthZZ/cqB7y/sLVi7K09DdYx2MeRtU5w==}
+  web3-providers-ws@4.0.8:
+    resolution: {integrity: sha512-goJdgata7v4pyzHRsg9fSegUG4gVnHZSHODhNnn6J93ykHkBI1nz4fjlGpcQLUMi4jAMz6SHl9Ibzs2jj9xqPw==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3-rpc-methods@1.1.4:
-    resolution: {integrity: sha512-LTFNg4LFaeU8K9ecuT8fHDp/LOXyxCneeZjCrRYIW1u82Ly52SrY55FIzMIISGoG/iT5Wh7UiHOB3CQsWLBmbQ==}
+  web3-rpc-methods@1.3.0:
+    resolution: {integrity: sha512-/CHmzGN+IYgdBOme7PdqzF+FNeMleefzqs0LVOduncSaqsppeOEoskLXb2anSpzmQAP3xZJPaTrkQPWSJMORig==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3-types@1.3.1:
-    resolution: {integrity: sha512-8fXi7h/t95VKRtgU4sxprLPZpsTh3jYDfSghshIDBgUD/OoGe5S+syP24SUzBZYllZ/L+hMr2gdp/0bGJa8pYQ==}
+  web3-rpc-providers@1.0.0-rc.3:
+    resolution: {integrity: sha512-aeFPYgvHjsf2yQi3CSQA9Ie4xnmO7VmNkY098rA7AWvhgyjVgIWlrVgZjUn55FXtthbiiTRm/CLriv99UeOfGQ==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3-utils@4.1.1:
-    resolution: {integrity: sha512-5AOmLKH6QuwHunLCNdVFlPSDE+T88bJYRQP+HWYoKNbI4STALCYQiJvj7LXE+Ed6cPfqANaK/LwKNbMPLCPFwA==}
+  web3-types@1.9.0:
+    resolution: {integrity: sha512-I520KBPoXqEaM/ybj6xHD1E3gRb8/WdudLQaRBvJNQSSfHuPW9P2sD59mbhm6dsKtnje+T90dIxSyzVVFlEdlg==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3-validator@2.0.4:
-    resolution: {integrity: sha512-qRxVePwdW+SByOmTpDZFWHIUAa7PswvxNszrOua6BoGqAhERo5oJZBN+EbWtK/+O+ApNxt5FR3nCPmiZldiOQA==}
+  web3-utils@4.3.2:
+    resolution: {integrity: sha512-bEFpYEBMf6ER78Uvj2mdsCbaLGLK9kABOsa3TtXOEEhuaMy/RK0KlRkKoZ2vmf/p3hB8e1q5erknZ6Hy7AVp7A==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
-  web3@4.4.0:
-    resolution: {integrity: sha512-WcFA3RgE+cyM96MHLPs5Ec155nkYQuwhjk3JIhxcy6J1QrZK2zvKGzTQCCYHe3JhraduNTMbWy+EeNNGGji9+Q==}
+  web3-validator@2.0.6:
+    resolution: {integrity: sha512-qn9id0/l1bWmvH4XfnG/JtGKKwut2Vokl6YXP5Kfg424npysmtRLe9DgiNBM9Op7QL/aSiaA0TVXibuIuWcizg==}
+    engines: {node: '>=14', npm: '>=6.12.0'}
+
+  web3@4.15.0:
+    resolution: {integrity: sha512-0QWDWE4gDWldXb4KWq++K8m/A9zsR0LpJLtVT39/b4OjfdW0d4mE0qAUd3UocxuKTh1eG5pOCfumbGS5l6p1qg==}
     engines: {node: '>=14.0.0', npm: '>=6.12.0'}
 
   webauthn-p256@0.0.5:
@@ -1591,8 +1597,8 @@ packages:
   whatwg-url@5.0.0:
     resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
 
-  which-typed-array@1.1.13:
-    resolution: {integrity: sha512-P5Nra0qjSncduVPEAr7xhoF5guty49ArDTwzJ/yNuPIbZppyRxFQsRCWrocxIY+CnMVG+qfbU2FmDKyvSGClow==}
+  which-typed-array@1.1.16:
+    resolution: {integrity: sha512-g+N+GAWiRj66DngFwHvISJd+ITsyphZvD1vChfVg6cEdnzy53GzB3oy0fUNlvhz7H7+MiqhYr26qxQShCpKTTQ==}
     engines: {node: '>= 0.4'}
 
   widest-line@3.1.0:
@@ -1746,6 +1752,8 @@ snapshots:
 
   '@ethereumjs/rlp@4.0.1': {}
 
+  '@ethereumjs/rlp@5.0.2': {}
+
   '@glennsl/rescript-fetch@0.2.0': {}
 
   '@jridgewell/resolve-uri@3.1.1': {}
@@ -1761,17 +1769,15 @@ snapshots:
     dependencies:
       '@noble/hashes': 1.3.2
 
-  '@noble/curves@1.3.0':
-    dependencies:
-      '@noble/hashes': 1.3.3
-
   '@noble/curves@1.4.0':
     dependencies:
       '@noble/hashes': 1.4.0
 
-  '@noble/hashes@1.3.2': {}
+  '@noble/curves@1.4.2':
+    dependencies:
+      '@noble/hashes': 1.4.0
 
-  '@noble/hashes@1.3.3': {}
+  '@noble/hashes@1.3.2': {}
 
   '@noble/hashes@1.4.0': {}
 
@@ -1784,21 +1790,10 @@ snapshots:
 
   '@scure/base@1.1.9': {}
 
-  '@scure/bip32@1.3.3':
-    dependencies:
-      '@noble/curves': 1.3.0
-      '@noble/hashes': 1.3.3
-      '@scure/base': 1.1.9
-
   '@scure/bip32@1.4.0':
     dependencies:
       '@noble/curves': 1.4.0
       '@noble/hashes': 1.4.0
-      '@scure/base': 1.1.9
-
-  '@scure/bip39@1.2.2':
-    dependencies:
-      '@noble/hashes': 1.3.3
       '@scure/base': 1.1.9
 
   '@scure/bip39@1.3.0':
@@ -1914,7 +1909,9 @@ snapshots:
 
   auto-bind@4.0.0: {}
 
-  available-typed-arrays@1.0.5: {}
+  available-typed-arrays@1.0.7:
+    dependencies:
+      possible-typed-array-names: 1.0.0
 
   balanced-match@1.0.2: {}
 
@@ -2173,12 +2170,12 @@ snapshots:
 
   etag@1.8.1: {}
 
-  ethereum-cryptography@2.1.3:
+  ethereum-cryptography@2.2.1:
     dependencies:
-      '@noble/curves': 1.3.0
-      '@noble/hashes': 1.3.3
-      '@scure/bip32': 1.3.3
-      '@scure/bip39': 1.2.2
+      '@noble/curves': 1.4.2
+      '@noble/hashes': 1.4.0
+      '@scure/bip32': 1.4.0
+      '@scure/bip39': 1.3.0
 
   ethers@6.8.0:
     dependencies:
@@ -2194,6 +2191,8 @@ snapshots:
       - utf-8-validate
 
   event-target-shim@5.0.1: {}
+
+  eventemitter3@5.0.1: {}
 
   events@3.3.0: {}
 
@@ -2335,7 +2334,7 @@ snapshots:
 
   has-symbols@1.0.3: {}
 
-  has-tostringtag@1.0.0:
+  has-tostringtag@1.0.2:
     dependencies:
       has-symbols: 1.0.3
 
@@ -2425,7 +2424,7 @@ snapshots:
   is-arguments@1.1.1:
     dependencies:
       call-bind: 1.0.7
-      has-tostringtag: 1.0.0
+      has-tostringtag: 1.0.2
 
   is-binary-path@2.1.0:
     dependencies:
@@ -2454,7 +2453,7 @@ snapshots:
 
   is-generator-function@1.0.10:
     dependencies:
-      has-tostringtag: 1.0.0
+      has-tostringtag: 1.0.2
 
   is-glob@4.0.3:
     dependencies:
@@ -2468,9 +2467,9 @@ snapshots:
 
   is-plain-obj@2.1.0: {}
 
-  is-typed-array@1.1.12:
+  is-typed-array@1.1.13:
     dependencies:
-      which-typed-array: 1.1.13
+      which-typed-array: 1.1.16
 
   is-unicode-supported@0.1.0: {}
 
@@ -2683,6 +2682,8 @@ snapshots:
       safe-stable-stringify: 2.5.0
       sonic-boom: 3.8.1
       thread-stream: 2.7.0
+
+  possible-typed-array-names@1.0.0: {}
 
   postgres@3.4.1: {}
 
@@ -2990,8 +2991,8 @@ snapshots:
       inherits: 2.0.4
       is-arguments: 1.1.1
       is-generator-function: 1.0.10
-      is-typed-array: 1.1.12
-      which-typed-array: 1.1.13
+      is-typed-array: 1.1.13
+      which-typed-array: 1.1.16
 
   utils-merge@1.0.1: {}
 
@@ -3017,16 +3018,16 @@ snapshots:
       - utf-8-validate
       - zod
 
-  web3-core@4.3.2:
+  web3-core@4.7.0:
     dependencies:
-      web3-errors: 1.1.4
-      web3-eth-accounts: 4.1.1
+      web3-errors: 1.3.0
+      web3-eth-accounts: 4.3.0
       web3-eth-iban: 4.0.7
-      web3-providers-http: 4.1.0
-      web3-providers-ws: 4.0.7
-      web3-types: 1.3.1
-      web3-utils: 4.1.1
-      web3-validator: 2.0.4
+      web3-providers-http: 4.2.0
+      web3-providers-ws: 4.0.8
+      web3-types: 1.9.0
+      web3-utils: 4.3.2
+      web3-validator: 2.0.6
     optionalDependencies:
       web3-providers-ipc: 4.0.7
     transitivePeerDependencies:
@@ -3034,40 +3035,41 @@ snapshots:
       - encoding
       - utf-8-validate
 
-  web3-errors@1.1.4:
+  web3-errors@1.3.0:
     dependencies:
-      web3-types: 1.3.1
+      web3-types: 1.9.0
 
-  web3-eth-abi@4.2.0(typescript@5.2.2)(zod@3.22.4):
+  web3-eth-abi@4.4.0(typescript@5.2.2)(zod@3.22.4):
     dependencies:
       abitype: 0.7.1(typescript@5.2.2)(zod@3.22.4)
-      web3-errors: 1.1.4
-      web3-types: 1.3.1
-      web3-utils: 4.1.1
-      web3-validator: 2.0.4
+      web3-errors: 1.3.0
+      web3-types: 1.9.0
+      web3-utils: 4.3.2
+      web3-validator: 2.0.6
     transitivePeerDependencies:
       - typescript
       - zod
 
-  web3-eth-accounts@4.1.1:
+  web3-eth-accounts@4.3.0:
     dependencies:
       '@ethereumjs/rlp': 4.0.1
       crc-32: 1.2.2
-      ethereum-cryptography: 2.1.3
-      web3-errors: 1.1.4
-      web3-types: 1.3.1
-      web3-utils: 4.1.1
-      web3-validator: 2.0.4
+      ethereum-cryptography: 2.2.1
+      web3-errors: 1.3.0
+      web3-types: 1.9.0
+      web3-utils: 4.3.2
+      web3-validator: 2.0.6
 
-  web3-eth-contract@4.2.0(typescript@5.2.2)(zod@3.22.4):
+  web3-eth-contract@4.7.1(typescript@5.2.2)(zod@3.22.4):
     dependencies:
-      web3-core: 4.3.2
-      web3-errors: 1.1.4
-      web3-eth: 4.4.0(typescript@5.2.2)(zod@3.22.4)
-      web3-eth-abi: 4.2.0(typescript@5.2.2)(zod@3.22.4)
-      web3-types: 1.3.1
-      web3-utils: 4.1.1
-      web3-validator: 2.0.4
+      '@ethereumjs/rlp': 5.0.2
+      web3-core: 4.7.0
+      web3-errors: 1.3.0
+      web3-eth: 4.11.0(typescript@5.2.2)(zod@3.22.4)
+      web3-eth-abi: 4.4.0(typescript@5.2.2)(zod@3.22.4)
+      web3-types: 1.9.0
+      web3-utils: 4.3.2
+      web3-validator: 2.0.6
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -3075,17 +3077,17 @@ snapshots:
       - utf-8-validate
       - zod
 
-  web3-eth-ens@4.0.8(typescript@5.2.2)(zod@3.22.4):
+  web3-eth-ens@4.4.0(typescript@5.2.2)(zod@3.22.4):
     dependencies:
       '@adraffy/ens-normalize': 1.10.0
-      web3-core: 4.3.2
-      web3-errors: 1.1.4
-      web3-eth: 4.4.0(typescript@5.2.2)(zod@3.22.4)
-      web3-eth-contract: 4.2.0(typescript@5.2.2)(zod@3.22.4)
-      web3-net: 4.0.7
-      web3-types: 1.3.1
-      web3-utils: 4.1.1
-      web3-validator: 2.0.4
+      web3-core: 4.7.0
+      web3-errors: 1.3.0
+      web3-eth: 4.11.0(typescript@5.2.2)(zod@3.22.4)
+      web3-eth-contract: 4.7.1(typescript@5.2.2)(zod@3.22.4)
+      web3-net: 4.1.0
+      web3-types: 1.9.0
+      web3-utils: 4.3.2
+      web3-validator: 2.0.6
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -3095,19 +3097,19 @@ snapshots:
 
   web3-eth-iban@4.0.7:
     dependencies:
-      web3-errors: 1.1.4
-      web3-types: 1.3.1
-      web3-utils: 4.1.1
-      web3-validator: 2.0.4
+      web3-errors: 1.3.0
+      web3-types: 1.9.0
+      web3-utils: 4.3.2
+      web3-validator: 2.0.6
 
-  web3-eth-personal@4.0.8(typescript@5.2.2)(zod@3.22.4):
+  web3-eth-personal@4.1.0(typescript@5.2.2)(zod@3.22.4):
     dependencies:
-      web3-core: 4.3.2
-      web3-eth: 4.4.0(typescript@5.2.2)(zod@3.22.4)
-      web3-rpc-methods: 1.1.4
-      web3-types: 1.3.1
-      web3-utils: 4.1.1
-      web3-validator: 2.0.4
+      web3-core: 4.7.0
+      web3-eth: 4.11.0(typescript@5.2.2)(zod@3.22.4)
+      web3-rpc-methods: 1.3.0
+      web3-types: 1.9.0
+      web3-utils: 4.3.2
+      web3-validator: 2.0.6
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -3115,19 +3117,19 @@ snapshots:
       - utf-8-validate
       - zod
 
-  web3-eth@4.4.0(typescript@5.2.2)(zod@3.22.4):
+  web3-eth@4.11.0(typescript@5.2.2)(zod@3.22.4):
     dependencies:
       setimmediate: 1.0.5
-      web3-core: 4.3.2
-      web3-errors: 1.1.4
-      web3-eth-abi: 4.2.0(typescript@5.2.2)(zod@3.22.4)
-      web3-eth-accounts: 4.1.1
-      web3-net: 4.0.7
-      web3-providers-ws: 4.0.7
-      web3-rpc-methods: 1.1.4
-      web3-types: 1.3.1
-      web3-utils: 4.1.1
-      web3-validator: 2.0.4
+      web3-core: 4.7.0
+      web3-errors: 1.3.0
+      web3-eth-abi: 4.4.0(typescript@5.2.2)(zod@3.22.4)
+      web3-eth-accounts: 4.3.0
+      web3-net: 4.1.0
+      web3-providers-ws: 4.0.8
+      web3-rpc-methods: 1.3.0
+      web3-types: 1.9.0
+      web3-utils: 4.3.2
+      web3-validator: 2.0.6
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -3135,90 +3137,105 @@ snapshots:
       - utf-8-validate
       - zod
 
-  web3-net@4.0.7:
+  web3-net@4.1.0:
     dependencies:
-      web3-core: 4.3.2
-      web3-rpc-methods: 1.1.4
-      web3-types: 1.3.1
-      web3-utils: 4.1.1
+      web3-core: 4.7.0
+      web3-rpc-methods: 1.3.0
+      web3-types: 1.9.0
+      web3-utils: 4.3.2
     transitivePeerDependencies:
       - bufferutil
       - encoding
       - utf-8-validate
 
-  web3-providers-http@4.1.0:
+  web3-providers-http@4.2.0:
     dependencies:
       cross-fetch: 4.0.0
-      web3-errors: 1.1.4
-      web3-types: 1.3.1
-      web3-utils: 4.1.1
+      web3-errors: 1.3.0
+      web3-types: 1.9.0
+      web3-utils: 4.3.2
     transitivePeerDependencies:
       - encoding
 
   web3-providers-ipc@4.0.7:
     dependencies:
-      web3-errors: 1.1.4
-      web3-types: 1.3.1
-      web3-utils: 4.1.1
+      web3-errors: 1.3.0
+      web3-types: 1.9.0
+      web3-utils: 4.3.2
     optional: true
 
-  web3-providers-ws@4.0.7:
+  web3-providers-ws@4.0.8:
     dependencies:
       '@types/ws': 8.5.3
       isomorphic-ws: 5.0.0(ws@8.17.1)
-      web3-errors: 1.1.4
-      web3-types: 1.3.1
-      web3-utils: 4.1.1
+      web3-errors: 1.3.0
+      web3-types: 1.9.0
+      web3-utils: 4.3.2
       ws: 8.17.1
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  web3-rpc-methods@1.1.4:
+  web3-rpc-methods@1.3.0:
     dependencies:
-      web3-core: 4.3.2
-      web3-types: 1.3.1
-      web3-validator: 2.0.4
+      web3-core: 4.7.0
+      web3-types: 1.9.0
+      web3-validator: 2.0.6
     transitivePeerDependencies:
       - bufferutil
       - encoding
       - utf-8-validate
 
-  web3-types@1.3.1: {}
-
-  web3-utils@4.1.1:
+  web3-rpc-providers@1.0.0-rc.3:
     dependencies:
-      ethereum-cryptography: 2.1.3
-      web3-errors: 1.1.4
-      web3-types: 1.3.1
-      web3-validator: 2.0.4
+      web3-errors: 1.3.0
+      web3-providers-http: 4.2.0
+      web3-providers-ws: 4.0.8
+      web3-types: 1.9.0
+      web3-utils: 4.3.2
+      web3-validator: 2.0.6
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - utf-8-validate
 
-  web3-validator@2.0.4:
+  web3-types@1.9.0: {}
+
+  web3-utils@4.3.2:
     dependencies:
-      ethereum-cryptography: 2.1.3
+      ethereum-cryptography: 2.2.1
+      eventemitter3: 5.0.1
+      web3-errors: 1.3.0
+      web3-types: 1.9.0
+      web3-validator: 2.0.6
+
+  web3-validator@2.0.6:
+    dependencies:
+      ethereum-cryptography: 2.2.1
       util: 0.12.5
-      web3-errors: 1.1.4
-      web3-types: 1.3.1
+      web3-errors: 1.3.0
+      web3-types: 1.9.0
       zod: 3.22.4
 
-  web3@4.4.0(typescript@5.2.2)(zod@3.22.4):
+  web3@4.15.0(typescript@5.2.2)(zod@3.22.4):
     dependencies:
-      web3-core: 4.3.2
-      web3-errors: 1.1.4
-      web3-eth: 4.4.0(typescript@5.2.2)(zod@3.22.4)
-      web3-eth-abi: 4.2.0(typescript@5.2.2)(zod@3.22.4)
-      web3-eth-accounts: 4.1.1
-      web3-eth-contract: 4.2.0(typescript@5.2.2)(zod@3.22.4)
-      web3-eth-ens: 4.0.8(typescript@5.2.2)(zod@3.22.4)
+      web3-core: 4.7.0
+      web3-errors: 1.3.0
+      web3-eth: 4.11.0(typescript@5.2.2)(zod@3.22.4)
+      web3-eth-abi: 4.4.0(typescript@5.2.2)(zod@3.22.4)
+      web3-eth-accounts: 4.3.0
+      web3-eth-contract: 4.7.1(typescript@5.2.2)(zod@3.22.4)
+      web3-eth-ens: 4.4.0(typescript@5.2.2)(zod@3.22.4)
       web3-eth-iban: 4.0.7
-      web3-eth-personal: 4.0.8(typescript@5.2.2)(zod@3.22.4)
-      web3-net: 4.0.7
-      web3-providers-http: 4.1.0
-      web3-providers-ws: 4.0.7
-      web3-rpc-methods: 1.1.4
-      web3-types: 1.3.1
-      web3-utils: 4.1.1
-      web3-validator: 2.0.4
+      web3-eth-personal: 4.1.0(typescript@5.2.2)(zod@3.22.4)
+      web3-net: 4.1.0
+      web3-providers-http: 4.2.0
+      web3-providers-ws: 4.0.8
+      web3-rpc-methods: 1.3.0
+      web3-rpc-providers: 1.0.0-rc.3
+      web3-types: 1.9.0
+      web3-utils: 4.3.2
+      web3-validator: 2.0.6
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -3238,13 +3255,13 @@ snapshots:
       tr46: 0.0.3
       webidl-conversions: 3.0.1
 
-  which-typed-array@1.1.13:
+  which-typed-array@1.1.16:
     dependencies:
-      available-typed-arrays: 1.0.5
+      available-typed-arrays: 1.0.7
       call-bind: 1.0.7
       for-each: 0.3.3
       gopd: 1.0.1
-      has-tostringtag: 1.0.0
+      has-tostringtag: 1.0.2
 
   widest-line@3.1.0:
     dependencies:
