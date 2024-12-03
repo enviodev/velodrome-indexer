@@ -44,7 +44,7 @@ export async function getErc20TokenDetails(
       `[getErc20TokenDetails] Fetching token details for address: ${contractAddress}`
     );
 
-    const [name, decimals, symbol] = await Promise.all([
+    const [nameResult, decimalsResult, symbolResult] = await Promise.all([
       ethClient.simulateContract({
         address: contractAddress as `0x${string}`,
         abi: contractABI,
@@ -64,6 +64,10 @@ export async function getErc20TokenDetails(
         args: [],
       }),
     ]);
+    
+    const name = nameResult.result;
+    const decimals = decimalsResult.result;
+    const symbol = symbolResult.result;
 
     console.log(
       `[getErc20TokenDetails] Token details fetched: name=${name}, decimals=${decimals}, symbol=${symbol}`
