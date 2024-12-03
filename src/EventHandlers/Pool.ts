@@ -41,27 +41,30 @@ Pool.Burn.handler(async ({ event, context }) => {
 
 Pool.Fees.handlerWithLoader({
   loader: async ({ event, context }) => {
-    const liquidityPool = await context.LiquidityPoolAggregator.get(
+    const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(
       event.srcAddress
     );
 
-    if (liquidityPool == undefined) return null;
+    if (!liquidityPoolAggregator) {
+      context.log.error(`LiquidityPoolAggregator ${event.srcAddress} not found during collect fees on chain ${event.chainId}`);
+      return null;
+    }
 
     const [token0Instance, token1Instance] = await Promise.all([
       context.Token.get(
-        TokenIdByChain(liquidityPool.token0_address, event.chainId)
+        TokenIdByChain(liquidityPoolAggregator.token0_address, event.chainId)
       ),
       context.Token.get(
-        TokenIdByChain(liquidityPool.token1_address, event.chainId)
+        TokenIdByChain(liquidityPoolAggregator.token1_address, event.chainId)
       ),
     ]);
 
-    return { liquidityPool, token0Instance, token1Instance };
+    return { liquidityPoolAggregator, token0Instance, token1Instance };
   },
   handler: async ({ event, context, loaderReturn }) => {
     if (!loaderReturn) return;
 
-    const { liquidityPool, token0Instance, token1Instance } = loaderReturn;
+    const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
 
     let tokenUpdateData = {
       totalFees0: event.params.amount0,
@@ -96,15 +99,15 @@ Pool.Fees.handlerWithLoader({
     }
 
     const liquidityPoolDiff = {
-      totalFees0: liquidityPool.totalFees0 + tokenUpdateData.totalFees0,
-      totalFees1: liquidityPool.totalFees1 + tokenUpdateData.totalFees1,
-      totalFeesUSD: liquidityPool.totalFeesUSD + tokenUpdateData.totalFeesUSD,
+      totalFees0: liquidityPoolAggregator.totalFees0 + tokenUpdateData.totalFees0,
+      totalFees1: liquidityPoolAggregator.totalFees1 + tokenUpdateData.totalFees1,
+      totalFeesUSD: liquidityPoolAggregator.totalFeesUSD + tokenUpdateData.totalFeesUSD,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
     };
 
     updateLiquidityPoolAggregator(
       liquidityPoolDiff,
-      liquidityPool,
+      liquidityPoolAggregator,
       liquidityPoolDiff.lastUpdatedTimestamp,
       context
     );
@@ -113,22 +116,25 @@ Pool.Fees.handlerWithLoader({
 
 Pool.Swap.handlerWithLoader({
   loader: async ({ event, context }) => {
-    const liquidityPool = await context.LiquidityPoolAggregator.get(
+    const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(
       event.srcAddress
     );
 
-    if (liquidityPool == undefined) return null;
+    if (!liquidityPoolAggregator) {
+      context.log.error(`LiquidityPoolAggregator ${event.srcAddress} not found during swap on chain ${event.chainId}`);
+      return null;
+    }
 
     const [token0Instance, token1Instance, user, isLiquidityPool] =
       await Promise.all([
-        context.Token.get(liquidityPool.token0_id),
-        context.Token.get(liquidityPool.token1_id),
+        context.Token.get(liquidityPoolAggregator.token0_id),
+        context.Token.get(liquidityPoolAggregator.token1_id),
         context.User.get(event.params.to),
         context.LiquidityPoolAggregator.get(event.params.to),
       ]);
 
     return {
-      liquidityPool,
+      liquidityPoolAggregator,
       token0Instance,
       token1Instance,
       to_address: event.params.to,
@@ -152,7 +158,7 @@ Pool.Swap.handlerWithLoader({
 
     context.Pool_Swap.set(entity);
     if (loaderReturn) {
-      const { liquidityPool, token0Instance, token1Instance, to_address, user } =
+      const { liquidityPoolAggregator, token0Instance, token1Instance, to_address, user } =
         loaderReturn;
 
       let tokenUpdateData = {
@@ -195,21 +201,21 @@ Pool.Swap.handlerWithLoader({
 
 
       const liquidityPoolDiff = {
-        totalVolume0: liquidityPool.totalVolume0 + tokenUpdateData.netAmount0,
-        totalVolume1: liquidityPool.totalVolume1 + tokenUpdateData.netAmount1,
+        totalVolume0: liquidityPoolAggregator.totalVolume0 + tokenUpdateData.netAmount0,
+        totalVolume1: liquidityPoolAggregator.totalVolume1 + tokenUpdateData.netAmount1,
         totalVolumeUSD:
-          liquidityPool.totalVolumeUSD + tokenUpdateData.volumeInUSD,
+          liquidityPoolAggregator.totalVolumeUSD + tokenUpdateData.volumeInUSD,
         token0Price:
-          token0Instance?.pricePerUSDNew ?? liquidityPool.token0Price,
+          token0Instance?.pricePerUSDNew ?? liquidityPoolAggregator.token0Price,
         token1Price:
-          token1Instance?.pricePerUSDNew ?? liquidityPool.token1Price,
-        numberOfSwaps: liquidityPool.numberOfSwaps + 1n,
+          token1Instance?.pricePerUSDNew ?? liquidityPoolAggregator.token1Price,
+        numberOfSwaps: liquidityPoolAggregator.numberOfSwaps + 1n,
         lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       };
 
       updateLiquidityPoolAggregator(
         liquidityPoolDiff,
-        liquidityPool,
+        liquidityPoolAggregator,
         liquidityPoolDiff.lastUpdatedTimestamp,
         context
       );
@@ -262,26 +268,29 @@ Pool.Swap.handlerWithLoader({
  */
 Pool.Sync.handlerWithLoader({
   loader: async ({ event, context }) => {
-    const liquidityPool = await context.LiquidityPoolAggregator.get(
+    const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(
       event.srcAddress
     );
 
-    if (!liquidityPool) return null;
+    if (!liquidityPoolAggregator) {
+      context.log.error(`LiquidityPoolAggregator ${event.srcAddress} not found during sync on chain ${event.chainId}`);
+      return null;
+    }
 
     const [token0Instance, token1Instance] = await Promise.all([
-      context.Token.get(liquidityPool.token0_id),
-      context.Token.get(liquidityPool.token1_id),
+      context.Token.get(liquidityPoolAggregator.token0_id),
+      context.Token.get(liquidityPoolAggregator.token1_id),
     ]);
 
-    return { liquidityPool, token0Instance, token1Instance };
+    return { liquidityPoolAggregator, token0Instance, token1Instance };
   },
   handler: async ({ event, context, loaderReturn }) => {
     if (!loaderReturn) return;
 
-    const { liquidityPool, token0Instance, token1Instance } = loaderReturn;
+    const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
 
     const entity: Pool_Sync = {
-      id: `${event.chainId}_${liquidityPool.id}_${event.block.number}_${event.logIndex}`,
+      id: `${event.chainId}_${liquidityPoolAggregator.id}_${event.block.number}_${event.logIndex}`,
       reserve0: event.params.reserve0,
       reserve1: event.params.reserve1,
       sourceAddress: event.srcAddress,
@@ -295,8 +304,8 @@ Pool.Sync.handlerWithLoader({
       totalLiquidityUSD: 0n,
       normalizedReserve0: 0n,
       normalizedReserve1: 0n,
-      token0PricePerUSDNew: token0Instance?.pricePerUSDNew ?? liquidityPool.token0Price,
-      token1PricePerUSDNew: token1Instance?.pricePerUSDNew ?? liquidityPool.token1Price,
+      token0PricePerUSDNew: token0Instance?.pricePerUSDNew ?? liquidityPoolAggregator.token0Price,
+      token1PricePerUSDNew: token1Instance?.pricePerUSDNew ?? liquidityPoolAggregator.token1Price,
     };
 
 
@@ -329,7 +338,7 @@ Pool.Sync.handlerWithLoader({
     const liquidityPoolDiff = {
       reserve0: event.params.reserve0,
       reserve1: event.params.reserve1,
-      totalLiquidityUSD: tokenUpdateData.totalLiquidityUSD || liquidityPool.totalLiquidityUSD,
+      totalLiquidityUSD: tokenUpdateData.totalLiquidityUSD || liquidityPoolAggregator.totalLiquidityUSD,
       token0Price: tokenUpdateData.token0PricePerUSDNew,
       token1Price: tokenUpdateData.token1PricePerUSDNew,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
@@ -337,7 +346,7 @@ Pool.Sync.handlerWithLoader({
 
     updateLiquidityPoolAggregator(
       liquidityPoolDiff,
-      liquidityPool,
+      liquidityPoolAggregator,
       liquidityPoolDiff.lastUpdatedTimestamp,
       context
     );

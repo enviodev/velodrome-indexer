@@ -17,7 +17,7 @@ SuperchainPoolFactory.RootPoolCreated.handlerWithLoader({
       const poolChainId = await getPoolChainId(event.params.pool, event.chainId);
       return { poolChainId };
     } catch (error) {
-      console.error(`Error getting pool chain id for pool ${event.params.pool} on chain ${event.chainId}: ${error}`);
+      console.error(`Error getting superchain pool chain id for pool ${event.params.pool} on chain ${event.chainId}: ${error}`);
     }
     return null;
 
