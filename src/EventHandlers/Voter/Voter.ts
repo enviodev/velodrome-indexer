@@ -80,24 +80,8 @@ Voter.DistributeReward.handlerWithLoader({
       event.params.gauge
     );
 
-    let tokensDeposited: BigInt = 0n;
-
     const rewardTokenInfo = CHAIN_CONSTANTS[event.chainId].rewardToken(event.block.number);
     const rewardTokenAddress = rewardTokenInfo.address;
-
-    let isAlive: boolean = false;
-
-    try {
-      isAlive = await getIsAlive(event.srcAddress, event.params.gauge, event.block.number, event.chainId);
-    } catch (error) {
-      context.log.warn(`Error getting isAlive for gauge ${event.params.gauge} on chain ${event.chainId}`);
-    }
-
-    try {
-      tokensDeposited = await getTokensDeposited(rewardTokenAddress, event.params.gauge, event.block.number, event.chainId);
-    } catch (error) {
-      context.log.warn(`Error getting tokens deposited for gauge ${event.params.gauge} on chain ${event.chainId}`);
-    }
 
     const promisePool = poolAddress
       ? context.LiquidityPoolAggregator.get(poolAddress)
@@ -119,12 +103,27 @@ Voter.DistributeReward.handlerWithLoader({
       ),
     ]);
 
-    return { currentLiquidityPool, rewardToken, tokensDeposited, isAlive };
+    return { currentLiquidityPool, rewardToken };
   },
   handler: async ({ event, context, loaderReturn }) => {
 
-    if (loaderReturn) {
-      const { isAlive, currentLiquidityPool, rewardToken, tokensDeposited } = loaderReturn;
+    if (loaderReturn && loaderReturn.rewardToken) {
+      const { currentLiquidityPool, rewardToken } = loaderReturn;
+
+      let isAlive: boolean = false;
+      let tokensDeposited: BigInt = 0n;
+
+      try {
+        isAlive = await getIsAlive(event.srcAddress, event.params.gauge, event.block.number, event.chainId);
+      } catch (error) {
+        context.log.warn(`Error getting isAlive for gauge ${event.params.gauge} on chain ${event.chainId}`);
+      }
+
+      try {
+        tokensDeposited = await getTokensDeposited(rewardToken.address, event.params.gauge, event.block.number, event.chainId);
+      } catch (error) {
+        context.log.warn(`Error getting tokens deposited for gauge ${event.params.gauge} on chain ${event.chainId}`);
+      }
 
       // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
       // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point
