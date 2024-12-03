@@ -205,7 +205,7 @@ CLPool.Collect.handlerWithLoader({
     const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
 
     if (!liquidityPoolAggregator) {
-      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during collect`);
+      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during CL collect on chain ${event.chainId}`);
       return null;
     }
 
@@ -267,7 +267,7 @@ CLPool.CollectFees.handlerWithLoader({
     const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
 
     if (!liquidityPoolAggregator) {
-      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during collect fees`);
+      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during CL collect fees on chain ${event.chainId}`);
       return null;
     }
 
@@ -383,7 +383,7 @@ CLPool.Mint.handlerWithLoader({
     const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
 
     if (!liquidityPoolAggregator) {
-      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during mint`);
+      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during CL mint on chain ${event.chainId}`);
       return null;
     }
 
@@ -460,7 +460,7 @@ CLPool.Swap.handlerWithLoader({
     const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
 
     if (!liquidityPoolAggregator) {
-      context.log.error(`Pool ${pool_id} not found during swap`);
+      context.log.error(`Pool ${pool_id} not found during CL swap on chain ${event.chainId}`);
       return null;
     }
 
@@ -572,7 +572,7 @@ CLPool.Swap.handlerWithLoader({
         context
       );
     } catch (error) {
-      console.log("Error updating token prices on CLPool swap:", error);
+      console.log(`Error updating token prices on CLPool swap on chain ${event.chainId}:`, error);
     }
   },
 });

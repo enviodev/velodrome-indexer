@@ -8,7 +8,11 @@ import {
 
 import { Token } from "generated/src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "../../Helpers";
-import { CHAIN_CONSTANTS, toChecksumAddress, TokenIdByChain } from "../../Constants";
+import {
+  CHAIN_CONSTANTS,
+  toChecksumAddress,
+  TokenIdByChain,
+} from "../../Constants";
 import { poolLookupStoreManager } from "../../Store";
 import { multiplyBase1e18 } from "../../Maths";
 import { updateLiquidityPoolAggregator } from "../../Aggregators/LiquidityPoolAggregator";
@@ -17,7 +21,6 @@ import { getIsAlive, getTokensDeposited } from "./common";
 
 const { getPoolAddressByGaugeAddress, addRewardAddressDetails } =
   poolLookupStoreManager();
-
 
 SuperchainLeafVoter.Voted.handler(async ({ event, context }) => {
   const entity: Voter_Voted = {
@@ -64,7 +67,9 @@ SuperchainLeafVoter.GaugeCreated.handler(async ({ event, context }) => {
   let currentPoolRewardAddressMapping = {
     poolAddress: toChecksumAddress(event.params.pool),
     gaugeAddress: toChecksumAddress(event.params.gauge),
-    bribeVotingRewardAddress: toChecksumAddress(event.params.incentiveVotingReward),
+    bribeVotingRewardAddress: toChecksumAddress(
+      event.params.incentiveVotingReward
+    ),
     // feeVotingRewardAddress: event.params.feeVotingReward, // currently not used
   };
 
@@ -80,7 +85,9 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
 
     let tokensDeposited: BigInt = 0n;
 
-    const rewardTokenInfo = CHAIN_CONSTANTS[event.chainId].rewardToken(event.block.number);
+    const rewardTokenInfo = CHAIN_CONSTANTS[event.chainId].rewardToken(
+      event.block.number
+    );
     const rewardTokenAddress = rewardTokenInfo.address;
 
     let isAlive: boolean = false;
@@ -88,13 +95,13 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
     try {
       isAlive = await getIsAlive(event.srcAddress, event.params.gauge, event.block.number, event.chainId);
     } catch (error) {
-      context.log.warn(`Error getting isAlive for gauge ${event.params.gauge}: ${error}`);
+      context.log.warn(`Error getting isAlive for gauge ${event.params.gauge} on chain ${event.chainId}`);
     }
 
     try {
       tokensDeposited = await getTokensDeposited(rewardTokenAddress, event.params.gauge, event.block.number, event.chainId);
     } catch (error) {
-      context.log.warn(`Error getting tokens deposited for gauge ${event.params.gauge}: ${error}`);
+      context.log.warn(`Error getting tokens deposited for gauge ${event.params.gauge} on chain ${event.chainId}`);
     }
 
     const promisePool = poolAddress
@@ -103,26 +110,21 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
 
     if (!poolAddress) {
       context.log.warn(
-        `No pool address found for the gauge address ${event.params.gauge.toString()}`
+        `No pool address found for the gauge address ${event.params.gauge.toString()} on chain ${event.chainId}`
       );
     }
 
     const [currentLiquidityPool, rewardToken] = await Promise.all([
       promisePool,
-      context.Token.get(
-        TokenIdByChain(
-          rewardTokenAddress,
-          event.chainId
-        )
-      ),
+      context.Token.get(TokenIdByChain(rewardTokenAddress, event.chainId)),
     ]);
 
     return { currentLiquidityPool, rewardToken, tokensDeposited, isAlive };
   },
   handler: async ({ event, context, loaderReturn }) => {
-
     if (loaderReturn) {
-      const { isAlive, currentLiquidityPool, rewardToken, tokensDeposited } = loaderReturn;
+      const { isAlive, currentLiquidityPool, rewardToken, tokensDeposited } =
+        loaderReturn;
 
       // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
       // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point
@@ -140,7 +142,7 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
         // If the reward token does not have a price in USD, log
         if (rewardToken.pricePerUSDNew == 0n) {
           context.log.warn(
-            `Reward token with ID ${rewardToken.id.toString()} does not have a USD price yet.`
+            `Reward token with ID ${rewardToken.id.toString()} does not have a USD price yet on chain ${event.chainId}`
           );
         }
 
@@ -178,7 +180,7 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
       } else {
         // If there is no pool entity with the particular gauge address, log the error
         context.log.warn(
-          `No pool entity or reward token found for the gauge address ${event.params.gauge.toString()}`
+          `No pool entity or reward token found for the gauge address ${event.params.gauge.toString()} on chain ${event.chainId}`
         );
       }
 
@@ -195,7 +197,6 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
 
       context.Voter_DistributeReward.set(entity);
     }
-
   },
 });
 

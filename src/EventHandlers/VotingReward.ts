@@ -29,7 +29,7 @@ VotingReward.NotifyReward.handlerWithLoader({
 
     if (!poolAddress) {
       context.log.warn(
-        `No pool address found for the bribe voting address ${event.srcAddress.toString()}`
+        `No pool address found for the bribe voting address ${event.srcAddress.toString()} on chain ${event.chainId}`
       );
     }
 
@@ -78,7 +78,7 @@ VotingReward.NotifyReward.handlerWithLoader({
         // If the reward token does not have a price in USD, log
         if (rewardToken.pricePerUSDNew == 0n) {
           context.log.warn(
-            `Reward token with ID ${event.params.reward.toString()} does not have a USD price yet.`
+            `Reward token with ID ${event.params.reward.toString()} does not have a USD price yet on chain ${event.chainId}`
           );
         }
 
