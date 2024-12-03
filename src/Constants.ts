@@ -5,7 +5,9 @@ import baseWhitelistedTokens from "./constants/baseWhitelistedTokens.json";
 import modeWhitelistedTokens from "./constants/modeWhitelistedTokens.json";
 import liskWhitelistedTokens from "./constants/liskWhitelistedTokens.json";
 import contractABI from "../abis/VeloPriceOracleABI.json";
-import Web3 from "web3";
+import { Web3 } from "web3";
+import { optimism, base, lisk, mode } from 'viem/chains';
+import { createPublicClient, http, PublicClient } from 'viem';
 
 dotenv.config();
 
@@ -29,7 +31,8 @@ export const MODE_WHITELISTED_TOKENS: TokenInfo[] =
 export const LISK_WHITELISTED_TOKENS: TokenInfo[] =
   liskWhitelistedTokens as TokenInfo[];
 
-export const toChecksumAddress = (address: string) => Web3.utils.toChecksumAddress(address);
+export const toChecksumAddress = (address: string) =>
+  Web3.utils.toChecksumAddress(address);
 
 // Helper function to find a token by symbol
 const findToken = (tokens: TokenInfo[], symbol: string): TokenInfo => {
@@ -37,15 +40,6 @@ const findToken = (tokens: TokenInfo[], symbol: string): TokenInfo => {
   if (!token) throw new Error(`Token ${symbol} not found`);
   return token;
 };
-
-export function getPriceOracleContract(chainId: number, blockNumber: number) {
-  const contractAddress =
-    CHAIN_CONSTANTS[chainId].oracle.getAddress(blockNumber);
-  const rpcURL = CHAIN_CONSTANTS[chainId].rpcURL;
-  const web3 = new Web3(rpcURL);
-  const contract = new web3.eth.Contract(contractABI, contractAddress);
-  return contract;
-}
 
 // List of stablecoin pools with their token0, token1 and name
 const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
@@ -109,7 +103,7 @@ type chainConstants = {
     updateDelta: number;
   };
   rewardToken: (blockNumber: number) => TokenInfo;
-  rpcURL: string;
+  eth_client: PublicClient;
   stablecoinPools: Pool[];
   stablecoinPoolAddresses: string[];
   testingPoolAddresses: string[];
@@ -139,10 +133,17 @@ const OPTIMISM_CONSTANTS: chainConstants = {
       address: "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db",
       symbol: "VELO",
       decimals: 18,
-      createdBlock: 105896880
-    }
+      createdBlock: 105896880,
+    };
   },
-  rpcURL: process.env.OPTIMISM_RPC_URL || "https://rpc.ankr.com/optimism",
+  eth_client: createPublicClient({
+    chain: optimism,
+    transport: http(process.env.ENVIO_OPTIMISM_RPC_URL || "https://rpc.ankr.com/optimism", {
+      retryCount: 10,
+      retryDelay: 1000,
+      batch: false
+    }),
+  }) as PublicClient,
   stablecoinPools: OPTIMISM_STABLECOIN_POOLS,
   stablecoinPoolAddresses: OPTIMISM_STABLECOIN_POOLS.map(
     (pool) => pool.address
@@ -167,8 +168,15 @@ const BASE_CONSTANTS: chainConstants = {
     startBlock: 3219857,
     updateDelta: 60 * 60, // 1 hour
   },
-  rewardToken: (blockNumber: Number) => findToken(BASE_WHITELISTED_TOKENS, "AERO"),
-  rpcURL: process.env.BASE_RPC_URL || "https://base.publicnode.com",
+  rewardToken: (blockNumber: Number) =>
+    findToken(BASE_WHITELISTED_TOKENS, "AERO"),
+  eth_client: createPublicClient({
+    chain: base,
+    transport: http(process.env.ENVIO_BASE_RPC_URL || "https://base.publicnode.com", {
+      retryCount: 10,
+      retryDelay: 1000,
+    }),
+  }) as PublicClient,
   stablecoinPools: BASE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: BASE_STABLECOIN_POOLS.map((pool) => pool.address),
   testingPoolAddresses: BASE_TESTING_POOL_ADDRESSES,
@@ -189,8 +197,15 @@ const LISK_CONSTANTS: chainConstants = {
     startBlock: 8380726,
     updateDelta: 60 * 60, // 1 hour
   },
-  rewardToken: (blockNumber: number) => findToken(LISK_WHITELISTED_TOKENS, "XVELO"),
-  rpcURL: process.env.LISK_RPC_URL || "https://lisk.drpc.org",
+  rewardToken: (blockNumber: number) =>
+    findToken(LISK_WHITELISTED_TOKENS, "XVELO"),
+  eth_client: createPublicClient({
+    chain: lisk,
+    transport: http(process.env.ENVIO_LISK_RPC_URL || "https://lisk.drpc.org", {
+      retryCount: 10,
+      retryDelay: 1000,
+    }),
+  }) as PublicClient,
   stablecoinPools: [],
   stablecoinPoolAddresses: [],
   testingPoolAddresses: [],
@@ -211,8 +226,15 @@ const MODE_CONSTANTS: chainConstants = {
     startBlock: 15591759,
     updateDelta: 60 * 60, // 1 hour
   },
-  rewardToken: (blockNumber: number) => findToken(MODE_WHITELISTED_TOKENS, "XVELO"),
-  rpcURL: process.env.MODE_RPC_URL || "https://mainnet.mode.network",
+  rewardToken: (blockNumber: number) =>
+    findToken(MODE_WHITELISTED_TOKENS, "XVELO"),
+  eth_client: createPublicClient({
+    chain: mode,
+    transport: http(process.env.ENVIO_MODE_RPC_URL || "https://mainnet.mode.network", {
+      retryCount: 10,
+      retryDelay: 1000,
+    }),
+  }) as PublicClient,
   stablecoinPools: MODE_STABLECOIN_POOLS,
   stablecoinPoolAddresses: MODE_STABLECOIN_POOLS.map((pool) => pool.address),
   testingPoolAddresses: MODE_TESTING_POOL_ADDRESSES,
@@ -224,29 +246,33 @@ const MODE_CONSTANTS: chainConstants = {
 
 /**
  * Create a unique ID for a token on a specific chain. Really should only be used for Token Entities.
- * @param address 
- * @param chainId 
- * @returns string Merged Token ID. 
+ * @param address
+ * @param chainId
+ * @returns string Merged Token ID.
  */
-export const TokenIdByChain = (address: string, chainId: number) => `${toChecksumAddress(address)}-${chainId}`;
+export const TokenIdByChain = (address: string, chainId: number) =>
+  `${toChecksumAddress(address)}-${chainId}`;
 
 /**
  * Create a unique ID for a token on a specific chain at a specific block. Really should only be used
  * for TokenPrice Entities.
- * @param address 
- * @param chainId 
- * @param blockNumber 
- * @returns string Merged Token ID. 
+ * @param address
+ * @param chainId
+ * @param blockNumber
+ * @returns string Merged Token ID.
  */
-export const TokenIdByBlock = (address: string, chainId: number, blockNumber: number) =>
-  `${chainId}_${toChecksumAddress(address)}_${blockNumber}`;
+export const TokenIdByBlock = (
+  address: string,
+  chainId: number,
+  blockNumber: number
+) => `${chainId}_${toChecksumAddress(address)}_${blockNumber}`;
 
 // Key is chain ID
 export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   10: OPTIMISM_CONSTANTS,
   8453: BASE_CONSTANTS,
   34443: MODE_CONSTANTS,
-  1135: LISK_CONSTANTS
+  1135: LISK_CONSTANTS,
 };
 
 export const CacheCategory = {

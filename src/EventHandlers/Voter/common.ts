@@ -1,8 +1,8 @@
-import { CHAIN_CONSTANTS, toChecksumAddress, TokenIdByChain } from "../../Constants";
+import { CHAIN_CONSTANTS } from "../../Constants";
 
-import Web3 from "web3";
 import ERC20GaugeABI from "../../../abis/ERC20.json";
 import VoterABI from "../../../abis/VoterABI.json";
+
 /**
  * Fetches the historical balance of reward tokens deposited in a gauge contract at a specific block.
  * 
@@ -15,11 +15,16 @@ import VoterABI from "../../../abis/VoterABI.json";
  * @remarks Returns 0 if the balance call fails or returns undefined
  */
 export async function getTokensDeposited(rewardTokenAddress: string, gaugeAddress: string, blockNumber: number, eventChainId: number): Promise<BigInt> {
-    const rpcURL = CHAIN_CONSTANTS[eventChainId].rpcURL;
-    const web3 = new Web3(rpcURL);
-    const contract = new web3.eth.Contract(ERC20GaugeABI, rewardTokenAddress);
-    const tokensDeposited = await contract.methods.balanceOf(gaugeAddress).call({}, blockNumber);
-    return BigInt(tokensDeposited?.toString() || '0');
+
+    const ethClient = CHAIN_CONSTANTS[eventChainId].eth_client;
+    const { result } = await ethClient.simulateContract({
+        address: rewardTokenAddress as `0x${string}`,
+        abi: ERC20GaugeABI,
+        functionName: 'balanceOf',
+        args: [gaugeAddress],
+        blockNumber: BigInt(blockNumber),
+    })
+    return BigInt(String(result) || '0');
 }
 
 /**
@@ -33,9 +38,13 @@ export async function getTokensDeposited(rewardTokenAddress: string, gaugeAddres
  * @throws Will throw an error if the RPC call fails or if the contract interaction fails
  */
 export async function getIsAlive(voterAddress: string, gaugeAddress: string, blockNumber: number, eventChainId: number): Promise<boolean> {
-    const rpcURL = CHAIN_CONSTANTS[eventChainId].rpcURL;
-    const web3 = new Web3(rpcURL);
-    const contract = new web3.eth.Contract(VoterABI, voterAddress);
-    const isAlive: boolean = await contract.methods.isAlive(gaugeAddress).call({}, blockNumber);
-    return isAlive;
+    const ethClient = CHAIN_CONSTANTS[eventChainId].eth_client;
+    const { result} = await ethClient.simulateContract({
+        address: voterAddress as `0x${string}`,
+        abi: VoterABI,
+        functionName: 'isAlive',
+        args: [gaugeAddress],
+        blockNumber: BigInt(blockNumber),
+    });
+    return result;
 }

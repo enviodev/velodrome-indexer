@@ -4,34 +4,34 @@ import Web3 from "npm:web3@4.0.1";
 import "jsr:@std/dotenv/load";
 
 const CHAIN_ARGS = {
-    "base": {
-        RPC_URL: Deno.env.get("BASE_RPC_URL"),
-        TOKENS_FILE: "src/constants/Aerodrome-Whitelisted.csv",
-        OUTPUT_FILE: "src/constants/baseWhitelistedTokens.json"
-    },
-    "optimism": {
-        RPC_URL: Deno.env.get("OPTIMISM_RPC_URL"),
-        TOKENS_FILE: "src/constants/Velodrome-Whitelisted.csv",
-        OUTPUT_FILE: "src/constants/optimismWhitelistedTokens.json"
-    },
-    "mode": {
-        RPC_URL: Deno.env.get("MODE_RPC_URL"),
-        TOKENS_FILE: "src/constants/Mode-Whitelisted.csv",
-        OUTPUT_FILE: "src/constants/modeWhitelistedTokens.json"
-    }
-}
-
+  base: {
+    RPC_URL: Deno.env.get("ENVIO_BASE_RPC_URL"),
+    TOKENS_FILE: "src/constants/Aerodrome-Whitelisted.csv",
+    OUTPUT_FILE: "src/constants/baseWhitelistedTokens.json",
+  },
+  optimism: {
+    RPC_URL: Deno.env.get("ENVIO_OPTIMISM_RPC_URL"),
+    TOKENS_FILE: "src/constants/Velodrome-Whitelisted.csv",
+    OUTPUT_FILE: "src/constants/optimismWhitelistedTokens.json",
+  },
+  mode: {
+    RPC_URL: Deno.env.get("ENVIO_MODE_RPC_URL"),
+    TOKENS_FILE: "src/constants/Mode-Whitelisted.csv",
+    OUTPUT_FILE: "src/constants/modeWhitelistedTokens.json",
+  },
+};
 
 /**
  * Generates the whitelist of tokens for a given chain and writes it to a JSON file.
  * @param chain - The chain to generate the whitelist for.
  */
 async function generateTokenData(chain: string) {
-
   // Load environment variables
   const RPC_URL = CHAIN_ARGS[chain].RPC_URL;
   if (!RPC_URL) {
-    console.error(`${chain.toUpperCase()}_RPC_URL is not set in the environment variables`);
+    console.error(
+      `${chain.toUpperCase()}_RPC_URL is not set in the environment variables`
+    );
     Deno.exit(1);
   }
 
@@ -48,7 +48,12 @@ async function generateTokenData(chain: string) {
   const csvContent = await Deno.readTextFile(TOKENS_FILE);
   const records = parse(csvContent, { skipFirstRow: true });
 
-  type TokenData = { address: string, symbol: string, decimals: number, createdBlock: number };
+  type TokenData = {
+    address: string;
+    symbol: string;
+    decimals: number;
+    createdBlock: number;
+  };
 
   const whitelistedTokens: TokenData[] = [];
 
@@ -59,7 +64,7 @@ async function generateTokenData(chain: string) {
 
       const [symbol, decimals] = await Promise.all([
         contract.methods.symbol().call({}),
-        contract.methods.decimals().call({})
+        contract.methods.decimals().call({}),
       ]);
 
       whitelistedTokens.push({
@@ -71,7 +76,10 @@ async function generateTokenData(chain: string) {
 
       console.log(`Processed token: ${symbol} at address ${address}`);
     } catch (error) {
-      console.error(`Error processing token at address ${address}:`, error.message);
+      console.error(
+        `Error processing token at address ${address}:`,
+        error.message
+      );
     }
   }
 
