@@ -45,6 +45,12 @@ PoolFactory.PoolCreated.handlerWithLoader({
       }
     }
 
+    if (event.params.pool == "0x689fC0669547BFDcc84014f236B825aBaF6f09B1") {
+      throw new Error(
+        `Pool Factory Error thrown. Creating pool ${event.params.pool} with token0 ${event.params.token0} and token1 ${event.params.token1}`
+      );
+    }
+
     const pool: LiquidityPoolAggregator = {
       id: event.params.pool,
       chainId: event.chainId,

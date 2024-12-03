@@ -53,6 +53,10 @@ CLFactory.PoolCreated.handlerWithLoader({
       }
     }
 
+    if (event.params.pool == "0x689fC0669547BFDcc84014f236B825aBaF6f09B1") {
+      throw new Error("CL Factory Error thrown.");
+    }
+
     const aggregator: LiquidityPoolAggregator = {
       id: event.params.pool,
       chainId: event.chainId,
