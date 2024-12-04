@@ -117,6 +117,7 @@ type VotingReward_NotifyReward {
   from: String!
   reward: String!
   epoch: BigInt! @config(precision: 76)
+  pool: String!
   amount: BigInt! @config(precision: 76)
   sourceAddress: String!
   timestamp: Timestamp!
