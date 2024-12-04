@@ -2,7 +2,6 @@
 
 This repo contains the indexer for [Velodrome V2](https://velodrome.finance/) and
 [Aerodrome](https://aerodrome.finance/) across multiple chains.
-
 The indexer is written in TypeScript.
 
 ### Overview of user-defined files
