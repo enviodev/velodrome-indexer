@@ -41,8 +41,13 @@ VotingReward.NotifyReward.handlerWithLoader({
     ]);
 
     if (!storedToken) {
-      const rewardTokenDetails = await getTokenPriceData(event.params.reward, event.block.number, event.chainId);
-      rewardToken = rewardTokenDetails;
+      try {
+        const rewardTokenDetails = await getTokenPriceData(event.params.reward, event.block.number, event.chainId);
+        rewardToken = rewardTokenDetails;
+      } catch (error) {
+        context.log.error(`Error in voting reward notify reward event fetching token details` +
+          ` for ${event.params.reward} on chain ${event.chainId}: ${error}`);
+      }
     } else {
       rewardToken = {
         pricePerUSDNew: storedToken.pricePerUSDNew,
@@ -58,6 +63,7 @@ VotingReward.NotifyReward.handlerWithLoader({
       from: event.params.from,
       reward: event.params.reward,
       epoch: event.params.epoch,
+      pool: loaderReturn?.currentLiquidityPool?.id ?? "",
       amount: event.params.amount,
       timestamp: new Date(event.block.timestamp * 1000),
       sourceAddress: event.srcAddress,

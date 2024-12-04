@@ -235,22 +235,27 @@ SuperchainLeafVoter.WhitelistToken.handlerWithLoader({
       context.Token.set(updatedToken as Token);
       return;
     } else {
-      const tokenDetails = await getErc20TokenDetails(
-        event.params.token,
-        event.chainId
-      );
-      const updatedToken: Token = {
-        id: TokenIdByChain(event.params.token, event.chainId),
-        name: tokenDetails.name,
-        symbol: tokenDetails.symbol,
-        pricePerUSDNew: 0n,
-        address: event.params.token,
-        chainId: event.chainId,
-        decimals: BigInt(tokenDetails.decimals),
-        isWhitelisted: event.params._bool,
-        lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
-      };
-      context.Token.set(updatedToken);
+      try {
+        const tokenDetails = await getErc20TokenDetails(
+          event.params.token,
+          event.chainId
+        );
+        const updatedToken: Token = {
+          id: TokenIdByChain(event.params.token, event.chainId),
+          name: tokenDetails.name,
+          symbol: tokenDetails.symbol,
+          pricePerUSDNew: 0n,
+          address: event.params.token,
+          chainId: event.chainId,
+          decimals: BigInt(tokenDetails.decimals),
+          isWhitelisted: event.params._bool,
+          lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
+        };
+        context.Token.set(updatedToken);
+      } catch (error) {
+        context.log.error(`Error in superchain leaf voter whitelist token event fetching token details` +
+          ` for ${event.params.token} on chain ${event.chainId}: ${error}`);
+      }
     }
   },
 });

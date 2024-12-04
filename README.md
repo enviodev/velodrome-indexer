@@ -42,7 +42,6 @@ is running with pnpm version 9.11.0.
 pnpm i
 ```
 
-
 #### Notable Envio CLI commands
 
 This command will generate the `generated` folder for the repo based on the latest `config.yaml` and `schema.graphql` files.

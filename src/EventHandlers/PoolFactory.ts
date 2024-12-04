@@ -35,11 +35,16 @@ PoolFactory.PoolCreated.handlerWithLoader({
 
     for (let poolTokenAddressMapping of poolTokenAddressMappings) {
       if (poolTokenAddressMapping.tokenInstance == undefined) {
-        const { symbol: tokenSymbol } = await getErc20TokenDetails(
-          poolTokenAddressMapping.address,
-          event.chainId
-        );
-        poolTokenSymbols.push(tokenSymbol);
+        try {
+          const { symbol: tokenSymbol } = await getErc20TokenDetails(
+            poolTokenAddressMapping.address,
+            event.chainId
+          );
+          poolTokenSymbols.push(tokenSymbol);
+        } catch (error) {
+          context.log.error(`Error in pool factory fetching token details` +
+            ` for ${poolTokenAddressMapping.address} on chain ${event.chainId}: ${error}`);
+        }
       } else {
         poolTokenSymbols.push(poolTokenAddressMapping.tokenInstance.symbol);
       }
