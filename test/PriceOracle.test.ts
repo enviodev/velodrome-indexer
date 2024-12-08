@@ -1,9 +1,11 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import { Token } from "../generated/src/Types.gen";
 import * as PriceOracle from "../src/PriceOracle";
-import { OPTIMISM_WHITELISTED_TOKENS, CHAIN_CONSTANTS, TokenIdByChain, TokenIdByBlock } from "../src/Constants";
+import * as Erc20 from "../src/Erc20";
+import { CHAIN_CONSTANTS } from "../src/Constants";
 import { Cache } from "../src/cache";
+
+import { setupCommon } from "./EventHandlers/Pool/common";
 
 describe("PriceOracle", () => {
   let mockContext: any ;
@@ -16,6 +18,7 @@ describe("PriceOracle", () => {
 
   let addStub: sinon.SinonStub;
   let readStub: sinon.SinonStub;
+  const { mockToken0Data } = setupCommon();
 
   beforeEach(() => {
     addStub = sinon.stub();
@@ -32,44 +35,88 @@ describe("PriceOracle", () => {
         TokenPriceSnapshot: { set: sinon.stub(), get: sinon.stub() }
     };
 
-    mockContract = sinon.stub(CHAIN_CONSTANTS[chainId].eth_client, "simulateContract")
-        .returns({ result: ["1000000000000000000", "2000000000000000000"] } as any);
   });
 
   afterEach(() => {
     sinon.restore();
   });
 
+  describe("refreshTokenPrice", () => {
+    let mockERC20Details: sinon.SinonStub;
+    let testLastUpdated: Date;
+
+    const mockTokenPriceData: any = {
+      pricePerUSDNew: 2n * 10n ** 18n,
+      decimals: mockToken0Data.decimals,
+    };
+
+    beforeEach(() => {
+      mockContract = sinon.stub(CHAIN_CONSTANTS[chainId].eth_client, "simulateContract")
+        .returns({
+          result: [mockTokenPriceData.pricePerUSDNew.toString(), "2000000000000000000"]
+        } as any);
+      mockERC20Details = sinon.stub(Erc20, "getErc20TokenDetails")
+        .returns({
+          decimals: mockTokenPriceData.decimals
+        } as any);
+    });
+
+    describe("if the update interval hasn't passed", () => {
+      let updatedToken: any;
+      beforeEach(async () => {
+        testLastUpdated = new Date(blockDatetime.getTime() - 1000);
+        const fetchedToken = {
+          ...mockToken0Data,
+          lastUpdatedTimestamp: testLastUpdated
+        };
+        await PriceOracle.refreshTokenPrice(fetchedToken, blockNumber, blockDatetime.getTime(), chainId, mockContext);
+      });
+      it("should not update prices if the update interval hasn't passed", async () => {
+        expect(mockContract.called).to.be.false;
+      });
+    });
+    describe("if the update interval has passed", () => {
+      let updatedToken: any;
+      let testLastUpdated: Date;
+      beforeEach(async () => {
+        testLastUpdated = new Date(blockDatetime.getTime() - (61 * 60 * 1000));
+        const fetchedToken = {
+          ...mockToken0Data,
+          lastUpdatedTimestamp: testLastUpdated
+        };
+        await PriceOracle.refreshTokenPrice(fetchedToken, blockNumber, blockDatetime.getTime(), chainId, mockContext);
+        updatedToken = mockContext.Token.set.lastCall.args[0];
+      });
+      it("should update prices if the update interval has passed", async () => {
+        expect(updatedToken.pricePerUSDNew).to.equal(mockTokenPriceData.pricePerUSDNew);
+        expect(updatedToken.lastUpdatedTimestamp).greaterThan(testLastUpdated);
+      });
+    });
+  });
+
   describe("set_whitelisted_prices", () => {
 
-    it("should update existing tokens and create TokenPrice entities", async () => {
-      // Setup existing token
-      const existingToken: Token = {
-        id: TokenIdByChain(OPTIMISM_WHITELISTED_TOKENS[0].address, chainId),
-        address: OPTIMISM_WHITELISTED_TOKENS[0].address,
-        symbol: OPTIMISM_WHITELISTED_TOKENS[0].symbol,
-        name: OPTIMISM_WHITELISTED_TOKENS[0].symbol,
-        chainId: chainId,
-        isWhitelisted: false,
-        decimals: BigInt(OPTIMISM_WHITELISTED_TOKENS[0].decimals),
-        pricePerUSDNew: BigInt(0),
-        lastUpdatedTimestamp: new Date("2022-01-01T00:00:00Z")
-      };
+    beforeEach(() => {
+      mockContract = sinon.stub(CHAIN_CONSTANTS[chainId].eth_client, "simulateContract")
+          .returns({ result: ["1000000000000000000", "2000000000000000000"] } as any);
+    });
 
-      mockContext.Token.get.returns(existingToken);
+    it("should update existing tokens and create TokenPrice entities", async () => {
+
+      mockContext.Token.get.returns(mockToken0Data);
 
       await PriceOracle.set_whitelisted_prices(chainId, blockNumber, blockDatetime, mockContext);
 
       // Check if token was updated
       const updatedToken = mockContext.Token.set.args[0][0];
       expect(updatedToken).to.not.be.undefined;
-      expect(updatedToken?.pricePerUSDNew).to.equal(BigInt("1000000000000000000"));
+      expect(updatedToken?.pricePerUSDNew).to.equal(mockToken0Data.pricePerUSDNew);
       expect(updatedToken?.lastUpdatedTimestamp).to.deep.equal(blockDatetime);
 
       // Check if TokenPrice was created
       const tokenPrice = mockContext.TokenPriceSnapshot.set.args[0][0];
       expect(tokenPrice).to.not.be.undefined;
-      expect(tokenPrice?.pricePerUSDNew).to.equal(BigInt("1000000000000000000"));
+      expect(tokenPrice?.pricePerUSDNew).to.equal(mockToken0Data.pricePerUSDNew);
       expect(tokenPrice?.lastUpdatedTimestamp).to.deep.equal(blockDatetime);
     });
 
@@ -84,13 +131,13 @@ describe("PriceOracle", () => {
       // Check if new token was created
       const newToken = mockContext.Token.set.args[0][0];
       expect(newToken).to.not.be.undefined;
-      expect(newToken?.pricePerUSDNew).to.equal(BigInt("1000000000000000000"));
+      expect(newToken?.pricePerUSDNew).to.equal(mockToken0Data.pricePerUSDNew);
       expect(newToken?.lastUpdatedTimestamp).to.deep.equal(updatedBlockDatetime);
 
       // Check if TokenPrice was created
       const tokenPrice = mockContext.TokenPriceSnapshot.set.args[0][0];
       expect(tokenPrice).to.not.be.undefined;
-      expect(tokenPrice?.pricePerUSDNew).to.equal(BigInt("1000000000000000000"));
+      expect(tokenPrice?.pricePerUSDNew).to.equal(mockToken0Data.pricePerUSDNew);
       expect(tokenPrice?.lastUpdatedTimestamp).to.deep.equal(updatedBlockDatetime);
     });
 

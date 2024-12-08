@@ -14,7 +14,7 @@ import { setupCommon } from "../Pool/common";
 describe("CLPool Event Handlers", () => {
   let mockDb: any;
   let updateLiquidityPoolAggregatorStub: sinon.SinonStub;
-  let setPricesStub: sinon.SinonStub;
+  let mockPriceOracle: sinon.SinonStub;
 
   beforeEach(() => {
     mockDb = MockDb.createMockDb();
@@ -23,9 +23,11 @@ describe("CLPool Event Handlers", () => {
       LiquidityPoolAggregatorFunctions,
       "updateLiquidityPoolAggregator"
     );
-    setPricesStub = sinon
-      .stub(PriceOracle, "set_whitelisted_prices")
-      .resolves();
+    mockPriceOracle = sinon
+      .stub(PriceOracle, "refreshTokenPrice")
+      .callsFake(async (...args) => {
+        return args[0]; // Return the token that was passed in
+      });
 
   });
 
@@ -480,15 +482,13 @@ describe("CLPool Event Handlers", () => {
         const [diff] = aggregatorCalls;
         expect(diff.totalLiquidityUSD).to.equal(expectations.totalLiquidityUSD);
       });
-
-      it("should call set_whitelisted_prices", async () => {
-        expect(setPricesStub.calledOnce).to.be.true;
-        const [chainId, blockNumber, blockDatetime] =
-          setPricesStub.firstCall.args;
-
-        expect(chainId).to.equal(1);
-        expect(blockNumber).to.equal(123456);
-        expect(blockDatetime).to.deep.equal(new Date(1000000 * 1000));
+      it("should call refreshTokenPrice on token0", () => {
+        const calledToken = mockPriceOracle.firstCall.args[0];
+        expect(calledToken.address).to.equal(mockToken0Data.address);
+      });
+      it("should call refreshTokenPrice on token1", () => {
+        const calledToken = mockPriceOracle.secondCall.args[0];
+        expect(calledToken.address).to.equal(mockToken1Data.address);
       });
     });
 
