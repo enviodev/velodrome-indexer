@@ -15,6 +15,31 @@ export interface TokenPriceData {
   decimals: bigint;
 }
 
+const ONE_HOUR_MS = 60 * 60 * 1000; // 1 hour in milliseconds
+
+export async function refreshTokenPrice(
+  token: Token,
+  blockNumber: number,
+  blockTimestamp: number,
+  chainId: number,
+  context: any
+): Promise<Token> {
+
+  if (blockTimestamp - token.lastUpdatedTimestamp.getTime() < ONE_HOUR_MS) {
+    return token;
+  }
+
+  const tokenPriceData = await getTokenPriceData(token.address, blockNumber, chainId);
+  const updatedToken: Token = {
+    ...token,
+    pricePerUSDNew: tokenPriceData.pricePerUSDNew,
+    decimals: tokenPriceData.decimals,
+    lastUpdatedTimestamp: new Date(blockTimestamp * 1000)
+  };
+  context.Token.set(updatedToken);
+  return updatedToken;
+}
+
 export async function getTokenPriceData(tokenAddress: string, blockNumber: number, chainId: number): Promise<TokenPriceData> {
   const tokenDetails = await getErc20TokenDetails(
     tokenAddress,
