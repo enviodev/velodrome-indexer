@@ -12,7 +12,7 @@ import {
   LiquidityPoolAggregator,
   Token,
 } from "generated";
-import { set_whitelisted_prices } from "../PriceOracle";
+import { refreshTokenPrice, set_whitelisted_prices } from "../PriceOracle";
 import { normalizeTokenAmountTo1e18 } from "../Helpers";
 import { multiplyBase1e18, abs } from "../Maths";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
@@ -472,6 +472,7 @@ CLPool.Swap.handlerWithLoader({
     return { liquidityPoolAggregator, token0Instance, token1Instance };
   },
   handler: async ({ event, context, loaderReturn }) => {
+    const blockDatetime = new Date(event.block.timestamp * 1000);
     const entity: CLPool_Swap = {
       id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
       sender: event.params.sender,
@@ -482,7 +483,7 @@ CLPool.Swap.handlerWithLoader({
       liquidity: event.params.liquidity,
       tick: event.params.tick,
       sourceAddress: event.srcAddress,
-      timestamp: new Date(event.block.timestamp * 1000),
+      timestamp: blockDatetime,
       chainId: event.chainId,
     };
 
@@ -490,6 +491,8 @@ CLPool.Swap.handlerWithLoader({
 
     if (loaderReturn && loaderReturn.liquidityPoolAggregator) {
       const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
+      let token0 = token0Instance;
+      let token1 = token1Instance;
 
       // Delta that will be added to the liquidity pool aggregator
       let tokenUpdateData = {
@@ -503,25 +506,27 @@ CLPool.Swap.handlerWithLoader({
       tokenUpdateData.netAmount0 = abs(event.params.amount0);
       tokenUpdateData.netAmount1 = abs(event.params.amount1); 
 
-      if (token0Instance) {
+      if (token0) {
+        token0 = await refreshTokenPrice(token0, event.block.number, event.block.timestamp, event.chainId, context);
         const normalizedAmount0 = normalizeTokenAmountTo1e18(
           abs(event.params.amount0),
-          Number(token0Instance.decimals)
+          Number(token0.decimals)
         );
         tokenUpdateData.netVolumeToken0USD = multiplyBase1e18(
           normalizedAmount0,
-          token0Instance.pricePerUSDNew
+          token0.pricePerUSDNew
         );
       }
 
-      if (token1Instance) {
+      if (token1) {
+        token1 = await refreshTokenPrice(token1, event.block.number, event.block.timestamp, event.chainId, context);
         const normalizedAmount1 = normalizeTokenAmountTo1e18(
           abs(event.params.amount1),
-          Number(token1Instance.decimals)
+          Number(token1.decimals)
         );
         tokenUpdateData.netVolumeToken1USD = multiplyBase1e18(
           normalizedAmount1,
-          token1Instance.pricePerUSDNew
+          token1.pricePerUSDNew
         );
       }
 
@@ -534,8 +539,8 @@ CLPool.Swap.handlerWithLoader({
       const reserveResult = updateCLPoolLiquidity(
         liquidityPoolAggregator,
         event,
-        token0Instance,
-        token1Instance
+        token0,
+        token1
       );
 
       const liquidityPoolAggregatorDiff: Partial<LiquidityPoolAggregator> = {
@@ -558,21 +563,10 @@ CLPool.Swap.handlerWithLoader({
       updateLiquidityPoolAggregator(
         liquidityPoolAggregatorDiff,
         liquidityPoolAggregator,
-        new Date(event.block.timestamp * 1000),
+        blockDatetime,
         context
       );
     }
 
-    const blockDatetime = new Date(event.block.timestamp * 1000);
-    try {
-      await set_whitelisted_prices(
-        event.chainId,
-        event.block.number,
-        blockDatetime,
-        context
-      );
-    } catch (error) {
-      console.log(`Error updating token prices on CLPool swap on chain ${event.chainId}:`, error);
-    }
   },
 });
