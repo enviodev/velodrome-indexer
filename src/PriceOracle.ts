@@ -24,7 +24,6 @@ export async function refreshTokenPrice(
   chainId: number,
   context: any
 ): Promise<Token> {
-
   if (blockTimestamp - token.lastUpdatedTimestamp.getTime() < ONE_HOUR_MS) {
     return token;
   }
