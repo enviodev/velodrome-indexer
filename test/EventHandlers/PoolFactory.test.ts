@@ -1,20 +1,33 @@
 import { expect } from "chai";
 import { MockDb, PoolFactory } from "../../generated/src/TestHelpers.gen";
-import { LiquidityPoolAggregator, Token } from "../../generated/src/Types.gen";
-import { TEN_TO_THE_18_BI } from "../../src/Constants";
 import { toChecksumAddress } from "../../src/Constants";
+import * as PriceOracle from "../../src/PriceOracle";
+import sinon from "sinon";
+import { setupCommon } from "./Pool/common";
+import { Token } from "../../generated/src/Types.gen";
 
 describe("PoolFactory Events", () => {
 
-  const token0Address = "0x1111111111111111111111111111111111111111";
-  const token1Address = "0x2222222222222222222222222222222222222222";
-  const poolAddress = "0x3333333333333333333333333333333333333333";
+  const { mockToken0Data, mockToken1Data, mockLiquidityPoolData } = setupCommon();
+  const token0Address = mockToken0Data.address;
+  const token1Address = mockToken1Data.address;
+  const poolAddress = mockLiquidityPoolData.id;
   const chainId = 10;
 
-  describe("PoolCreated event", () => {
+  let mockPriceOracle: sinon.SinonStub;
 
+  describe("PoolCreated event", () => {
     let createdPool: any;
+
     beforeEach(async () => {
+
+      mockPriceOracle = sinon
+        .stub(PriceOracle, "createTokenEntity")
+        .callsFake(async (...args) => {
+          if (args[0] === token0Address) return mockToken0Data as Token;
+          return mockToken1Data as Token;
+        });
+
       const mockDb = MockDb.createMockDb();
       const mockEvent = PoolFactory.PoolCreated.createMockEvent({
         token0: token0Address,
@@ -33,6 +46,15 @@ describe("PoolFactory Events", () => {
       const result = await PoolFactory.PoolCreated.processEvent({ event: mockEvent, mockDb });
       createdPool = result.entities.LiquidityPoolAggregator.get(toChecksumAddress(poolAddress));
     });
+
+    afterEach(() => {
+      mockPriceOracle.restore();
+    });
+
+    it('should create token entities', async () => {
+      expect(mockPriceOracle.calledTwice).to.be.true;
+    });
+
     it("should create a new LiquidityPool entity and Token entities", async () => {
       expect(createdPool).to.not.be.undefined;
       expect(createdPool?.isStable).to.be.false;

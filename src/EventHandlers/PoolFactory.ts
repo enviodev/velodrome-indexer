@@ -1,12 +1,10 @@
 import { PoolFactory, PoolFactory_SetCustomFee } from "generated";
-
-import { getErc20TokenDetails } from "./../Erc20";
-
 import { TokenEntityMapping } from "./../CustomTypes";
-import { Token, LiquidityPoolAggregator } from "./../src/Types.gen";
+import { LiquidityPoolAggregator } from "./../src/Types.gen";
 import { generatePoolName } from "./../Helpers";
 import { TokenIdByChain } from "../Constants";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
+import { createTokenEntity } from "../PriceOracle";
 
 PoolFactory.PoolCreated.contractRegister(
   ({ event, context }) => {
@@ -36,11 +34,9 @@ PoolFactory.PoolCreated.handlerWithLoader({
     for (let poolTokenAddressMapping of poolTokenAddressMappings) {
       if (poolTokenAddressMapping.tokenInstance == undefined) {
         try {
-          const { symbol: tokenSymbol } = await getErc20TokenDetails(
-            poolTokenAddressMapping.address,
-            event.chainId
-          );
-          poolTokenSymbols.push(tokenSymbol);
+          poolTokenAddressMapping.tokenInstance = await createTokenEntity(
+            poolTokenAddressMapping.address, event.chainId, event.block.number, context);
+          poolTokenSymbols.push(poolTokenAddressMapping.tokenInstance.symbol);
         } catch (error) {
           context.log.error(`Error in pool factory fetching token details` +
             ` for ${poolTokenAddressMapping.address} on chain ${event.chainId}: ${error}`);

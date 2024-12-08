@@ -1,9 +1,9 @@
-import { CLFactory, CLFactory_PoolCreated, LiquidityPoolAggregator } from "generated";
+import { CLFactory, CLFactory_PoolCreated, LiquidityPoolAggregator, Token } from "generated";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 import { TokenEntityMapping } from "../CustomTypes";
-import { getErc20TokenDetails } from "../Erc20";
 import { TokenIdByChain } from "../Constants";
 import { generatePoolName } from "../Helpers";
+import { createTokenEntity } from "../PriceOracle";
 
 CLFactory.PoolCreated.contractRegister(
   ({ event, context }) => {
@@ -44,11 +44,9 @@ CLFactory.PoolCreated.handlerWithLoader({
     for (let poolTokenAddressMapping of poolTokenAddressMappings) {
       if (poolTokenAddressMapping.tokenInstance == undefined) {
         try {
-          const { symbol: tokenSymbol } = await getErc20TokenDetails(
-            poolTokenAddressMapping.address,
-            event.chainId
-          );
-          poolTokenSymbols.push(tokenSymbol);
+          poolTokenAddressMapping.tokenInstance = await createTokenEntity(
+            poolTokenAddressMapping.address, event.chainId, event.block.number, context);
+          poolTokenSymbols.push(poolTokenAddressMapping.tokenInstance.symbol);
         } catch (error) {
           context.log.error(`Error in cl factory fetching token details` +
             ` for ${poolTokenAddressMapping.address} on chain ${event.chainId}: ${error}`);

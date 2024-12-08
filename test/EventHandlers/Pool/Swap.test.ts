@@ -56,8 +56,11 @@ describe("Pool Swap Event", () => {
       (mockToken1Data.pricePerUSDNew / TEN_TO_THE_18_BI);
 
     mockPriceOracle = sinon
-      .stub(PriceOracle, "set_whitelisted_prices")
-      .resolves();
+      .stub(PriceOracle, "refreshTokenPrice")
+      .callsFake(async (...args) => {
+        return args[0]; // Return the token that was passed in
+      });
+
     mockDb = MockDb.createMockDb();
 
     eventData = {
@@ -140,8 +143,8 @@ describe("Pool Swap Event", () => {
         modifiedMockLiquidityPoolData.totalVolumeUSD
       );
     });
-    it("should call set_whitelisted_prices", () => {
-      expect(mockPriceOracle.calledOnce).to.be.true;
+    it("should not call refreshTokenPrice", () => {
+      expect(mockPriceOracle.calledOnce).to.be.false;
     });
   });
   describe("when token0 is missing", () => {
@@ -193,10 +196,12 @@ describe("Pool Swap Event", () => {
         mockLiquidityPoolData.numberOfSwaps + 1n,
         "Swap count should be updated"
       );
-      expect(
-        mockPriceOracle.calledOnce,
-        "set_whitelisted_prices should be called"
-      ).to.be.true;
+    });
+
+    it("should call refreshTokenPrice on token1", () => {
+      expect(mockPriceOracle.calledOnce).to.be.true;
+      const calledToken = mockPriceOracle.firstCall.args[0];
+      expect(calledToken.address).to.equal(mockToken1Data.address);
     });
   });
 
@@ -239,13 +244,6 @@ describe("Pool Swap Event", () => {
 
     });
 
-    it('should update the liquidity pool token prices', () => {
-      expect(
-        mockPriceOracle.calledOnce,
-        "set_whitelisted_prices should be called"
-      ).to.be.true;
-    });
-
     it('should update swap count', () => {
       expect(updatedPool?.numberOfSwaps).to.equal(
         mockLiquidityPoolData.numberOfSwaps + 1n,
@@ -259,6 +257,11 @@ describe("Pool Swap Event", () => {
         "Total volume USD should be updated."
       );
 
+    });
+    it("should call refreshTokenPrice on token0", () => {
+      expect(mockPriceOracle.calledOnce).to.be.true;
+      const calledToken = mockPriceOracle.firstCall.args[0];
+      expect(calledToken.address).to.equal(mockToken0Data.address);
     });
   });
 
@@ -290,7 +293,6 @@ describe("Pool Swap Event", () => {
       expect(swapEvent?.timestamp).to.deep.equal(
         new Date(eventData.mockEventData.block.timestamp * 1000)
       );
-      expect(mockPriceOracle.calledOnce).to.be.true;
     });
 
     it("should update the Liquidity Pool aggregator", async () => {
@@ -313,7 +315,14 @@ describe("Pool Swap Event", () => {
       expect(updatedPool?.lastUpdatedTimestamp).to.deep.equal(
         new Date(eventData.mockEventData.block.timestamp * 1000)
       );
-      expect(mockPriceOracle.calledOnce).to.be.true;
+    });
+    it("should call refreshTokenPrice on token0", () => {
+      const calledToken = mockPriceOracle.firstCall.args[0];
+      expect(calledToken.address).to.equal(mockToken0Data.address);
+    });
+    it("should call refreshTokenPrice on token1", () => {
+      const calledToken = mockPriceOracle.secondCall.args[0];
+      expect(calledToken.address).to.equal(mockToken1Data.address);
     });
   });
 });

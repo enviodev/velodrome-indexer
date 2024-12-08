@@ -15,7 +15,83 @@ export interface TokenPriceData {
   decimals: bigint;
 }
 
-export async function getTokenPriceData(tokenAddress: string, blockNumber: number, chainId: number): Promise<TokenPriceData> {
+export async function createTokenEntity(tokenAddress: string, chainId: number, blockNumber: number, context: any) {
+  const blockDatetime = new Date(blockNumber * 1000);
+  const tokenDetails = await getErc20TokenDetails(tokenAddress, chainId);
+
+  const tokenEntity: Token = {
+      id: TokenIdByChain(tokenAddress, chainId),
+      address: toChecksumAddress(tokenAddress),
+      symbol: tokenDetails.symbol,
+      name: tokenDetails.symbol, // Using symbol as name, update if you have a separate name field
+      chainId: chainId,
+      decimals: BigInt(tokenDetails.decimals),
+      pricePerUSDNew: BigInt(0),
+      lastUpdatedTimestamp: blockDatetime,
+      isWhitelisted: false,
+  };
+
+  context.Token.set(tokenEntity);
+  return tokenEntity;
+}
+
+const ONE_HOUR_MS = 60 * 60 * 1000; // 1 hour in milliseconds
+
+/**
+ * Refreshes a token's price data if the update interval has passed.
+ * 
+ * This function checks if enough time has passed since the last update (1 hour),
+ * and if so, fetches new price data for the token. The token entity is updated
+ * in the database with the new price and timestamp.
+ * 
+ * @param {Token} token - The token entity to refresh
+ * @param {number} blockNumber - The block number to fetch price data from
+ * @param {number} blockTimestamp - The timestamp of the block in seconds
+ * @param {number} chainId - The chain ID where the token exists
+ * @param {any} context - The database context for updating entities
+ * @returns {Promise<Token>} The updated token entity
+ */
+export async function refreshTokenPrice(
+  token: Token,
+  blockNumber: number,
+  blockTimestamp: number,
+  chainId: number,
+  context: any
+): Promise<Token> {
+  if (blockTimestamp - token.lastUpdatedTimestamp.getTime() < ONE_HOUR_MS) {
+    return token;
+  }
+
+  const tokenPriceData = await getTokenPriceData(token.address, blockNumber, chainId);
+  const updatedToken: Token = {
+    ...token,
+    pricePerUSDNew: tokenPriceData.pricePerUSDNew,
+    decimals: tokenPriceData.decimals,
+    lastUpdatedTimestamp: new Date(blockTimestamp * 1000)
+  };
+  context.Token.set(updatedToken);
+  return updatedToken;
+}
+
+/**
+ * Fetches current price data for a specific token.
+ * 
+ * Retrieves the token's price and decimals by:
+ * 1. Getting token details from the contract
+ * 2. Fetching price data from the price oracle
+ * 3. Converting the price to the appropriate format
+ * 
+ * @param {string} tokenAddress - The token's contract address
+ * @param {number} blockNumber - The block number to fetch price data from
+ * @param {number} chainId - The chain ID where the token exists
+ * @returns {Promise<TokenPriceData>} Object containing the token's price and decimals
+ * @throws {Error} If there's an error fetching the token price
+ */
+export async function getTokenPriceData(
+  tokenAddress: string,
+  blockNumber: number,
+  chainId: number
+): Promise<TokenPriceData> {
   const tokenDetails = await getErc20TokenDetails(
     tokenAddress,
     chainId
