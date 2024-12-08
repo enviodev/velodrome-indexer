@@ -12,7 +12,7 @@ import {
   LiquidityPoolAggregator,
   Token,
 } from "generated";
-import { refreshTokenPrice, set_whitelisted_prices } from "../PriceOracle";
+import { refreshTokenPrice } from "../PriceOracle";
 import { normalizeTokenAmountTo1e18 } from "../Helpers";
 import { multiplyBase1e18, abs } from "../Maths";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
