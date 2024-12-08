@@ -15,6 +15,26 @@ export interface TokenPriceData {
   decimals: bigint;
 }
 
+export async function createTokenEntity(tokenAddress: string, chainId: number, blockNumber: number, context: any) {
+  const blockDatetime = new Date(blockNumber * 1000);
+  const tokenDetails = await getErc20TokenDetails(tokenAddress, chainId);
+
+  const tokenEntity: Token = {
+      id: TokenIdByChain(tokenAddress, chainId),
+      address: toChecksumAddress(tokenAddress),
+      symbol: tokenDetails.symbol,
+      name: tokenDetails.symbol, // Using symbol as name, update if you have a separate name field
+      chainId: chainId,
+      decimals: BigInt(tokenDetails.decimals),
+      pricePerUSDNew: BigInt(0),
+      lastUpdatedTimestamp: blockDatetime,
+      isWhitelisted: false,
+  };
+
+  context.Token.set(tokenEntity);
+  return tokenEntity;
+}
+
 const ONE_HOUR_MS = 60 * 60 * 1000; // 1 hour in milliseconds
 
 /**

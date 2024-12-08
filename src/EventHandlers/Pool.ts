@@ -176,7 +176,11 @@ Pool.Swap.handlerWithLoader({
 
       tokenUpdateData.netAmount0 = event.params.amount0In + event.params.amount0Out;
       if (token0) {
-        token0 = await refreshTokenPrice(token0, event.block.number, event.block.timestamp, event.chainId, context);
+        try {
+          token0 = await refreshTokenPrice(token0, event.block.number, event.block.timestamp, event.chainId, context);
+        } catch (error) {
+          context.log.error(`Error refreshing token price for ${token0?.address} on chain ${event.chainId}: ${error}`);
+        }
         const normalizedAmount0 = normalizeTokenAmountTo1e18(
           event.params.amount0In + event.params.amount0Out,
           Number(token0.decimals)
@@ -189,7 +193,11 @@ Pool.Swap.handlerWithLoader({
 
       tokenUpdateData.netAmount1 = event.params.amount1In + event.params.amount1Out;
       if (token1) {
-        token1 = await refreshTokenPrice(token1, event.block.number, event.block.timestamp, event.chainId, context);
+        try {
+          token1 = await refreshTokenPrice(token1, event.block.number, event.block.timestamp, event.chainId, context);
+        } catch (error) {
+          context.log.error(`Error refreshing token price for ${token1?.address} on chain ${event.chainId}: ${error}`);
+        }
         const normalizedAmount1 = normalizeTokenAmountTo1e18(
           event.params.amount1In + event.params.amount1Out,
           Number(token1.decimals)
