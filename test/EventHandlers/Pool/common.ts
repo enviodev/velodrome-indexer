@@ -11,6 +11,7 @@ export function setupCommon() {
     decimals: 18n,
     pricePerUSDNew: 1n * TEN_TO_THE_18_BI, // 1 USD
     chainId: 10,
+    isWhitelisted: true,
   };
 
   const mockToken1Data = {
@@ -21,6 +22,7 @@ export function setupCommon() {
     decimals: 6n,
     pricePerUSDNew: 1n * TEN_TO_THE_18_BI, // 1 USD
     chainId: 10,
+    isWhitelisted: true,
   };
 
   const mockLiquidityPoolData = {
