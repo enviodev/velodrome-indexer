@@ -1,6 +1,6 @@
 import { Pool, Pool_Swap, Pool_Sync, Pool_Mint, Pool_Burn } from "generated";
 
-import { LiquidityPoolAggregator, User } from "./../src/Types.gen";
+import { LiquidityPoolAggregator, Token, User } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
 import { abs, multiplyBase1e18 } from "./../Maths";
 import { refreshTokenPrice } from "../PriceOracle";
@@ -125,13 +125,16 @@ Pool.Swap.handlerWithLoader({
       return null;
     }
 
-    const [token0Instance, token1Instance, user, isLiquidityPool] =
+    const [token0Instance, token1Instance, user, isLiquidityPool, currentTokens] =
       await Promise.all([
         context.Token.get(liquidityPoolAggregator.token0_id),
         context.Token.get(liquidityPoolAggregator.token1_id),
         context.User.get(event.params.to),
         context.LiquidityPoolAggregator.get(event.params.to),
+        context.Token.getWhere.chainId.eq(event.chainId)
       ]);
+
+    const currentTokenAddresses = currentTokens.map((token: Token) => token.address);
 
     return {
       liquidityPoolAggregator,
@@ -139,7 +142,7 @@ Pool.Swap.handlerWithLoader({
       token1Instance,
       to_address: event.params.to,
       user,
-      isLiquidityPool: isLiquidityPool != undefined,
+      currentTokenAddresses,
     };
   },
   handler: async ({ event, context, loaderReturn }) => {
@@ -160,7 +163,7 @@ Pool.Swap.handlerWithLoader({
 
     context.Pool_Swap.set(entity);
     if (loaderReturn) {
-      const { liquidityPoolAggregator, token0Instance, token1Instance, to_address, user } =
+      const { liquidityPoolAggregator, token0Instance, token1Instance, to_address, user, currentTokenAddresses } =
         loaderReturn;
 
       let token0 = token0Instance;
@@ -177,7 +180,7 @@ Pool.Swap.handlerWithLoader({
       tokenUpdateData.netAmount0 = event.params.amount0In + event.params.amount0Out;
       if (token0) {
         try {
-          token0 = await refreshTokenPrice(token0, event.block.number, event.block.timestamp, event.chainId, context);
+          token0 = await refreshTokenPrice(token0, currentTokenAddresses, event.block.number, event.block.timestamp, event.chainId, context);
         } catch (error) {
           context.log.error(`Error refreshing token price for ${token0?.address} on chain ${event.chainId}: ${error}`);
         }
@@ -194,7 +197,7 @@ Pool.Swap.handlerWithLoader({
       tokenUpdateData.netAmount1 = event.params.amount1In + event.params.amount1Out;
       if (token1) {
         try {
-          token1 = await refreshTokenPrice(token1, event.block.number, event.block.timestamp, event.chainId, context);
+          token1 = await refreshTokenPrice(token1, currentTokenAddresses, event.block.number, event.block.timestamp, event.chainId, context);
         } catch (error) {
           context.log.error(`Error refreshing token price for ${token1?.address} on chain ${event.chainId}: ${error}`);
         }
