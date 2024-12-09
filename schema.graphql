@@ -75,10 +75,10 @@ type User {
 # By nature this entity saves the latest state of the token, and its state at different times should be attained from the snapshot entities
 type Token {
   id: ID! # token address
-  address: String! # token address
+  address: String! @index # token address
   symbol: String! # token symbol
   name: String! # token name
-  chainId: Int!
+  chainId: Int! @index
   decimals: BigInt! @config(precision: 76) # number of decimals
   pricePerUSDNew: BigInt! @config(precision: 76) # price of token per USD
   lastUpdatedTimestamp: Timestamp! # timestamp of last update

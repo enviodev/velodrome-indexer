@@ -5,7 +5,7 @@ import {
   VotingReward_NotifyReward,
 } from "generated";
 
-import { LiquidityPoolAggregator } from "./../src/Types.gen";
+import { LiquidityPoolAggregator, Token } from "./../src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
 import { multiplyBase1e18 } from "./../Maths";
 import { poolLookupStoreManager } from "./../Store";
@@ -33,29 +33,15 @@ VotingReward.NotifyReward.handlerWithLoader({
       );
     }
 
-    let rewardToken: TokenPriceData | null = null;
-
-    const [currentLiquidityPool, storedToken] = await Promise.all([
+    const [currentLiquidityPool, storedToken, currentTokens] = await Promise.all([
       promisePool,
       context.Token.get(TokenIdByChain(event.params.reward, event.chainId)),
+      context.Token.getWhere.chainId.eq(event.chainId)
     ]);
 
-    if (!storedToken) {
-      try {
-        const rewardTokenDetails = await getTokenPriceData(event.params.reward, event.block.number, event.chainId);
-        rewardToken = rewardTokenDetails;
-      } catch (error) {
-        context.log.error(`Error in voting reward notify reward event fetching token details` +
-          ` for ${event.params.reward} on chain ${event.chainId}: ${error}`);
-      }
-    } else {
-      rewardToken = {
-        pricePerUSDNew: storedToken.pricePerUSDNew,
-        decimals: storedToken.decimals
-      }
-    }
+    const currentTokenAddresses = currentTokens.map((token: Token) => token.address);
 
-    return { currentLiquidityPool, rewardToken };
+    return { currentLiquidityPool, storedToken, currentTokenAddresses };
   },
   handler: async ({ event, context, loaderReturn }) => {
     const entity: VotingReward_NotifyReward = {
@@ -73,7 +59,23 @@ VotingReward.NotifyReward.handlerWithLoader({
     context.VotingReward_NotifyReward.set(entity);
 
     if (loaderReturn) {
-      const { currentLiquidityPool, rewardToken } = loaderReturn;
+      const { currentLiquidityPool, storedToken, currentTokenAddresses } = loaderReturn;
+
+      let rewardToken: TokenPriceData | null = null;
+
+      if (!storedToken) {
+        try {
+          rewardToken = await getTokenPriceData(event.params.reward, currentTokenAddresses, event.block.number, event.chainId);
+        } catch (error) {
+          context.log.error(`Error in voting reward notify reward event fetching token details` +
+            ` for ${event.params.reward} on chain ${event.chainId}: ${error}`);
+        }
+      } else {
+        rewardToken = {
+          pricePerUSDNew: storedToken.pricePerUSDNew,
+          decimals: storedToken.decimals
+        }
+      }
 
       if (currentLiquidityPool && rewardToken) {
         let normalizedBribesAmount = normalizeTokenAmountTo1e18(

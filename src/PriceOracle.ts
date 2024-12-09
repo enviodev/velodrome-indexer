@@ -53,6 +53,7 @@ const ONE_HOUR_MS = 60 * 60 * 1000; // 1 hour in milliseconds
  */
 export async function refreshTokenPrice(
   token: Token,
+  connectors: string[],
   blockNumber: number,
   blockTimestamp: number,
   chainId: number,
@@ -62,7 +63,7 @@ export async function refreshTokenPrice(
     return token;
   }
 
-  const tokenPriceData = await getTokenPriceData(token.address, blockNumber, chainId);
+  const tokenPriceData = await getTokenPriceData(token.address, connectors, blockNumber, chainId);
   const updatedToken: Token = {
     ...token,
     pricePerUSDNew: tokenPriceData.pricePerUSDNew,
@@ -89,6 +90,7 @@ export async function refreshTokenPrice(
  */
 export async function getTokenPriceData(
   tokenAddress: string,
+  connectors: string[],
   blockNumber: number,
   chainId: number
 ): Promise<TokenPriceData> {
@@ -104,7 +106,10 @@ export async function getTokenPriceData(
   let tokenDecimals: bigint = 0n;
 
   try {
-    const prices = await read_prices([tokenAddress, WETH_ADDRESS, USDC_ADDRESS], chainId, blockNumber);
+    const connectorList = connectors.filter((connector) => connector !== tokenAddress)
+      .filter((connector) => connector !== WETH_ADDRESS)
+      .filter((connector) => connector !== USDC_ADDRESS);
+    const prices = await read_prices([tokenAddress, ...connectorList, WETH_ADDRESS, USDC_ADDRESS], chainId, blockNumber);
     tokenPrice = BigInt(prices[0]);
     tokenDecimals = BigInt(tokenDetails.decimals);
   } catch (error) {
