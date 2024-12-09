@@ -164,7 +164,7 @@ export async function read_prices(
 ): Promise<string[]> {
 
   const ethClient = CHAIN_CONSTANTS[chainId].eth_client;
-  const numAddrs = addrs.length - 1;
+  const numAddrs = 1; // Return the first address only.
 
   try {
     const { result } = await ethClient.simulateContract({
