@@ -464,15 +464,12 @@ CLPool.Swap.handlerWithLoader({
       return null;
     }
 
-    const [token0Instance, token1Instance, currentTokens] = await Promise.all([
+    const [token0Instance, token1Instance] = await Promise.all([
       context.Token.get(liquidityPoolAggregator.token0_id),
       context.Token.get(liquidityPoolAggregator.token1_id),
-      context.Token.getWhere.chainId.eq(event.chainId)
     ]);
 
-    const currentTokenAddresses = currentTokens.map((token: Token) => token.address);
-
-    return { liquidityPoolAggregator, token0Instance, token1Instance, currentTokenAddresses };
+    return { liquidityPoolAggregator, token0Instance, token1Instance };
   },
   handler: async ({ event, context, loaderReturn }) => {
     const blockDatetime = new Date(event.block.timestamp * 1000);
@@ -493,7 +490,7 @@ CLPool.Swap.handlerWithLoader({
     context.CLPool_Swap.set(entity);
 
     if (loaderReturn && loaderReturn.liquidityPoolAggregator) {
-      const { liquidityPoolAggregator, token0Instance, token1Instance, currentTokenAddresses } = loaderReturn;
+      const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
       let token0 = token0Instance;
       let token1 = token1Instance;
 
@@ -511,7 +508,7 @@ CLPool.Swap.handlerWithLoader({
 
       if (token0) {
         try {
-          token0 = await refreshTokenPrice(token0, currentTokenAddresses, event.block.number, event.block.timestamp, event.chainId, context);
+          token0 = await refreshTokenPrice(token0, event.block.number, event.block.timestamp, event.chainId, context);
         } catch (error) {
           context.log.error(`Error refreshing token price for ${token0?.address} on chain ${event.chainId}: ${error}`);
         }
@@ -527,7 +524,7 @@ CLPool.Swap.handlerWithLoader({
 
       if (token1) {
         try {
-          token1 = await refreshTokenPrice(token1, currentTokenAddresses, event.block.number, event.block.timestamp, event.chainId, context);
+          token1 = await refreshTokenPrice(token1, event.block.number, event.block.timestamp, event.chainId, context);
         } catch (error) {
           context.log.error(`Error refreshing token price for ${token1?.address} on chain ${event.chainId}: ${error}`);
         }

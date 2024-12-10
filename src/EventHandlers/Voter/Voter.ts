@@ -77,8 +77,7 @@ Voter.DistributeReward.handlerWithLoader({
       event.params.gauge
     );
 
-    const rewardTokenInfo = CHAIN_CONSTANTS[event.chainId].rewardToken(event.block.number);
-    const rewardTokenAddress = rewardTokenInfo.address;
+    const rewardTokenAddress = CHAIN_CONSTANTS[event.chainId].rewardToken(event.block.number);
 
     const promisePool = poolAddress
       ? context.LiquidityPoolAggregator.get(poolAddress)

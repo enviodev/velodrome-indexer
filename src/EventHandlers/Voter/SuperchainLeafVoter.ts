@@ -84,10 +84,9 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
     );
 
 
-    const rewardTokenInfo = CHAIN_CONSTANTS[event.chainId].rewardToken(
+    const rewardTokenAddress = CHAIN_CONSTANTS[event.chainId].rewardToken(
       event.block.number
     );
-    const rewardTokenAddress = rewardTokenInfo.address;
 
     const promisePool = poolAddress
       ? context.LiquidityPoolAggregator.get(poolAddress)
