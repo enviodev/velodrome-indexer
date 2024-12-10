@@ -2,7 +2,6 @@ import {
     NFPM,
     NFPM_Transfer,
 } from "generated";
-import { set_whitelisted_prices } from "../PriceOracle";
 
 /**
  * @title NonfungiblePositionManager
@@ -32,11 +31,4 @@ NFPM.Transfer.handler(async ({ event, context }) => {
   };
 
   context.NFPM_Transfer.set(entity);
-
-  try {
-    await set_whitelisted_prices(event.chainId, event.block.number, blockDatetime, context);
-  } catch (error) {
-    console.error("Error updating whitelisted prices after position mint:");
-    console.error(error);
-  }
 });

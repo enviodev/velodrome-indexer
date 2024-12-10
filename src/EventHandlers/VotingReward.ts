@@ -33,15 +33,12 @@ VotingReward.NotifyReward.handlerWithLoader({
       );
     }
 
-    const [currentLiquidityPool, storedToken, currentTokens] = await Promise.all([
+    const [currentLiquidityPool, storedToken] = await Promise.all([
       promisePool,
-      context.Token.get(TokenIdByChain(event.params.reward, event.chainId)),
-      context.Token.getWhere.chainId.eq(event.chainId)
+      context.Token.get(TokenIdByChain(event.params.reward, event.chainId))
     ]);
 
-    const currentTokenAddresses = currentTokens.map((token: Token) => token.address);
-
-    return { currentLiquidityPool, storedToken, currentTokenAddresses };
+    return { currentLiquidityPool, storedToken };
   },
   handler: async ({ event, context, loaderReturn }) => {
     const entity: VotingReward_NotifyReward = {
@@ -59,13 +56,13 @@ VotingReward.NotifyReward.handlerWithLoader({
     context.VotingReward_NotifyReward.set(entity);
 
     if (loaderReturn) {
-      const { currentLiquidityPool, storedToken, currentTokenAddresses } = loaderReturn;
+      const { currentLiquidityPool, storedToken } = loaderReturn;
 
       let rewardToken: TokenPriceData | null = null;
 
       if (!storedToken) {
         try {
-          rewardToken = await getTokenPriceData(event.params.reward, currentTokenAddresses, event.block.number, event.chainId);
+          rewardToken = await getTokenPriceData(event.params.reward, event.block.number, event.chainId);
         } catch (error) {
           context.log.error(`Error in voting reward notify reward event fetching token details` +
             ` for ${event.params.reward} on chain ${event.chainId}: ${error}`);
