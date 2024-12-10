@@ -30,13 +30,6 @@ export const LISK_PRICE_CONNECTORS: PriceConnector[] =
 export const toChecksumAddress = (address: string) =>
   Web3.utils.toChecksumAddress(address);
 
-// Helper function to find a token by symbol
-const findToken = (tokens: TokenInfo[], symbol: string): TokenInfo => {
-  const token = tokens.find((t) => t.symbol === symbol);
-  if (!token) throw new Error(`Token ${symbol} not found`);
-  return token;
-};
-
 type PriceConnector = {
   address: string;
   block: number;

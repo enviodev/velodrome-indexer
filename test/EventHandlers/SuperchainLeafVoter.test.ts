@@ -129,8 +129,8 @@ describe("SuperchainLeafVoter Events", () => {
         
         // Setup mock reward token
         const rewardToken: Token = {
-          id: TokenIdByChain(rewardTokenInfo.address, chainId),
-          address: rewardTokenInfo.address,
+          id: TokenIdByChain(rewardTokenInfo, chainId),
+          address: rewardTokenInfo,
           symbol: "VELO",
           name: "VELO",
           chainId: chainId,
