@@ -119,8 +119,7 @@ describe("Voter Events", () => {
     const gaugeAddress = "0xa75127121d28a9bf848f3b70e7eea26570aa7700";
     const blockNumber = 128357873;
 
-    const rewardTokenInfo = CHAIN_CONSTANTS[chainId].rewardToken(blockNumber);
-    const rewardTokenAddress = rewardTokenInfo.address;
+    const rewardTokenAddress = CHAIN_CONSTANTS[chainId].rewardToken(blockNumber);
 
     beforeEach(() => {
       mockDb = MockDb.createMockDb();
@@ -154,8 +153,6 @@ describe("Voter Events", () => {
       let expectations: any = {};
       
       beforeEach(async () => {
-        const rewardTokenInfo = CHAIN_CONSTANTS[chainId].rewardToken(blockNumber);
-        const rewardTokenAddress = rewardTokenInfo.address;
         const liquidityPool: LiquidityPoolAggregator = {
           ...mockLiquidityPoolData,
           id: poolAddress,
