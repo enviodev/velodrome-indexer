@@ -69,7 +69,7 @@ describe("PriceOracle", () => {
           ...mockToken0Data,
           lastUpdatedTimestamp: testLastUpdated
         };
-        await PriceOracle.refreshTokenPrice(fetchedToken, [], blockNumber, blockDatetime.getTime(), chainId, mockContext);
+        await PriceOracle.refreshTokenPrice(fetchedToken, blockNumber, blockDatetime.getTime(), chainId, mockContext);
       });
       it("should not update prices if the update interval hasn't passed", async () => {
         expect(mockContract.called).to.be.false;
@@ -84,7 +84,7 @@ describe("PriceOracle", () => {
           ...mockToken0Data,
           lastUpdatedTimestamp: testLastUpdated
         };
-        await PriceOracle.refreshTokenPrice(fetchedToken, [], blockNumber, blockDatetime.getTime(), chainId, mockContext);
+        await PriceOracle.refreshTokenPrice(fetchedToken, blockNumber, blockDatetime.getTime(), chainId, mockContext);
         updatedToken = mockContext.Token.set.lastCall.args[0];
       });
       it("should update prices if the update interval has passed", async () => {

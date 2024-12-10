@@ -1,13 +1,9 @@
 import { TokenInfo, Pool } from "./CustomTypes";
 import dotenv from "dotenv";
-import optimismWhitelistedTokens from "./constants/optimismWhitelistedTokens.json";
-import baseWhitelistedTokens from "./constants/baseWhitelistedTokens.json";
-import modeWhitelistedTokens from "./constants/modeWhitelistedTokens.json";
-import liskWhitelistedTokens from "./constants/liskWhitelistedTokens.json";
-import contractABI from "../abis/VeloPriceOracleABI.json";
 import { Web3 } from "web3";
 import { optimism, base, lisk, mode } from 'viem/chains';
 import { createPublicClient, http, PublicClient } from 'viem';
+import priceConnectors from "./constants/price_connectors.json";
 
 dotenv.config();
 
@@ -19,17 +15,17 @@ export const SECONDS_IN_AN_HOUR = BigInt(3600);
 export const SECONDS_IN_A_DAY = BigInt(86400);
 export const SECONDS_IN_A_WEEK = BigInt(604800);
 
-// Convert imported JSON to TokenInfo type
-export const OPTIMISM_WHITELISTED_TOKENS: TokenInfo[] =
-  optimismWhitelistedTokens as TokenInfo[];
-export const BASE_WHITELISTED_TOKENS: TokenInfo[] =
-  baseWhitelistedTokens as TokenInfo[];
+export const OPTIMISM_PRICE_CONNECTORS: PriceConnector[] =
+  priceConnectors.optimism as PriceConnector[];
 
-export const MODE_WHITELISTED_TOKENS: TokenInfo[] =
-  modeWhitelistedTokens as TokenInfo[];
+export const BASE_PRICE_CONNECTORS: PriceConnector[] =
+  priceConnectors.base as PriceConnector[];
 
-export const LISK_WHITELISTED_TOKENS: TokenInfo[] =
-  liskWhitelistedTokens as TokenInfo[];
+export const MODE_PRICE_CONNECTORS: PriceConnector[] =
+  priceConnectors.mode as PriceConnector[];
+
+export const LISK_PRICE_CONNECTORS: PriceConnector[] =
+  priceConnectors.lisk as PriceConnector[];
 
 export const toChecksumAddress = (address: string) =>
   Web3.utils.toChecksumAddress(address);
@@ -41,80 +37,29 @@ const findToken = (tokens: TokenInfo[], symbol: string): TokenInfo => {
   return token;
 };
 
-// List of stablecoin pools with their token0, token1 and name
-const OPTIMISM_STABLECOIN_POOLS: Pool[] = [
-  {
-    address: "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b",
-    token0: findToken(OPTIMISM_WHITELISTED_TOKENS, "WETH"),
-    token1: findToken(OPTIMISM_WHITELISTED_TOKENS, "USDC"),
-    name: "vAMM-WETH/USDC.e",
-  },
-  {
-    address: "0x6387765fFA609aB9A1dA1B16C455548Bfed7CbEA",
-    token0: findToken(OPTIMISM_WHITELISTED_TOKENS, "WETH"),
-    token1: findToken(OPTIMISM_WHITELISTED_TOKENS, "LUSD"),
-    name: "vAMM-WETH/LUSD",
-  },
-];
-
-const BASE_STABLECOIN_POOLS: Pool[] = [
-  {
-    address: "0xB4885Bc63399BF5518b994c1d0C153334Ee579D0",
-    token0: findToken(BASE_WHITELISTED_TOKENS, "WETH"),
-    token1: findToken(BASE_WHITELISTED_TOKENS, "USDbC"),
-    name: "vAMM-WETH/USDbC",
-  },
-  {
-    address: "0x9287C921f5d920cEeE0d07d7c58d476E46aCC640",
-    token0: findToken(BASE_WHITELISTED_TOKENS, "WETH"),
-    token1: findToken(BASE_WHITELISTED_TOKENS, "DAI"),
-    name: "vAMM-WETH/DAI",
-  },
-];
-
-const MODE_STABLECOIN_POOLS: Pool[] = [];
-
-// List of pool addresses for testing
-const OPTIMISM_TESTING_POOL_ADDRESSES: string[] = [
-  "0x0493Bf8b6DBB159Ce2Db2E0E8403E753Abd1235b",
-  "0xd25711EdfBf747efCE181442Cc1D8F5F8fc8a0D3",
-  "0xe9581d0F1A628B038fC8B2a7F5A7d904f0e2f937",
-  "0x0df083de449F75691fc5A36477a6f3284C269108",
-  "0x8134A2fDC127549480865fB8E5A9E8A8a95a54c5",
-  "0x58e6433A6903886E440Ddf519eCC573c4046a6b2",
-  "0xB4885Bc63399BF5518b994c1d0C153334Ee579D0",
-];
-
-const BASE_TESTING_POOL_ADDRESSES: string[] = [
-  "0xB4885Bc63399BF5518b994c1d0C153334Ee579D0", // vAMM-WETH/USDbC
-  "0x9287C921f5d920cEeE0d07d7c58d476E46aCC640", // vAMM-WETH/DAI
-  "0x0B25c51637c43decd6CC1C1e3da4518D54ddb528", // sAMM-DOLA/USDbC
-];
-
-const MODE_TESTING_POOL_ADDRESSES: string[] = [];
+type PriceConnector = {
+  address: string;
+  block: number;
+};
 
 // Object containing all the constants for a chain
 type chainConstants = {
-  eth: TokenInfo;
-  usdc: TokenInfo;
+  weth: string;
+  usdc: string;
   oracle: {
     getAddress: (blockNumber: number) => string;
     startBlock: number;
     updateDelta: number;
+    priceConnectors: PriceConnector[];
   };
-  rewardToken: (blockNumber: number) => TokenInfo;
+  rewardToken: (blockNumber: number) => string;
   eth_client: PublicClient;
-  stablecoinPools: Pool[];
-  stablecoinPoolAddresses: string[];
-  testingPoolAddresses: string[];
-  whitelistedTokens: TokenInfo[];
-  whitelistedTokenAddresses: string[];
 };
 
 // Constants for Optimism
 const OPTIMISM_CONSTANTS: chainConstants = {
-  eth: findToken(OPTIMISM_WHITELISTED_TOKENS, "WETH"),
-  usdc: findToken(OPTIMISM_WHITELISTED_TOKENS, "USDC"),
+  weth: "0x4200000000000000000000000000000000000006",
+  usdc: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
   oracle: {
     getAddress: (blockNumber: number) => {
       return blockNumber < 124076662
@@ -123,18 +68,13 @@ const OPTIMISM_CONSTANTS: chainConstants = {
     },
     startBlock: 107676013,
     updateDelta: 60 * 60, // 1 hour
+    priceConnectors: OPTIMISM_PRICE_CONNECTORS,
   },
   rewardToken: (blockNumber: number) => {
     if (blockNumber < 105896880) {
-      return findToken(OPTIMISM_WHITELISTED_TOKENS, "VELO");
+      return "0x3c8B650257cFb5f272f799F5e2b4e65093a11a05";
     }
-
-    return {
-      address: "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db",
-      symbol: "VELO",
-      decimals: 18,
-      createdBlock: 105896880,
-    };
+    return "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db";
   },
   eth_client: createPublicClient({
     chain: optimism,
@@ -144,21 +84,12 @@ const OPTIMISM_CONSTANTS: chainConstants = {
       batch: false
     }),
   }) as PublicClient,
-  stablecoinPools: OPTIMISM_STABLECOIN_POOLS,
-  stablecoinPoolAddresses: OPTIMISM_STABLECOIN_POOLS.map(
-    (pool) => pool.address
-  ),
-  testingPoolAddresses: OPTIMISM_TESTING_POOL_ADDRESSES,
-  whitelistedTokens: OPTIMISM_WHITELISTED_TOKENS,
-  whitelistedTokenAddresses: OPTIMISM_WHITELISTED_TOKENS.map(
-    (token) => token.address
-  ),
 };
 
 // Constants for Base
 const BASE_CONSTANTS: chainConstants = {
-  eth: findToken(BASE_WHITELISTED_TOKENS, "WETH"),
-  usdc: findToken(BASE_WHITELISTED_TOKENS, "USDC"),
+  weth: "0x4200000000000000000000000000000000000006",
+  usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   oracle: {
     getAddress: (blockNumber: number) => {
       return blockNumber < 18480097
@@ -167,67 +98,56 @@ const BASE_CONSTANTS: chainConstants = {
     },
     startBlock: 3219857,
     updateDelta: 60 * 60, // 1 hour
+    priceConnectors: BASE_PRICE_CONNECTORS,
   },
   rewardToken: (blockNumber: Number) =>
-    findToken(BASE_WHITELISTED_TOKENS, "AERO"),
+    "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
   eth_client: createPublicClient({
     chain: base,
     transport: http(process.env.ENVIO_BASE_RPC_URL || "https://base.publicnode.com", {
       retryCount: 10,
       retryDelay: 1000,
     }),
-  }) as PublicClient,
-  stablecoinPools: BASE_STABLECOIN_POOLS,
-  stablecoinPoolAddresses: BASE_STABLECOIN_POOLS.map((pool) => pool.address),
-  testingPoolAddresses: BASE_TESTING_POOL_ADDRESSES,
-  whitelistedTokens: BASE_WHITELISTED_TOKENS,
-  whitelistedTokenAddresses: BASE_WHITELISTED_TOKENS.map(
-    (token) => token.address
-  ),
+  }) as PublicClient
 };
 
 // Constants for Lisk
 const LISK_CONSTANTS: chainConstants = {
-  eth: findToken(LISK_WHITELISTED_TOKENS, "WETH"),
-  usdc: findToken(LISK_WHITELISTED_TOKENS, "USDC"),
+  weth: "0x4200000000000000000000000000000000000006",
+  usdc: "0xF242275d3a6527d877f2c927a82D9b057609cc71",
   oracle: {
     getAddress: (blockNumber: number) => {
       return "0xE50621a0527A43534D565B67D64be7C79807F269";
     },
     startBlock: 8380726,
     updateDelta: 60 * 60, // 1 hour
+    priceConnectors: LISK_PRICE_CONNECTORS,
   },
   rewardToken: (blockNumber: number) =>
-    findToken(LISK_WHITELISTED_TOKENS, "XVELO"),
+    "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
   eth_client: createPublicClient({
     chain: lisk,
     transport: http(process.env.ENVIO_LISK_RPC_URL || "https://lisk.drpc.org", {
       retryCount: 10,
       retryDelay: 1000,
     }),
-  }) as PublicClient,
-  stablecoinPools: [],
-  stablecoinPoolAddresses: [],
-  testingPoolAddresses: [],
-  whitelistedTokens: LISK_WHITELISTED_TOKENS,
-  whitelistedTokenAddresses: LISK_WHITELISTED_TOKENS.map(
-    (token) => token.address
-  ),
+  }) as PublicClient
 };
 
 // Constants for Mode
 const MODE_CONSTANTS: chainConstants = {
-  eth: findToken(MODE_WHITELISTED_TOKENS, "WETH"),
-  usdc: findToken(MODE_WHITELISTED_TOKENS, "USDC"),
+  weth: "0x4200000000000000000000000000000000000006",
+  usdc: "0xd988097fb8612cc24eeC14542bC03424c656005f",
   oracle: {
     getAddress: (blockNumber: number) => {
       return "0xE50621a0527A43534D565B67D64be7C79807F269";
     },
     startBlock: 15591759,
     updateDelta: 60 * 60, // 1 hour
+    priceConnectors: MODE_PRICE_CONNECTORS,
   },
   rewardToken: (blockNumber: number) =>
-    findToken(MODE_WHITELISTED_TOKENS, "XVELO"),
+    "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
   eth_client: createPublicClient({
     chain: mode,
     transport: http(process.env.ENVIO_MODE_RPC_URL || "https://mainnet.mode.network", {
@@ -235,13 +155,6 @@ const MODE_CONSTANTS: chainConstants = {
       retryDelay: 1000,
     }),
   }) as PublicClient,
-  stablecoinPools: MODE_STABLECOIN_POOLS,
-  stablecoinPoolAddresses: MODE_STABLECOIN_POOLS.map((pool) => pool.address),
-  testingPoolAddresses: MODE_TESTING_POOL_ADDRESSES,
-  whitelistedTokens: MODE_WHITELISTED_TOKENS,
-  whitelistedTokenAddresses: MODE_WHITELISTED_TOKENS.map(
-    (token) => token.address
-  ),
 };
 
 /**

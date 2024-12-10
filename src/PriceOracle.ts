@@ -53,7 +53,6 @@ const ONE_HOUR_MS = 60 * 60 * 1000; // 1 hour in milliseconds
  */
 export async function refreshTokenPrice(
   token: Token,
-  connectors: string[],
   blockNumber: number,
   blockTimestamp: number,
   chainId: number,
@@ -63,7 +62,7 @@ export async function refreshTokenPrice(
     return token;
   }
 
-  const tokenPriceData = await getTokenPriceData(token.address, connectors, blockNumber, chainId);
+  const tokenPriceData = await getTokenPriceData(token.address, blockNumber, chainId);
   const updatedToken: Token = {
     ...token,
     pricePerUSDNew: tokenPriceData.pricePerUSDNew,
@@ -90,7 +89,6 @@ export async function refreshTokenPrice(
  */
 export async function getTokenPriceData(
   tokenAddress: string,
-  connectors: string[],
   blockNumber: number,
   chainId: number
 ): Promise<TokenPriceData> {
@@ -99,43 +97,39 @@ export async function getTokenPriceData(
     chainId
   );
 
-  const WETH_ADDRESS = CHAIN_CONSTANTS[chainId].eth.address;
-  const USDC_ADDRESS = CHAIN_CONSTANTS[chainId].usdc.address;
+  const WETH_ADDRESS = CHAIN_CONSTANTS[chainId].weth;
+  const USDC_ADDRESS = CHAIN_CONSTANTS[chainId].usdc;
+  const SYSTEM_TOKEN_ADDRESS = CHAIN_CONSTANTS[chainId].rewardToken(blockNumber);
 
-  let tokenPrice: bigint = 0n;
-  let tokenDecimals: bigint = 0n;
+  const connectors = CHAIN_CONSTANTS[chainId].oracle.priceConnectors
+    .filter((connector) => connector.block <= blockNumber)
+    .map((connector) => connector.address)
+    .filter((connector) => connector !== tokenAddress)
+    .filter((connector) => connector !== WETH_ADDRESS)
+    .filter((connector) => connector !== USDC_ADDRESS)
+    .filter((connector) => connector !== SYSTEM_TOKEN_ADDRESS);
 
-  try {
-    const connectorList = connectors.filter((connector) => connector !== tokenAddress)
-      .filter((connector) => connector !== WETH_ADDRESS)
-      .filter((connector) => connector !== USDC_ADDRESS);
-    const prices = await read_prices([tokenAddress, ...connectorList, WETH_ADDRESS, USDC_ADDRESS], chainId, blockNumber);
-    tokenPrice = BigInt(prices[0]);
-    tokenDecimals = BigInt(tokenDetails.decimals);
-  } catch (error) {
-    console.error("Error fetching token price", error);
+  let pricePerUSDNew: bigint = 0n;
+  let decimals: bigint = 0n;
+
+  const ORACLE_DEPLOYED = CHAIN_CONSTANTS[chainId].oracle.startBlock <= blockNumber;
+
+  if (ORACLE_DEPLOYED) {
+    try {
+      const prices = await read_prices([
+        tokenAddress,
+        ...connectors,
+        SYSTEM_TOKEN_ADDRESS, 
+        WETH_ADDRESS, 
+        USDC_ADDRESS], 
+      chainId, blockNumber);
+      pricePerUSDNew = BigInt(prices[0]);
+      decimals = BigInt(tokenDetails.decimals);
+    } catch (error) {
+      console.error("Error fetching token price", error);
+    }
   }
-  return { pricePerUSDNew: tokenPrice, decimals: tokenDecimals };
-  
-}
-
-
-/**
- * Hashes a list of addresses using MD5.
- * @param {string[]} addresses - The list of addresses to hash.
- * @returns {string} The MD5 hash of the addresses list.
- */
-function hashAddresses(addresses: string[]): string {
-  return createHash("md5").update(addresses.join(",")).digest("hex");
-}
-
-let pricesLastUpdated: { [chainId: number]: Date } = {};
-export function setPricesLastUpdated(chainId: number, date: Date) {
-  pricesLastUpdated[chainId] = date;
-}
-
-export function getPricesLastUpdated(chainId: number): Date | null {
-  return pricesLastUpdated[chainId] || null;
+  return { pricePerUSDNew, decimals };
 }
 
 /**
@@ -176,6 +170,6 @@ export async function read_prices(
     });
     return result;
   } catch (error) {
-    return addrs.map(() => "-1");
+    return addrs.map(() => "0");
   }
 }
