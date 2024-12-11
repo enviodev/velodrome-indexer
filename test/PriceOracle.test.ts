@@ -64,12 +64,13 @@ describe("PriceOracle", () => {
     describe("if the update interval hasn't passed", () => {
       let updatedToken: any;
       beforeEach(async () => {
-        testLastUpdated = new Date(blockDatetime.getTime() - 1000);
+        testLastUpdated = new Date(blockDatetime.getTime());
         const fetchedToken = {
           ...mockToken0Data,
           lastUpdatedTimestamp: testLastUpdated
         };
-        await PriceOracle.refreshTokenPrice(fetchedToken, blockNumber, blockDatetime.getTime(), chainId, mockContext);
+        const blockTimestamp = blockDatetime.getTime() * 1000;
+        await PriceOracle.refreshTokenPrice(fetchedToken, blockNumber, blockTimestamp, chainId, mockContext);
       });
       it("should not update prices if the update interval hasn't passed", async () => {
         expect(mockContract.called).to.be.false;
@@ -84,12 +85,13 @@ describe("PriceOracle", () => {
           ...mockToken0Data,
           lastUpdatedTimestamp: testLastUpdated
         };
-        await PriceOracle.refreshTokenPrice(fetchedToken, blockNumber, blockDatetime.getTime(), chainId, mockContext);
+        const blockTimestamp = blockDatetime.getTime() * 1000;
+        await PriceOracle.refreshTokenPrice(fetchedToken, blockNumber, blockTimestamp, chainId, mockContext);
         updatedToken = mockContext.Token.set.lastCall.args[0];
       });
       it("should update prices if the update interval has passed", async () => {
         expect(updatedToken.pricePerUSDNew).to.equal(mockTokenPriceData.pricePerUSDNew);
-        expect(updatedToken.lastUpdatedTimestamp).greaterThan(testLastUpdated);
+        expect(updatedToken.lastUpdatedTimestamp.getTime()).greaterThan(testLastUpdated.getTime());
       });
     });
   });
