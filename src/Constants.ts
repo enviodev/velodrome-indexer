@@ -3,7 +3,11 @@ import dotenv from "dotenv";
 import { Web3 } from "web3";
 import { optimism, base, lisk, mode } from 'viem/chains';
 import { createPublicClient, http, PublicClient } from 'viem';
-import priceConnectors from "./constants/price_connectors.json";
+
+import BaseWhitelistedTokens from "./constants/baseWhitelistedTokens.json";
+import OptimismWhitelistedTokens from "./constants/optimismWhitelistedTokens.json";
+import ModeWhitelistedTokens from "./constants/modeWhitelistedTokens.json";
+import LiskWhitelistedTokens from "./constants/liskWhitelistedTokens.json";
 
 dotenv.config();
 
@@ -15,25 +19,25 @@ export const SECONDS_IN_AN_HOUR = BigInt(3600);
 export const SECONDS_IN_A_DAY = BigInt(86400);
 export const SECONDS_IN_A_WEEK = BigInt(604800);
 
+type PriceConnector = {
+  address: string;
+  createdBlock: number;
+};
+
 export const OPTIMISM_PRICE_CONNECTORS: PriceConnector[] =
-  priceConnectors.optimism as PriceConnector[];
+  OptimismWhitelistedTokens as PriceConnector[];
 
 export const BASE_PRICE_CONNECTORS: PriceConnector[] =
-  priceConnectors.base as PriceConnector[];
+  BaseWhitelistedTokens as PriceConnector[];
 
 export const MODE_PRICE_CONNECTORS: PriceConnector[] =
-  priceConnectors.mode as PriceConnector[];
+  ModeWhitelistedTokens as PriceConnector[];
 
 export const LISK_PRICE_CONNECTORS: PriceConnector[] =
-  priceConnectors.lisk as PriceConnector[];
+  LiskWhitelistedTokens as PriceConnector[];
 
 export const toChecksumAddress = (address: string) =>
   Web3.utils.toChecksumAddress(address);
-
-type PriceConnector = {
-  address: string;
-  block: number;
-};
 
 // Object containing all the constants for a chain
 type chainConstants = {
