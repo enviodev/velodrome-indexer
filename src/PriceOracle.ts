@@ -58,7 +58,10 @@ export async function refreshTokenPrice(
   chainId: number,
   context: any
 ): Promise<Token> {
-  if (blockTimestamp - token.lastUpdatedTimestamp.getTime() < ONE_HOUR_MS) {
+
+  const blockTimestampMs = blockTimestamp * 1000;
+
+  if (blockTimestampMs - token.lastUpdatedTimestamp.getTime() < ONE_HOUR_MS) {
     return token;
   }
 
@@ -67,7 +70,7 @@ export async function refreshTokenPrice(
     ...token,
     pricePerUSDNew: tokenPriceData.pricePerUSDNew,
     decimals: tokenPriceData.decimals,
-    lastUpdatedTimestamp: new Date(blockTimestamp * 1000)
+    lastUpdatedTimestamp: new Date(blockTimestampMs)
   };
   context.Token.set(updatedToken);
   return updatedToken;
