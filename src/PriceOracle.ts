@@ -102,7 +102,7 @@ export async function getTokenPriceData(
   const SYSTEM_TOKEN_ADDRESS = CHAIN_CONSTANTS[chainId].rewardToken(blockNumber);
 
   const connectors = CHAIN_CONSTANTS[chainId].oracle.priceConnectors
-    .filter((connector) => connector.block <= blockNumber)
+    .filter((connector) => connector.createdBlock <= blockNumber)
     .map((connector) => connector.address)
     .filter((connector) => connector !== tokenAddress)
     .filter((connector) => connector !== WETH_ADDRESS)
