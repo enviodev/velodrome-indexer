@@ -69,7 +69,7 @@ describe("PriceOracle", () => {
           ...mockToken0Data,
           lastUpdatedTimestamp: testLastUpdated
         };
-        const blockTimestamp = blockDatetime.getTime() * 1000;
+        const blockTimestamp = blockDatetime.getTime() / 1000;
         await PriceOracle.refreshTokenPrice(fetchedToken, blockNumber, blockTimestamp, chainId, mockContext);
       });
       it("should not update prices if the update interval hasn't passed", async () => {
@@ -85,7 +85,7 @@ describe("PriceOracle", () => {
           ...mockToken0Data,
           lastUpdatedTimestamp: testLastUpdated
         };
-        const blockTimestamp = blockDatetime.getTime() * 1000;
+        const blockTimestamp = blockDatetime.getTime() / 1000;
         await PriceOracle.refreshTokenPrice(fetchedToken, blockNumber, blockTimestamp, chainId, mockContext);
         updatedToken = mockContext.Token.set.lastCall.args[0];
       });

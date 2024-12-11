@@ -35,7 +35,7 @@ export async function createTokenEntity(tokenAddress: string, chainId: number, b
   return tokenEntity;
 }
 
-const ONE_HOUR_SECONDS = 60 * 60; // 1 hour in seconds
+const ONE_HOUR_MS = 60 * 60 * 1000; // 1 hour in milliseconds
 
 /**
  * Refreshes a token's price data if the update interval has passed.
@@ -59,7 +59,9 @@ export async function refreshTokenPrice(
   context: any
 ): Promise<Token> {
 
-  if (blockTimestamp - token.lastUpdatedTimestamp.getTime() * 1000 < ONE_HOUR_SECONDS) {
+  const blockTimestampMs = blockTimestamp * 1000;
+
+  if (blockTimestampMs - token.lastUpdatedTimestamp.getTime() < ONE_HOUR_MS) {
     return token;
   }
 
@@ -68,7 +70,7 @@ export async function refreshTokenPrice(
     ...token,
     pricePerUSDNew: tokenPriceData.pricePerUSDNew,
     decimals: tokenPriceData.decimals,
-    lastUpdatedTimestamp: new Date(blockTimestamp / 1000)
+    lastUpdatedTimestamp: new Date(blockTimestampMs)
   };
   context.Token.set(updatedToken);
   return updatedToken;
