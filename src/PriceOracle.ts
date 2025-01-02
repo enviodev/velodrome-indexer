@@ -66,13 +66,25 @@ export async function refreshTokenPrice(
   }
 
   const tokenPriceData = await getTokenPriceData(token.address, blockNumber, chainId);
+  const currentPrice = tokenPriceData.pricePerUSDNew;
   const updatedToken: Token = {
     ...token,
-    pricePerUSDNew: tokenPriceData.pricePerUSDNew,
+    pricePerUSDNew: currentPrice,
     decimals: tokenPriceData.decimals,
     lastUpdatedTimestamp: new Date(blockTimestampMs)
   };
   context.Token.set(updatedToken);
+
+  // Create new TokenPrice entity
+  const tokenPrice: TokenPriceSnapshot = {
+      id: TokenIdByBlock(token.address, chainId, blockNumber),
+      address: toChecksumAddress(token.address),
+      pricePerUSDNew: currentPrice,
+      chainId: chainId,
+      lastUpdatedTimestamp: new Date(blockTimestampMs),
+  };
+
+  context.TokenPriceSnapshot.set(tokenPrice);
   return updatedToken;
 }
 
