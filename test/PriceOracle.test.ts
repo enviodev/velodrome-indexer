@@ -74,6 +74,8 @@ describe("PriceOracle", () => {
       });
       it("should not update prices if the update interval hasn't passed", async () => {
         expect(mockContract.called).to.be.false;
+        expect(mockContext.Token.set.called).to.be.false;
+        expect(mockContext.TokenPriceSnapshot.set.called).to.be.false;
       });
     });
     describe("if the update interval has passed", () => {
@@ -92,6 +94,11 @@ describe("PriceOracle", () => {
       it("should update prices if the update interval has passed", async () => {
         expect(updatedToken.pricePerUSDNew).to.equal(mockTokenPriceData.pricePerUSDNew);
         expect(updatedToken.lastUpdatedTimestamp.getTime()).greaterThan(testLastUpdated.getTime());
+      });
+      it("should create a new TokenPriceSnapshot entity", async () => {
+        const tokenPrice = mockContext.TokenPriceSnapshot.set.lastCall.args[0];
+        expect(tokenPrice.pricePerUSDNew).to.equal(mockTokenPriceData.pricePerUSDNew);
+        expect(tokenPrice.lastUpdatedTimestamp.getTime()).greaterThan(testLastUpdated.getTime());
       });
     });
   });
