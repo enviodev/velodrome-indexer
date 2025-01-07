@@ -41,6 +41,12 @@ contracts:
     handler: src/EventHandlers/NFPM.ts
     events:
       - event: Transfer(address indexed from, address indexed to, uint256 indexed tokenId)
+  - name: VeNFT
+    handler: src/EventHandlers/VeNFT.ts
+    events:
+      - event: Deposit(address indexed provider, uint256 indexed tokenId, uint8 indexed depositType, uint256 value, uint256 locktime, uint256 ts)
+      - event: Withdraw(address indexed provider, uint256 indexed tokenId, uint256 value, uint256 ts)
+      - event: Transfer(address indexed from, address indexed to, uint256 indexed tokenId)
   - name: Pool
     handler: src/EventHandlers/Pool.ts
     events:
@@ -98,6 +104,9 @@ networks:
   - id: 10 # Optimism
     start_block: 0
     contracts:
+      - name: VeNFT
+        address:
+          - 0xFAf8FD17D9840595845582fCB047DF13f006787d
       - name: NFPM
         address:
           - 0x416b433906b1b72fa758e166e239c43d68dc6f29
@@ -126,6 +135,9 @@ networks:
   - id: 8453 # Base
     start_block: 0
     contracts:
+      - name: VeNFT
+        address:
+          - 0xeBf418Fe2512e7E6bd9b87a8F0f294aCDC67e6B4
       - name: NFPM
         address:
           - 0x827922686190790b37229fd06084350e74485b72

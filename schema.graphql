@@ -385,3 +385,45 @@ type SuperchainPoolFactory_RootPoolCreated {
   chainId: Int!
   length: BigInt! @config(precision: 76)
 }
+
+type VeNFTAggregator {
+  id: ID!
+  chainId: Int!
+  tokenId: BigInt! @config(precision: 76)
+  owner: String!
+  locktime: BigInt! @config(precision: 76)
+  lastUpdatedTimestamp: Timestamp!
+  totalValueLocked: BigInt! @config(precision: 76)
+  isAlive: Boolean!
+}
+
+type VeNFT_Deposit {
+  id: ID!
+  provider: String!
+  tokenId: BigInt! @config(precision: 76)
+  depositType: BigInt! @config(precision: 76)
+  value: BigInt! @config(precision: 76)
+  locktime: BigInt! @config(precision: 76)
+  ts: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type VeNFT_Withdraw {
+  id: ID!
+  provider: String!
+  tokenId: BigInt! @config(precision: 76)
+  value: BigInt! @config(precision: 76)
+  ts: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type VeNFT_Transfer {
+  id: ID!
+  from: String!
+  to: String!
+  tokenId: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+}
