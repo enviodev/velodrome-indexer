@@ -26,6 +26,8 @@ type LiquidityPoolAggregator {
   totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
   totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
   gaugeIsAlive: Boolean! # whether the gauge is alive
+  token0IsWhitelisted: Boolean! # whether the token0 is whitelisted
+  token1IsWhitelisted: Boolean! # whether the token1 is whitelisted
   lastUpdatedTimestamp: Timestamp! # timestamp of last update
   lastSnapshotTimestamp: Timestamp! # timestamp of last snapshot
 }
@@ -60,6 +62,8 @@ type LiquidityPoolAggregatorSnapshot {
   totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
   totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
   gaugeIsAlive: Boolean! # whether the gauge is alive
+  token0IsWhitelisted: Boolean! # whether the token0 is whitelisted
+  token1IsWhitelisted: Boolean! # whether the token1 is whitelisted
   timestamp: Timestamp! # timestamp of last update
 }
 
@@ -90,6 +94,7 @@ type TokenPriceSnapshot {
   address: String! @index # Address of the token
   pricePerUSDNew: BigInt! @config(precision: 76) # price of token per USD
   chainId: Int!
+  isWhitelisted: Boolean! # whether the token is whitelisted
   lastUpdatedTimestamp: Timestamp! @index # Timestamp of the last update
 }
 
