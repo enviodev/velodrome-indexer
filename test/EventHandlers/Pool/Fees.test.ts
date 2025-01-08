@@ -14,6 +14,7 @@ describe("Pool Fees Event", () => {
     amount0In: 3n * 10n ** 18n,
     amount1In: 2n * 10n ** 6n,
     totalLiquidityUSD: 0n,
+    totalFeesUSDWhitelisted: 0n,
   };
 
   expectations.totalLiquidityUSD =
@@ -24,6 +25,8 @@ describe("Pool Fees Event", () => {
         mockLiquidityPoolData.totalFeesUSD +
           (expectations.amount0In / 10n ** (mockToken0Data.decimals) ) * mockToken0Data.pricePerUSDNew +
           (expectations.amount1In / 10n ** (mockToken1Data.decimals) ) * mockToken1Data.pricePerUSDNew;
+
+  expectations.totalFeesUSDWhitelisted = expectations.totalFeesUSD;
 
   let updatedPool: any;
   
@@ -71,5 +74,9 @@ describe("Pool Fees Event", () => {
 
   it("should update LiquidityPoolAggregator total fees in USD", async () => {
     expect(updatedPool.totalFeesUSD).to.equal(expectations.totalFeesUSD);
+  });
+
+  it("should update LiquidityPoolAggregator total fees in USD whitelisted", async () => {
+    expect(updatedPool.totalFeesUSDWhitelisted).to.equal(expectations.totalFeesUSDWhitelisted);
   });
 });

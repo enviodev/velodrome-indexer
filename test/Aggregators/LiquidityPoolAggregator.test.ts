@@ -60,6 +60,8 @@ describe("LiquidityPoolAggregator Functions", () => {
         totalVolume1: 6000n,
         totalVolumeUSD: 7000n,
         numberOfSwaps: 11n,
+        totalVolumeUSDWhitelisted: 8000n,
+        totalFeesUSDWhitelisted: 9000n,
       };
       updateLiquidityPoolAggregator(
         diff,
@@ -76,6 +78,8 @@ describe("LiquidityPoolAggregator Functions", () => {
       expect(updatedAggregator.totalVolume0).to.equal(diff.totalVolume0);
       expect(updatedAggregator.totalVolume1).to.equal(diff.totalVolume1);
       expect(updatedAggregator.numberOfSwaps).to.equal(diff.numberOfSwaps);
+      expect(updatedAggregator.totalVolumeUSDWhitelisted).to.equal(diff.totalVolumeUSDWhitelisted);
+      expect(updatedAggregator.totalFeesUSDWhitelisted).to.equal(diff.totalFeesUSDWhitelisted);
     });
 
     it("should create a snapshot if the last update was more than 1 hour ago", () => {

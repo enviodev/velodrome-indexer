@@ -14,9 +14,11 @@ type LiquidityPoolAggregator {
   totalVolume0: BigInt! @config(precision: 76) # total swap volume of token0 in token units
   totalVolume1: BigInt! @config(precision: 76) # total swap volume of token1 in token units
   totalVolumeUSD: BigInt! @config(precision: 76) # total swap volume of the pool in USD
+  totalVolumeUSDWhitelisted: BigInt! @config(precision: 76) # total swap volume of the pool in USD
   totalFees0: BigInt! @config(precision: 76) # total fees collected in token0 units
   totalFees1: BigInt! @config(precision: 76) # total fees collected in token1 units
   totalFeesUSD: BigInt! @config(precision: 76) # total fees collected in USD
+  totalFeesUSDWhitelisted: BigInt! @config(precision: 76) # total fees collected in USD
   numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps in the pool
   token0Price: BigInt! @config(precision: 76) # price of token0 relative to token1
   token1Price: BigInt! @config(precision: 76) # price of token1 relative to token0
@@ -50,9 +52,11 @@ type LiquidityPoolAggregatorSnapshot {
   totalVolume0: BigInt! @config(precision: 76) # total swap volume of token0 in token units
   totalVolume1: BigInt! @config(precision: 76) # total swap volume of token1 in token units
   totalVolumeUSD: BigInt! @config(precision: 76) # total swap volume of the pool in USD
+  totalVolumeUSDWhitelisted: BigInt! @config(precision: 76) # total swap volume of the pool in USD
   totalFees0: BigInt! @config(precision: 76) # total fees collected in token0 units
   totalFees1: BigInt! @config(precision: 76) # total fees collected in token1 units
   totalFeesUSD: BigInt! @config(precision: 76) # total fees collected in USD
+  totalFeesUSDWhitelisted: BigInt! @config(precision: 76) # total fees collected in USD
   numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps in the pool
   token0Price: BigInt! @config(precision: 76) # price of token0 relative to token1
   token1Price: BigInt! @config(precision: 76) # price of token1 relative to token0

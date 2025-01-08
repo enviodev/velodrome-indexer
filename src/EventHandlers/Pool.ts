@@ -72,6 +72,7 @@ Pool.Fees.handlerWithLoader({
       totalFeesNormalized0: 0n,
       totalFeesNormalized1: 0n,
       totalFeesUSD: 0n,
+      totalFeesUSDWhitelisted: 0n,
     };
 
     tokenUpdateData.totalFees0 = event.params.amount0
@@ -80,10 +81,13 @@ Pool.Fees.handlerWithLoader({
         event.params.amount0,
         Number(token0Instance.decimals)
       );
-      tokenUpdateData.totalFeesUSD += multiplyBase1e18(
+      const token0FeesUSD = multiplyBase1e18(
         tokenUpdateData.totalFeesNormalized0,
         token0Instance.pricePerUSDNew
       );
+
+      tokenUpdateData.totalFeesUSD += token0FeesUSD;
+      tokenUpdateData.totalFeesUSDWhitelisted += (token0Instance.isWhitelisted) ? token0FeesUSD : 0n;
     }
 
     tokenUpdateData.totalFees1 = event.params.amount1
@@ -92,16 +96,19 @@ Pool.Fees.handlerWithLoader({
         event.params.amount1,
         Number(token1Instance.decimals)
       );
-      tokenUpdateData.totalFeesUSD += multiplyBase1e18(
+      const token1FeesUSD = multiplyBase1e18(
         tokenUpdateData.totalFeesNormalized1,
         token1Instance.pricePerUSDNew
       );
+      tokenUpdateData.totalFeesUSD += token1FeesUSD;
+      tokenUpdateData.totalFeesUSDWhitelisted += (token1Instance.isWhitelisted) ? token1FeesUSD: 0n;
     }
 
     const liquidityPoolDiff = {
       totalFees0: liquidityPoolAggregator.totalFees0 + tokenUpdateData.totalFees0,
       totalFees1: liquidityPoolAggregator.totalFees1 + tokenUpdateData.totalFees1,
       totalFeesUSD: liquidityPoolAggregator.totalFeesUSD + tokenUpdateData.totalFeesUSD,
+      totalFeesUSDWhitelisted: liquidityPoolAggregator.totalFeesUSDWhitelisted + tokenUpdateData.totalFeesUSDWhitelisted,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
     };
 
@@ -171,6 +178,7 @@ Pool.Swap.handlerWithLoader({
         netVolumeToken0USD: 0n,
         netVolumeToken1USD: 0n,
         volumeInUSD: 0n,
+        volumeInUSDWhitelisted: 0n,
       };
 
       tokenUpdateData.netAmount0 = event.params.amount0In + event.params.amount0Out;
@@ -213,12 +221,16 @@ Pool.Swap.handlerWithLoader({
           ? tokenUpdateData.netVolumeToken0USD
           : tokenUpdateData.netVolumeToken1USD;
 
+      // If both tokens are whitelisted, add the volume of token0 to the whitelisted volume
+      tokenUpdateData.volumeInUSDWhitelisted += (token0?.isWhitelisted && token1?.isWhitelisted) ? tokenUpdateData.netVolumeToken0USD : 0n;
 
       const liquidityPoolDiff = {
         totalVolume0: liquidityPoolAggregator.totalVolume0 + tokenUpdateData.netAmount0,
         totalVolume1: liquidityPoolAggregator.totalVolume1 + tokenUpdateData.netAmount1,
         totalVolumeUSD:
           liquidityPoolAggregator.totalVolumeUSD + tokenUpdateData.volumeInUSD,
+        totalVolumeUSDWhitelisted:
+          liquidityPoolAggregator.totalVolumeUSDWhitelisted + tokenUpdateData.volumeInUSDWhitelisted,
         token0Price:
           token0Instance?.pricePerUSDNew ?? liquidityPoolAggregator.token0Price,
         token1Price:
