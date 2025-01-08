@@ -466,6 +466,15 @@ describe("CLPool Event Handlers", () => {
         );
       });
 
+      it("should correctly update total volume in USD whitelisted", async () => {
+        const [diff] = aggregatorCalls;
+        expect(diff.totalVolumeUSDWhitelisted).to.equal(
+          mockLiquidityPoolData.totalVolumeUSDWhitelisted +
+            (abs(mockEvent.params.amount0) * mockToken0Data.pricePerUSDNew) /
+              10n ** mockToken0Data.decimals
+        );
+      });
+
       it("should update token prices correctly", async () => {
         const [diff] = aggregatorCalls;
         expect(diff.token0Price).to.equal(1n * 10n ** 18n);

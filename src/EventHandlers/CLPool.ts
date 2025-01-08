@@ -46,6 +46,7 @@ function updateCLPoolFees(
     totalFees0: liquidityPoolAggregator.totalFees0,
     totalFees1: liquidityPoolAggregator.totalFees1,
     totalFeesUSD: liquidityPoolAggregator.totalFeesUSD,
+    totalFeesUSDWhitelisted: liquidityPoolAggregator.totalFeesUSDWhitelisted,
   };
 
   tokenUpdateData.totalFees0 += event.params.amount0;
@@ -60,6 +61,7 @@ function updateCLPoolFees(
       normalizedFees0,
       token0Instance.pricePerUSDNew
     );
+    tokenUpdateData.totalFeesUSDWhitelisted += token0Instance.isWhitelisted ? tokenUpdateData.totalFeesUSD : 0n;
   }
 
   if (token1Instance) {
@@ -71,6 +73,7 @@ function updateCLPoolFees(
       normalizedFees1,
       token1Instance.pricePerUSDNew
     );
+    tokenUpdateData.totalFeesUSDWhitelisted += token1Instance.isWhitelisted ? tokenUpdateData.totalFeesUSD : 0n;
   }
 
   return tokenUpdateData;
@@ -501,6 +504,7 @@ CLPool.Swap.handlerWithLoader({
         netVolumeToken0USD: 0n,
         netVolumeToken1USD: 0n,
         volumeInUSD: 0n,
+        volumeInUSDWhitelisted: 0n,
       };
 
       tokenUpdateData.netAmount0 = abs(event.params.amount0);
@@ -543,6 +547,9 @@ CLPool.Swap.handlerWithLoader({
         tokenUpdateData.netVolumeToken0USD != 0n
           ? tokenUpdateData.netVolumeToken0USD
           : tokenUpdateData.netVolumeToken1USD;
+
+      // If both tokens are whitelisted, add the volume of token0 to the whitelisted volume
+      tokenUpdateData.volumeInUSDWhitelisted += (token0?.isWhitelisted && token1?.isWhitelisted) ? tokenUpdateData.netVolumeToken0USD : 0n;
       
       const reserveResult = updateCLPoolLiquidity(
         liquidityPoolAggregator,
@@ -558,6 +565,8 @@ CLPool.Swap.handlerWithLoader({
           liquidityPoolAggregator.totalVolume1 + tokenUpdateData.netAmount1,
         totalVolumeUSD:
           liquidityPoolAggregator.totalVolumeUSD + tokenUpdateData.volumeInUSD,
+        totalVolumeUSDWhitelisted:
+          liquidityPoolAggregator.totalVolumeUSDWhitelisted + tokenUpdateData.volumeInUSDWhitelisted,
         token0Price:
           token0Instance?.pricePerUSDNew ?? liquidityPoolAggregator.token0Price,
         token1Price:

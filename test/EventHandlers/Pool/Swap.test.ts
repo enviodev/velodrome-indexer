@@ -55,6 +55,9 @@ describe("Pool Swap Event", () => {
       expectations.expectedNetAmount1 * (TEN_TO_THE_18_BI / 10n ** mockToken1Data.decimals) *
       (mockToken1Data.pricePerUSDNew / TEN_TO_THE_18_BI);
 
+    expectations.totalVolumeUSDWhitelisted =
+      expectations.expectedLPVolumeUSD0;
+
     mockPriceOracle = sinon
       .stub(PriceOracle, "refreshTokenPrice")
       .callsFake(async (...args) => {
@@ -143,6 +146,11 @@ describe("Pool Swap Event", () => {
         modifiedMockLiquidityPoolData.totalVolumeUSD
       );
     });
+    it("shouldn't update the liquidity pool volume in USD whitelisted since it has no prices", () => {
+      expect(updatedPool?.totalVolumeUSDWhitelisted).to.equal(
+        modifiedMockLiquidityPoolData.totalVolumeUSDWhitelisted
+      );
+    });
     it("should not call refreshTokenPrice", () => {
       expect(mockPriceOracle.calledOnce).to.be.false;
     });
@@ -190,6 +198,11 @@ describe("Pool Swap Event", () => {
       expect(updatedPool?.totalVolumeUSD).to.equal(
           expectations.expectedLPVolumeUSD1,
         "Swap volume in USD should be updated for token 1"
+      );
+
+      expect(updatedPool?.totalVolumeUSDWhitelisted).to.equal(
+        mockLiquidityPoolData.totalVolumeUSDWhitelisted,
+        "Total volume USD whitelisted should not be updated since token1 is not whitelisted."
       );
 
       expect(updatedPool?.numberOfSwaps).to.equal(
@@ -257,6 +270,11 @@ describe("Pool Swap Event", () => {
         "Total volume USD should be updated."
       );
 
+      expect(updatedPool?.totalVolumeUSDWhitelisted).to.equal(
+        mockLiquidityPoolData.totalVolumeUSDWhitelisted,
+        "Total volume USD whitelisted should not be updated since token0 is not whitelisted."
+      );
+
     });
     it("should call refreshTokenPrice on token0", () => {
       expect(mockPriceOracle.calledOnce).to.be.true;
@@ -308,6 +326,9 @@ describe("Pool Swap Event", () => {
       );
       expect(updatedPool?.totalVolumeUSD).to.equal(
         expectations.expectedLPVolumeUSD0
+      );
+      expect(updatedPool?.totalVolumeUSDWhitelisted).to.equal(
+        expectations.totalVolumeUSDWhitelisted
       );
       expect(updatedPool?.numberOfSwaps).to.equal(
         mockLiquidityPoolData.numberOfSwaps + 1n
