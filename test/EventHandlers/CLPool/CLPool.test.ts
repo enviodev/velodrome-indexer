@@ -284,6 +284,8 @@ describe("CLPool Event Handlers", () => {
             (expectations.amount0In / 10n ** (mockToken0Data.decimals) ) * mockToken0Data.pricePerUSDNew +
             (expectations.amount1In / 10n ** (mockToken1Data.decimals) ) * mockToken1Data.pricePerUSDNew;
 
+    expectations.totalFeesUSDWhitelisted = expectations.totalFeesUSD;
+
     beforeEach(() => {
       mockEventData = {
         amount0: expectations.amount0In,
@@ -345,6 +347,10 @@ describe("CLPool Event Handlers", () => {
       it("should correctly update total fees in USD", async () => {
         expect(diff.totalFeesUSD).to.equal(expectations.totalFeesUSD,
           "It should correctly update total fees in USD");
+      });
+      it("should correctly update total fees in USD whitelisted", async () => {
+        expect(diff.totalFeesUSDWhitelisted).to.equal(expectations.totalFeesUSDWhitelisted,
+          "It should correctly update total fees in USD whitelisted");
       });
       describe("CLPool Aggregator", () => {
         let diff: any;

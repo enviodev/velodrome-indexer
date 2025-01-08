@@ -57,11 +57,13 @@ function updateCLPoolFees(
       event.params.amount0,
       Number(token0Instance.decimals)
     );
-    tokenUpdateData.totalFeesUSD += multiplyBase1e18(
+    
+    const token0fees = multiplyBase1e18(
       normalizedFees0,
       token0Instance.pricePerUSDNew
     );
-    tokenUpdateData.totalFeesUSDWhitelisted += token0Instance.isWhitelisted ? tokenUpdateData.totalFeesUSD : 0n;
+    tokenUpdateData.totalFeesUSD += token0fees;
+    tokenUpdateData.totalFeesUSDWhitelisted += (token0Instance.isWhitelisted) ? token0fees : 0n;
   }
 
   if (token1Instance) {
@@ -69,11 +71,12 @@ function updateCLPoolFees(
       event.params.amount1,
       Number(token1Instance.decimals)
     );
-    tokenUpdateData.totalFeesUSD += multiplyBase1e18(
+    const token1fees = multiplyBase1e18(
       normalizedFees1,
       token1Instance.pricePerUSDNew
     );
-    tokenUpdateData.totalFeesUSDWhitelisted += token1Instance.isWhitelisted ? tokenUpdateData.totalFeesUSD : 0n;
+    tokenUpdateData.totalFeesUSD += token1fees;
+    tokenUpdateData.totalFeesUSDWhitelisted += (token1Instance.isWhitelisted) ? token1fees : 0n;
   }
 
   return tokenUpdateData;
