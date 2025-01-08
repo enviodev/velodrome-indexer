@@ -414,6 +414,7 @@ describe("CLPool Event Handlers", () => {
     });
 
     describe("when tokens exist", () => {
+      let updatedLiquidityPool: any;
       beforeEach(async () => {
         let updatedDB = mockDb.entities.LiquidityPoolAggregator.set(mockLiquidityPoolData as LiquidityPoolAggregator);
         updatedDB = updatedDB.entities.Token.set(mockToken0Data as Token);
@@ -425,6 +426,7 @@ describe("CLPool Event Handlers", () => {
         });
         swapEntity = result.entities.CLPool_Swap.get(`1_123456_0`);
         aggregatorCalls = updateLiquidityPoolAggregatorStub.firstCall.args;
+        updatedLiquidityPool = aggregatorCalls[0];
       });
 
       it("should create a CLPool_Swap entity", async () => {
@@ -443,23 +445,20 @@ describe("CLPool Event Handlers", () => {
       });
 
       it("should update nominal volume amounts correctly", async () => {
-        const [diff] = aggregatorCalls;
-        expect(diff.totalVolume0).to.equal(
+        expect(updatedLiquidityPool.totalVolume0).to.equal(
           mockLiquidityPoolData.totalVolume0 + abs(mockEvent.params.amount0)
         );
-        expect(diff.totalVolume1).to.equal(
+        expect(updatedLiquidityPool.totalVolume1).to.equal(
           mockLiquidityPoolData.totalVolume1 + abs(mockEvent.params.amount1)
         );
       });
 
       it("should update number of swaps correctly", async () => {
-        const [diff] = aggregatorCalls;
-        expect(diff.numberOfSwaps).to.equal(2n);
+        expect(updatedLiquidityPool.numberOfSwaps).to.equal(2n);
       });
 
       it("should correctly update total volume in USD", async () => {
-        const [diff] = aggregatorCalls;
-        expect(diff.totalVolumeUSD).to.equal(
+        expect(updatedLiquidityPool.totalVolumeUSD).to.equal(
           mockLiquidityPoolData.totalVolumeUSD +
             (abs(mockEvent.params.amount0) * mockToken0Data.pricePerUSDNew) /
               10n ** mockToken0Data.decimals
@@ -467,20 +466,17 @@ describe("CLPool Event Handlers", () => {
       });
 
       it("should update token prices correctly", async () => {
-        const [diff] = aggregatorCalls;
-        expect(diff.token0Price).to.equal(1n * 10n ** 18n);
-        expect(diff.token1Price).to.equal(1n * 10n ** 18n);
+        expect(updatedLiquidityPool.token0Price).to.equal(1n * 10n ** 18n);
+        expect(updatedLiquidityPool.token1Price).to.equal(1n * 10n ** 18n);
       });
 
       it("should update reserve amounts correctly", async () => {
-        const [diff] = aggregatorCalls;
-        expect(diff.reserve0).to.equal(mockLiquidityPoolData.reserve0 + expectations.amount0In);
-        expect(diff.reserve1).to.equal(mockLiquidityPoolData.reserve1 + expectations.amount1In);
+        expect(updatedLiquidityPool.reserve0).to.equal(mockLiquidityPoolData.reserve0 + expectations.amount0In);
+        expect(updatedLiquidityPool.reserve1).to.equal(mockLiquidityPoolData.reserve1 + expectations.amount1In);
       });
 
       it("should update total liquidity in USD correctly", async () => {
-        const [diff] = aggregatorCalls;
-        expect(diff.totalLiquidityUSD).to.equal(expectations.totalLiquidityUSD);
+        expect(updatedLiquidityPool.totalLiquidityUSD).to.equal(expectations.totalLiquidityUSD);
       });
       it("should call refreshTokenPrice on token0", () => {
         const calledToken = mockPriceOracle.firstCall.args[0];
@@ -489,6 +485,12 @@ describe("CLPool Event Handlers", () => {
       it("should call refreshTokenPrice on token1", () => {
         const calledToken = mockPriceOracle.secondCall.args[0];
         expect(calledToken.address).to.equal(mockToken1Data.address);
+      });
+      it("should update the liquidity pool with token0IsWhitelisted", () => {
+        expect(updatedLiquidityPool.token0IsWhitelisted).to.equal(mockToken0Data.isWhitelisted);
+      });
+      it("should update the liquidity pool with token1IsWhitelisted", () => {
+        expect(updatedLiquidityPool.token1IsWhitelisted).to.equal(mockToken1Data.isWhitelisted);
       });
     });
 

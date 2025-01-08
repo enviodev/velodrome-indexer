@@ -99,6 +99,7 @@ describe("PriceOracle", () => {
         const tokenPrice = mockContext.TokenPriceSnapshot.set.lastCall.args[0];
         expect(tokenPrice.pricePerUSDNew).to.equal(mockTokenPriceData.pricePerUSDNew);
         expect(tokenPrice.lastUpdatedTimestamp.getTime()).greaterThan(testLastUpdated.getTime());
+        expect(tokenPrice.isWhitelisted).to.equal(mockToken0Data.isWhitelisted);
       });
     });
   });

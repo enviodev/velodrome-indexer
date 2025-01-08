@@ -89,6 +89,8 @@ CLFactory.PoolCreated.handlerWithLoader({
       totalEmissionsUSD: 0n,
       totalBribesUSD: 0n,
       gaugeIsAlive: false,
+      token0IsWhitelisted: poolToken0?.isWhitelisted ?? false,
+      token1IsWhitelisted: poolToken1?.isWhitelisted ?? false,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       lastSnapshotTimestamp: new Date(event.block.timestamp * 1000),
     };

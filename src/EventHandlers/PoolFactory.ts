@@ -79,6 +79,8 @@ PoolFactory.PoolCreated.handlerWithLoader({
       totalVotesDeposited: 0n,
       totalVotesDepositedUSD: 0n,
       gaugeIsAlive: false,
+      token0IsWhitelisted: poolToken0?.isWhitelisted ?? false,
+      token1IsWhitelisted: poolToken1?.isWhitelisted ?? false,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       lastSnapshotTimestamp: new Date(event.block.timestamp * 1000),
     };
