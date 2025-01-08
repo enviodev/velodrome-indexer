@@ -571,6 +571,8 @@ CLPool.Swap.handlerWithLoader({
           token0Instance?.pricePerUSDNew ?? liquidityPoolAggregator.token0Price,
         token1Price:
           token1Instance?.pricePerUSDNew ?? liquidityPoolAggregator.token1Price,
+        token0IsWhitelisted: token0Instance?.isWhitelisted ?? false,
+        token1IsWhitelisted: token1Instance?.isWhitelisted ?? false,
         numberOfSwaps: liquidityPoolAggregator.numberOfSwaps + 1n,
         reserve0: liquidityPoolAggregator.reserve0 + reserveResult.reserve0,
         reserve1: liquidityPoolAggregator.reserve1 + reserveResult.reserve1,

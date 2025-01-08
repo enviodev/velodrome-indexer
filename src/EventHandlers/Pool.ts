@@ -229,6 +229,8 @@ Pool.Swap.handlerWithLoader({
         token1Price:
           token1Instance?.pricePerUSDNew ?? liquidityPoolAggregator.token1Price,
         numberOfSwaps: liquidityPoolAggregator.numberOfSwaps + 1n,
+        token0IsWhitelisted: token0Instance?.isWhitelisted ?? false,
+        token1IsWhitelisted: token1Instance?.isWhitelisted ?? false,
         lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       };
 
