@@ -155,8 +155,8 @@ const MODE_CONSTANTS: chainConstants = {
 
 // Constants for Fraxtal
 const FRAXTAL_CONSTANTS: chainConstants = {
-  weth: "0x4200000000000000000000000000000000000006",
-  usdc: "0xd988097fb8612cc24eeC14542bC03424c656005f",
+  weth: "0xFC00000000000000000000000000000000000006",
+  usdc: "0xFc00000000000000000000000000000000000001",
   oracle: {
     getAddress: (blockNumber: number) => {
       return "0xE50621a0527A43534D565B67D64be7C79807F269";

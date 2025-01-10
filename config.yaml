@@ -178,6 +178,8 @@ networks:
       - name: CLPool
         address:
   - id: 252 # Fraxtal
+    hypersync_config:
+      url: https://fraxtal.hypersync.xyz
     start_block: 0
     contracts:
       - name: NFPM
