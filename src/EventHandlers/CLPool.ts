@@ -12,7 +12,7 @@ import {
   LiquidityPoolAggregator,
   Token,
 } from "generated";
-import { set_whitelisted_prices } from "../PriceOracle";
+import { refreshTokenPrice } from "../PriceOracle";
 import { normalizeTokenAmountTo1e18 } from "../Helpers";
 import { multiplyBase1e18, abs } from "../Maths";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
@@ -46,6 +46,7 @@ function updateCLPoolFees(
     totalFees0: liquidityPoolAggregator.totalFees0,
     totalFees1: liquidityPoolAggregator.totalFees1,
     totalFeesUSD: liquidityPoolAggregator.totalFeesUSD,
+    totalFeesUSDWhitelisted: liquidityPoolAggregator.totalFeesUSDWhitelisted,
   };
 
   tokenUpdateData.totalFees0 += event.params.amount0;
@@ -56,10 +57,13 @@ function updateCLPoolFees(
       event.params.amount0,
       Number(token0Instance.decimals)
     );
-    tokenUpdateData.totalFeesUSD += multiplyBase1e18(
+    
+    const token0fees = multiplyBase1e18(
       normalizedFees0,
       token0Instance.pricePerUSDNew
     );
+    tokenUpdateData.totalFeesUSD += token0fees;
+    tokenUpdateData.totalFeesUSDWhitelisted += (token0Instance.isWhitelisted) ? token0fees : 0n;
   }
 
   if (token1Instance) {
@@ -67,10 +71,12 @@ function updateCLPoolFees(
       event.params.amount1,
       Number(token1Instance.decimals)
     );
-    tokenUpdateData.totalFeesUSD += multiplyBase1e18(
+    const token1fees = multiplyBase1e18(
       normalizedFees1,
       token1Instance.pricePerUSDNew
     );
+    tokenUpdateData.totalFeesUSD += token1fees;
+    tokenUpdateData.totalFeesUSDWhitelisted += (token1Instance.isWhitelisted) ? token1fees : 0n;
   }
 
   return tokenUpdateData;
@@ -205,7 +211,7 @@ CLPool.Collect.handlerWithLoader({
     const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
 
     if (!liquidityPoolAggregator) {
-      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during collect`);
+      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during CL collect on chain ${event.chainId}`);
       return null;
     }
 
@@ -267,7 +273,7 @@ CLPool.CollectFees.handlerWithLoader({
     const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
 
     if (!liquidityPoolAggregator) {
-      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during collect fees`);
+      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during CL collect fees on chain ${event.chainId}`);
       return null;
     }
 
@@ -383,7 +389,7 @@ CLPool.Mint.handlerWithLoader({
     const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
 
     if (!liquidityPoolAggregator) {
-      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during mint`);
+      context.log.error(`LiquidityPoolAggregator ${pool_id} not found during CL mint on chain ${event.chainId}`);
       return null;
     }
 
@@ -460,7 +466,7 @@ CLPool.Swap.handlerWithLoader({
     const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(pool_id);
 
     if (!liquidityPoolAggregator) {
-      context.log.error(`Pool ${pool_id} not found during swap`);
+      context.log.error(`Pool ${pool_id} not found during CL swap on chain ${event.chainId}`);
       return null;
     }
 
@@ -472,6 +478,7 @@ CLPool.Swap.handlerWithLoader({
     return { liquidityPoolAggregator, token0Instance, token1Instance };
   },
   handler: async ({ event, context, loaderReturn }) => {
+    const blockDatetime = new Date(event.block.timestamp * 1000);
     const entity: CLPool_Swap = {
       id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
       sender: event.params.sender,
@@ -482,7 +489,7 @@ CLPool.Swap.handlerWithLoader({
       liquidity: event.params.liquidity,
       tick: event.params.tick,
       sourceAddress: event.srcAddress,
-      timestamp: new Date(event.block.timestamp * 1000),
+      timestamp: blockDatetime,
       chainId: event.chainId,
     };
 
@@ -490,6 +497,8 @@ CLPool.Swap.handlerWithLoader({
 
     if (loaderReturn && loaderReturn.liquidityPoolAggregator) {
       const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
+      let token0 = token0Instance;
+      let token1 = token1Instance;
 
       // Delta that will be added to the liquidity pool aggregator
       let tokenUpdateData = {
@@ -498,30 +507,41 @@ CLPool.Swap.handlerWithLoader({
         netVolumeToken0USD: 0n,
         netVolumeToken1USD: 0n,
         volumeInUSD: 0n,
+        volumeInUSDWhitelisted: 0n,
       };
 
       tokenUpdateData.netAmount0 = abs(event.params.amount0);
       tokenUpdateData.netAmount1 = abs(event.params.amount1); 
 
-      if (token0Instance) {
+      if (token0) {
+        try {
+          token0 = await refreshTokenPrice(token0, event.block.number, event.block.timestamp, event.chainId, context);
+        } catch (error) {
+          context.log.error(`Error refreshing token price for ${token0?.address} on chain ${event.chainId}: ${error}`);
+        }
         const normalizedAmount0 = normalizeTokenAmountTo1e18(
           abs(event.params.amount0),
-          Number(token0Instance.decimals)
+          Number(token0.decimals)
         );
         tokenUpdateData.netVolumeToken0USD = multiplyBase1e18(
           normalizedAmount0,
-          token0Instance.pricePerUSDNew
+          token0.pricePerUSDNew
         );
       }
 
-      if (token1Instance) {
+      if (token1) {
+        try {
+          token1 = await refreshTokenPrice(token1, event.block.number, event.block.timestamp, event.chainId, context);
+        } catch (error) {
+          context.log.error(`Error refreshing token price for ${token1?.address} on chain ${event.chainId}: ${error}`);
+        }
         const normalizedAmount1 = normalizeTokenAmountTo1e18(
           abs(event.params.amount1),
-          Number(token1Instance.decimals)
+          Number(token1.decimals)
         );
         tokenUpdateData.netVolumeToken1USD = multiplyBase1e18(
           normalizedAmount1,
-          token1Instance.pricePerUSDNew
+          token1.pricePerUSDNew
         );
       }
 
@@ -530,12 +550,15 @@ CLPool.Swap.handlerWithLoader({
         tokenUpdateData.netVolumeToken0USD != 0n
           ? tokenUpdateData.netVolumeToken0USD
           : tokenUpdateData.netVolumeToken1USD;
+
+      // If both tokens are whitelisted, add the volume of token0 to the whitelisted volume
+      tokenUpdateData.volumeInUSDWhitelisted += (token0?.isWhitelisted && token1?.isWhitelisted) ? tokenUpdateData.netVolumeToken0USD : 0n;
       
       const reserveResult = updateCLPoolLiquidity(
         liquidityPoolAggregator,
         event,
-        token0Instance,
-        token1Instance
+        token0,
+        token1
       );
 
       const liquidityPoolAggregatorDiff: Partial<LiquidityPoolAggregator> = {
@@ -545,10 +568,14 @@ CLPool.Swap.handlerWithLoader({
           liquidityPoolAggregator.totalVolume1 + tokenUpdateData.netAmount1,
         totalVolumeUSD:
           liquidityPoolAggregator.totalVolumeUSD + tokenUpdateData.volumeInUSD,
+        totalVolumeUSDWhitelisted:
+          liquidityPoolAggregator.totalVolumeUSDWhitelisted + tokenUpdateData.volumeInUSDWhitelisted,
         token0Price:
           token0Instance?.pricePerUSDNew ?? liquidityPoolAggregator.token0Price,
         token1Price:
           token1Instance?.pricePerUSDNew ?? liquidityPoolAggregator.token1Price,
+        token0IsWhitelisted: token0Instance?.isWhitelisted ?? false,
+        token1IsWhitelisted: token1Instance?.isWhitelisted ?? false,
         numberOfSwaps: liquidityPoolAggregator.numberOfSwaps + 1n,
         reserve0: liquidityPoolAggregator.reserve0 + reserveResult.reserve0,
         reserve1: liquidityPoolAggregator.reserve1 + reserveResult.reserve1,
@@ -558,21 +585,10 @@ CLPool.Swap.handlerWithLoader({
       updateLiquidityPoolAggregator(
         liquidityPoolAggregatorDiff,
         liquidityPoolAggregator,
-        new Date(event.block.timestamp * 1000),
+        blockDatetime,
         context
       );
     }
 
-    const blockDatetime = new Date(event.block.timestamp * 1000);
-    try {
-      await set_whitelisted_prices(
-        event.chainId,
-        event.block.number,
-        blockDatetime,
-        context
-      );
-    } catch (error) {
-      console.log("Error updating token prices on CLPool swap:", error);
-    }
   },
 });

@@ -4,6 +4,7 @@ import { TokenIdByChain } from "../../src/Constants";
 import { Token, LiquidityPoolAggregator } from "../../generated/src/Types.gen";
 import * as Store from "../../src/Store";
 import sinon from "sinon";
+import { setupCommon } from "./Pool/common";
 
 describe("VotingReward Events", () => {
   describe("NotifyReward Event", () => {
@@ -22,7 +23,8 @@ describe("VotingReward Events", () => {
     
     const poolAddress = "0x904f14F9ED81d0b0a40D8169B28592aac5687158";
     const bribeVotingRewardAddress = "0x9afdc6c6caad5ff953e2cff9777c3af2e5d796fb";
-    const rewardTokenAddress = "0x3c8B650257cFb5f272f799F5e2b4e65093a11a05";
+    const rewardTokenAddress = "0x4200000000000000000000000000000000000042";
+    const blockNumber = 128404994;
 
     beforeEach(() => {
       mockDb = MockDb.createMockDb();
@@ -35,7 +37,7 @@ describe("VotingReward Events", () => {
         amount: 1000n * 10n ** 18n, // 1000 tokens with 18 decimals
         mockEventData: {
           block: {
-            number: 123456,
+            number: blockNumber,
             timestamp: 1000000,
             hash: "0xblockhash",
           },
@@ -54,10 +56,56 @@ describe("VotingReward Events", () => {
       sinon.restore();
     });
 
+    describe("when reward token does not exist", () => {
+      let resultDB: ReturnType<typeof MockDb.createMockDb>;
+
+      beforeEach(async () => {
+        // Setup mock liquidity pool
+        const { mockLiquidityPoolData } = setupCommon();
+
+        mockLiquidityPoolData.id = poolAddress;
+
+        resultDB = mockDb.entities.LiquidityPoolAggregator.set(mockLiquidityPoolData as LiquidityPoolAggregator);
+
+        // Process the event
+        resultDB = await VotingReward.NotifyReward.processEvent({
+          event: mockEvent,
+          mockDb: resultDB,
+        });
+
+      });
+      
+      it("should create a VotingReward_NotifyReward entity", () => {
+        const notifyRewardEvent = resultDB.entities.VotingReward_NotifyReward.get(
+          `${mockEvent.chainId}_${mockEvent.block.number}_${mockEvent.logIndex}`
+        );
+        expect(notifyRewardEvent).to.not.be.undefined;
+        expect(notifyRewardEvent?.from).to.equal(mockEvent.params.from);
+        expect(notifyRewardEvent?.reward).to.equal(rewardTokenAddress);
+        expect(notifyRewardEvent?.amount).to.equal(mockEvent.params.amount);
+        expect(notifyRewardEvent?.epoch).to.equal(mockEvent.params.epoch);
+      });
+
+      it("should update the liquidity pool aggregator with bribes data", () => {
+        const updatedPool = resultDB.entities.LiquidityPoolAggregator.get(poolAddress);
+        expect(updatedPool).to.not.be.undefined;
+        expect(updatedPool?.totalBribesUSD).to.not.be.undefined;
+        expect(updatedPool?.totalBribesUSD).to.not.equal(0n);
+        expect(updatedPool?.lastUpdatedTimestamp).to.deep.equal(new Date(1000000 * 1000));
+      });
+
+    });
+
     describe("when reward token and liquidity pool exist", () => {
       let resultDB: ReturnType<typeof MockDb.createMockDb>;
+
+      let expectedBribesUSD = 0n;
       
       beforeEach(async () => {
+
+        const { mockLiquidityPoolData } = setupCommon();
+        mockLiquidityPoolData.id = poolAddress;
+
         // Setup mock reward token
         const rewardToken: Token = {
           id: TokenIdByChain(rewardTokenAddress, chainId),
@@ -70,41 +118,17 @@ describe("VotingReward Events", () => {
           isWhitelisted: true,
         } as Token;
 
-        // Setup mock liquidity pool
-        const liquidityPool: LiquidityPoolAggregator = {
-          id: poolAddress,
-          chainId: chainId,
-          name: "Test Pool",
-          token0_id: "token0-10",
-          token1_id: "token1-10",
-          token0_address: "0xtoken0",
-          token1_address: "0xtoken1",
-          isStable: false,
-          reserve0: 0n,
-          reserve1: 0n,
-          totalLiquidityUSD: 0n,
-          totalVolume0: 0n,
-          totalVolume1: 0n,
-          totalVolumeUSD: 0n,
-          totalFees0: 0n,
-          totalFees1: 0n,
-          totalFeesUSD: 0n,
-          numberOfSwaps: 0n,
-          token0Price: 0n,
-          token1Price: 0n,
-          totalEmissions: 0n,
-          totalEmissionsUSD: 0n,
-          totalBribesUSD: 1000n * 10n ** 18n, // Starting with $1000 in bribes
-        } as LiquidityPoolAggregator;
+        expectedBribesUSD = mockLiquidityPoolData.totalBribesUSD +
+          (mockEvent.params.amount * rewardToken.pricePerUSDNew / (10n ** (rewardToken.decimals)));
 
         // Set entities in the mock database
-        const updatedDB1 = mockDb.entities.Token.set(rewardToken);
-        const updatedDB2 = updatedDB1.entities.LiquidityPoolAggregator.set(liquidityPool);
+        resultDB = mockDb.entities.Token.set(rewardToken);
+        resultDB = resultDB.entities.LiquidityPoolAggregator.set(mockLiquidityPoolData as LiquidityPoolAggregator);
 
         // Process the event
         resultDB = await VotingReward.NotifyReward.processEvent({
           event: mockEvent,
-          mockDb: updatedDB2,
+          mockDb: resultDB,
         });
       });
 
@@ -113,17 +137,18 @@ describe("VotingReward Events", () => {
           `${mockEvent.chainId}_${mockEvent.block.number}_${mockEvent.logIndex}`
         );
         expect(notifyRewardEvent).to.not.be.undefined;
-        expect(notifyRewardEvent?.from).to.equal("0x1234567890123456789012345678901234567890");
+        expect(notifyRewardEvent?.from).to.equal(mockEvent.params.from);
         expect(notifyRewardEvent?.reward).to.equal(rewardTokenAddress);
-        expect(notifyRewardEvent?.amount).to.equal(1000n * 10n ** 18n);
-        expect(notifyRewardEvent?.epoch).to.equal(1n);
+        expect(notifyRewardEvent?.amount).to.equal(mockEvent.params.amount);
+        expect(notifyRewardEvent?.epoch).to.equal(mockEvent.params.epoch);
       });
 
       it("should update the liquidity pool aggregator with bribes data", () => {
         const updatedPool = resultDB.entities.LiquidityPoolAggregator.get(poolAddress);
         expect(updatedPool).to.not.be.undefined;
-        expect(updatedPool?.totalBribesUSD).to.equal(3000n * 10n ** 18n, 
-          "Should add $2000 (1000 tokens * $2) to existing $1000");
+        expect(updatedPool?.totalBribesUSD).to.equal(
+          expectedBribesUSD, 
+          "Should add the correct amount of bribes to the liquidity pool");
         expect(updatedPool?.lastUpdatedTimestamp).to.deep.equal(new Date(1000000 * 1000));
       });
     });

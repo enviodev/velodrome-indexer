@@ -14,9 +14,11 @@ type LiquidityPoolAggregator {
   totalVolume0: BigInt! @config(precision: 76) # total swap volume of token0 in token units
   totalVolume1: BigInt! @config(precision: 76) # total swap volume of token1 in token units
   totalVolumeUSD: BigInt! @config(precision: 76) # total swap volume of the pool in USD
+  totalVolumeUSDWhitelisted: BigInt! @config(precision: 76) # total swap volume of the pool in USD
   totalFees0: BigInt! @config(precision: 76) # total fees collected in token0 units
   totalFees1: BigInt! @config(precision: 76) # total fees collected in token1 units
   totalFeesUSD: BigInt! @config(precision: 76) # total fees collected in USD
+  totalFeesUSDWhitelisted: BigInt! @config(precision: 76) # total fees collected in USD
   numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps in the pool
   token0Price: BigInt! @config(precision: 76) # price of token0 relative to token1
   token1Price: BigInt! @config(precision: 76) # price of token1 relative to token0
@@ -25,6 +27,9 @@ type LiquidityPoolAggregator {
   totalEmissions: BigInt! @config(precision: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
   totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
   totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
+  gaugeIsAlive: Boolean! # whether the gauge is alive
+  token0IsWhitelisted: Boolean! # whether the token0 is whitelisted
+  token1IsWhitelisted: Boolean! # whether the token1 is whitelisted
   lastUpdatedTimestamp: Timestamp! # timestamp of last update
   lastSnapshotTimestamp: Timestamp! # timestamp of last snapshot
 }
@@ -47,9 +52,11 @@ type LiquidityPoolAggregatorSnapshot {
   totalVolume0: BigInt! @config(precision: 76) # total swap volume of token0 in token units
   totalVolume1: BigInt! @config(precision: 76) # total swap volume of token1 in token units
   totalVolumeUSD: BigInt! @config(precision: 76) # total swap volume of the pool in USD
+  totalVolumeUSDWhitelisted: BigInt! @config(precision: 76) # total swap volume of the pool in USD
   totalFees0: BigInt! @config(precision: 76) # total fees collected in token0 units
   totalFees1: BigInt! @config(precision: 76) # total fees collected in token1 units
   totalFeesUSD: BigInt! @config(precision: 76) # total fees collected in USD
+  totalFeesUSDWhitelisted: BigInt! @config(precision: 76) # total fees collected in USD
   numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps in the pool
   token0Price: BigInt! @config(precision: 76) # price of token0 relative to token1
   token1Price: BigInt! @config(precision: 76) # price of token1 relative to token0
@@ -58,6 +65,9 @@ type LiquidityPoolAggregatorSnapshot {
   totalEmissions: BigInt! @config(precision: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
   totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
   totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
+  gaugeIsAlive: Boolean! # whether the gauge is alive
+  token0IsWhitelisted: Boolean! # whether the token0 is whitelisted
+  token1IsWhitelisted: Boolean! # whether the token1 is whitelisted
   timestamp: Timestamp! # timestamp of last update
 }
 
@@ -73,10 +83,10 @@ type User {
 # By nature this entity saves the latest state of the token, and its state at different times should be attained from the snapshot entities
 type Token {
   id: ID! # token address
-  address: String! # token address
+  address: String! @index # token address
   symbol: String! # token symbol
   name: String! # token name
-  chainId: Int!
+  chainId: Int! @index
   decimals: BigInt! @config(precision: 76) # number of decimals
   pricePerUSDNew: BigInt! @config(precision: 76) # price of token per USD
   lastUpdatedTimestamp: Timestamp! # timestamp of last update
@@ -88,6 +98,7 @@ type TokenPriceSnapshot {
   address: String! @index # Address of the token
   pricePerUSDNew: BigInt! @config(precision: 76) # price of token per USD
   chainId: Int!
+  isWhitelisted: Boolean! # whether the token is whitelisted
   lastUpdatedTimestamp: Timestamp! @index # Timestamp of the last update
 }
 
@@ -115,6 +126,7 @@ type VotingReward_NotifyReward {
   from: String!
   reward: String!
   epoch: BigInt! @config(precision: 76)
+  pool: String!
   amount: BigInt! @config(precision: 76)
   sourceAddress: String!
   timestamp: Timestamp!
@@ -381,4 +393,46 @@ type SuperchainPoolFactory_RootPoolCreated {
   poolChainId: Int!
   chainId: Int!
   length: BigInt! @config(precision: 76)
+}
+
+type VeNFTAggregator {
+  id: ID!
+  chainId: Int!
+  tokenId: BigInt! @config(precision: 76)
+  owner: String!
+  locktime: BigInt! @config(precision: 76)
+  lastUpdatedTimestamp: Timestamp!
+  totalValueLocked: BigInt! @config(precision: 76)
+  isAlive: Boolean!
+}
+
+type VeNFT_Deposit {
+  id: ID!
+  provider: String!
+  tokenId: BigInt! @config(precision: 76)
+  depositType: BigInt! @config(precision: 76)
+  value: BigInt! @config(precision: 76)
+  locktime: BigInt! @config(precision: 76)
+  ts: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type VeNFT_Withdraw {
+  id: ID!
+  provider: String!
+  tokenId: BigInt! @config(precision: 76)
+  value: BigInt! @config(precision: 76)
+  ts: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type VeNFT_Transfer {
+  id: ID!
+  from: String!
+  to: String!
+  tokenId: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
 }

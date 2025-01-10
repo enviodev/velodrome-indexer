@@ -1,9 +1,9 @@
-import { CLFactory, CLFactory_PoolCreated, LiquidityPoolAggregator } from "generated";
+import { CLFactory, CLFactory_PoolCreated, LiquidityPoolAggregator, Token } from "generated";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 import { TokenEntityMapping } from "../CustomTypes";
-import { getErc20TokenDetails } from "../Erc20";
 import { TokenIdByChain } from "../Constants";
 import { generatePoolName } from "../Helpers";
+import { createTokenEntity } from "../PriceOracle";
 
 CLFactory.PoolCreated.contractRegister(
   ({ event, context }) => {
@@ -43,11 +43,14 @@ CLFactory.PoolCreated.handlerWithLoader({
 
     for (let poolTokenAddressMapping of poolTokenAddressMappings) {
       if (poolTokenAddressMapping.tokenInstance == undefined) {
-        const { symbol: tokenSymbol } = await getErc20TokenDetails(
-          poolTokenAddressMapping.address,
-          event.chainId
-        );
-        poolTokenSymbols.push(tokenSymbol);
+        try {
+          poolTokenAddressMapping.tokenInstance = await createTokenEntity(
+            poolTokenAddressMapping.address, event.chainId, event.block.number, context);
+          poolTokenSymbols.push(poolTokenAddressMapping.tokenInstance.symbol);
+        } catch (error) {
+          context.log.error(`Error in cl factory fetching token details` +
+            ` for ${poolTokenAddressMapping.address} on chain ${event.chainId}: ${error}`);
+        }
       } else {
         poolTokenSymbols.push(poolTokenAddressMapping.tokenInstance.symbol);
       }
@@ -74,9 +77,11 @@ CLFactory.PoolCreated.handlerWithLoader({
       totalVolume0: 0n,
       totalVolume1: 0n,
       totalVolumeUSD: 0n,
+      totalVolumeUSDWhitelisted: 0n,
       totalFees0: 0n,
       totalFees1: 0n,
       totalFeesUSD: 0n,
+      totalFeesUSDWhitelisted: 0n,
       numberOfSwaps: 0n,
       token0Price: 0n,
       token1Price: 0n,
@@ -85,6 +90,9 @@ CLFactory.PoolCreated.handlerWithLoader({
       totalEmissions: 0n,
       totalEmissionsUSD: 0n,
       totalBribesUSD: 0n,
+      gaugeIsAlive: false,
+      token0IsWhitelisted: poolToken0?.isWhitelisted ?? false,
+      token1IsWhitelisted: poolToken1?.isWhitelisted ?? false,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       lastSnapshotTimestamp: new Date(event.block.timestamp * 1000),
     };

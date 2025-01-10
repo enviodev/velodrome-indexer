@@ -11,6 +11,7 @@ export function setupCommon() {
     decimals: 18n,
     pricePerUSDNew: 1n * TEN_TO_THE_18_BI, // 1 USD
     chainId: 10,
+    isWhitelisted: true,
   };
 
   const mockToken1Data = {
@@ -21,6 +22,7 @@ export function setupCommon() {
     decimals: 6n,
     pricePerUSDNew: 1n * TEN_TO_THE_18_BI, // 1 USD
     chainId: 10,
+    isWhitelisted: true,
   };
 
   const mockLiquidityPoolData = {
@@ -37,9 +39,11 @@ export function setupCommon() {
     totalVolume0: 1n * TEN_TO_THE_18_BI,
     totalVolume1: 1n * TEN_TO_THE_6_BI,
     totalVolumeUSD: 10n * TEN_TO_THE_18_BI,
+    totalVolumeUSDWhitelisted: 10n * TEN_TO_THE_18_BI,
     totalFees0: 100n * TEN_TO_THE_18_BI,
     totalFees1: 200n * TEN_TO_THE_6_BI,
     totalFeesUSD: 300n * TEN_TO_THE_18_BI,
+    totalFeesUSDWhitelisted: 300n * TEN_TO_THE_18_BI,
     numberOfSwaps: 1n,
     token0Price: 1n * TEN_TO_THE_18_BI,
     token1Price: 1n * TEN_TO_THE_18_BI,
@@ -48,6 +52,7 @@ export function setupCommon() {
     totalEmissions: 1n,
     totalEmissionsUSD: 1n * TEN_TO_THE_18_BI,
     totalBribesUSD: 1n * TEN_TO_THE_18_BI,
+    gaugeIsAlive: true,
   };
 
   return {

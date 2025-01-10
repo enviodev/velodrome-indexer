@@ -1,12 +1,10 @@
 import { PoolFactory, PoolFactory_SetCustomFee } from "generated";
-
-import { getErc20TokenDetails } from "./../Erc20";
-
 import { TokenEntityMapping } from "./../CustomTypes";
-import { Token, LiquidityPoolAggregator } from "./../src/Types.gen";
+import { LiquidityPoolAggregator } from "./../src/Types.gen";
 import { generatePoolName } from "./../Helpers";
 import { TokenIdByChain } from "../Constants";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
+import { createTokenEntity } from "../PriceOracle";
 
 PoolFactory.PoolCreated.contractRegister(
   ({ event, context }) => {
@@ -35,11 +33,14 @@ PoolFactory.PoolCreated.handlerWithLoader({
 
     for (let poolTokenAddressMapping of poolTokenAddressMappings) {
       if (poolTokenAddressMapping.tokenInstance == undefined) {
-        const { symbol: tokenSymbol } = await getErc20TokenDetails(
-          poolTokenAddressMapping.address,
-          event.chainId
-        );
-        poolTokenSymbols.push(tokenSymbol);
+        try {
+          poolTokenAddressMapping.tokenInstance = await createTokenEntity(
+            poolTokenAddressMapping.address, event.chainId, event.block.number, context);
+          poolTokenSymbols.push(poolTokenAddressMapping.tokenInstance.symbol);
+        } catch (error) {
+          context.log.error(`Error in pool factory fetching token details` +
+            ` for ${poolTokenAddressMapping.address} on chain ${event.chainId}: ${error}`);
+        }
       } else {
         poolTokenSymbols.push(poolTokenAddressMapping.tokenInstance.symbol);
       }
@@ -66,9 +67,11 @@ PoolFactory.PoolCreated.handlerWithLoader({
       totalVolume0: 0n,
       totalVolume1: 0n,
       totalVolumeUSD: 0n,
+      totalVolumeUSDWhitelisted: 0n,
       totalFees0: 0n,
       totalFees1: 0n,
       totalFeesUSD: 0n,
+      totalFeesUSDWhitelisted: 0n,
       numberOfSwaps: 0n,
       token0Price: 0n,
       token1Price: 0n,
@@ -77,6 +80,9 @@ PoolFactory.PoolCreated.handlerWithLoader({
       totalBribesUSD: 0n,
       totalVotesDeposited: 0n,
       totalVotesDepositedUSD: 0n,
+      gaugeIsAlive: false,
+      token0IsWhitelisted: poolToken0?.isWhitelisted ?? false,
+      token1IsWhitelisted: poolToken1?.isWhitelisted ?? false,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       lastSnapshotTimestamp: new Date(event.block.timestamp * 1000),
     };

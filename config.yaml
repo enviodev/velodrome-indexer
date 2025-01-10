@@ -41,6 +41,12 @@ contracts:
     handler: src/EventHandlers/NFPM.ts
     events:
       - event: Transfer(address indexed from, address indexed to, uint256 indexed tokenId)
+  - name: VeNFT
+    handler: src/EventHandlers/VeNFT.ts
+    events:
+      - event: Deposit(address indexed provider, uint256 indexed tokenId, uint8 indexed depositType, uint256 value, uint256 locktime, uint256 ts)
+      - event: Withdraw(address indexed provider, uint256 indexed tokenId, uint256 value, uint256 ts)
+      - event: Transfer(address indexed from, address indexed to, uint256 indexed tokenId)
   - name: Pool
     handler: src/EventHandlers/Pool.ts
     events:
@@ -50,11 +56,18 @@ contracts:
       - event: Swap(address indexed sender, address indexed to, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out)
       - event: Sync(uint256 reserve0, uint256 reserve1)
   - name: Voter
-    handler: src/EventHandlers/Voter.ts
+    handler: src/EventHandlers/Voter/Voter.ts
     events:
       - event: Voted(address indexed sender, address indexed pool, uint256 indexed tokenId, uint256 weight, uint256 totalWeight, uint256 timestamp)
       - event: DistributeReward(address indexed sender, address indexed gauge, uint256 amount)
       - event: GaugeCreated(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory, address pool, address bribeVotingReward, address feeVotingReward, address gauge, address creator)
+      - event: WhitelistToken(address indexed whitelister, address indexed token, bool indexed _bool)
+  - name: SuperchainLeafVoter 
+    handler: src/EventHandlers/Voter/SuperchainLeafVoter.ts
+    events:
+      - event: Voted(address indexed sender, address indexed pool, uint256 indexed tokenId, uint256 weight, uint256 totalWeight, uint256 timestamp)
+      - event: DistributeReward(address indexed sender, address indexed gauge, uint256 amount)
+      - event: GaugeCreated(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory, address pool, address incentiveVotingReward, address feeVotingReward, address gauge)
       - event: WhitelistToken(address indexed whitelister, address indexed token, bool indexed _bool)
   - name: VotingReward
     handler: src/EventHandlers/VotingReward.ts
@@ -81,7 +94,7 @@ networks:
           - 0x04625B046C69577EfC40e6c0Bb83CDBAfab5a55F
       - name: Pool
         address:
-      - name: Voter
+      - name: SuperchainLeafVoter
         address:
           - 0x97cDBCe21B6fd0585d29E539B1B99dAd328a1123
       - name: VotingReward
@@ -91,6 +104,9 @@ networks:
   - id: 10 # Optimism
     start_block: 0
     contracts:
+      - name: VeNFT
+        address:
+          - 0xFAf8FD17D9840595845582fCB047DF13f006787d
       - name: NFPM
         address:
           - 0x416b433906b1b72fa758e166e239c43d68dc6f29
@@ -119,6 +135,9 @@ networks:
   - id: 8453 # Base
     start_block: 0
     contracts:
+      - name: VeNFT
+        address:
+          - 0xeBf418Fe2512e7E6bd9b87a8F0f294aCDC67e6B4
       - name: NFPM
         address:
           - 0x827922686190790b37229fd06084350e74485b72
@@ -151,7 +170,7 @@ networks:
           - 0x04625B046C69577EfC40e6c0Bb83CDBAfab5a55F
       - name: Pool
         address:
-      - name: Voter
+      - name: SuperchainLeafVoter
         address:
           - 0x97cDBCe21B6fd0585d29E539B1B99dAd328a1123
       - name: VotingReward
