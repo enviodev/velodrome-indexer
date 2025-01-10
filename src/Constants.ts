@@ -1,7 +1,6 @@
-import { TokenInfo, Pool } from "./CustomTypes";
 import dotenv from "dotenv";
 import { Web3 } from "web3";
-import { optimism, base, lisk, mode } from 'viem/chains';
+import { optimism, base, lisk, mode, fraxtal } from 'viem/chains';
 import { createPublicClient, http, PublicClient } from 'viem';
 
 import PriceConnectors from "./constants/price_connectors.json";
@@ -32,6 +31,9 @@ export const MODE_PRICE_CONNECTORS: PriceConnector[] =
 
 export const LISK_PRICE_CONNECTORS: PriceConnector[] =
   PriceConnectors.lisk as PriceConnector[];
+
+export const FRAXTAL_PRICE_CONNECTORS: PriceConnector[] =
+  PriceConnectors.fraxtal as PriceConnector[];
 
 export const toChecksumAddress = (address: string) =>
   Web3.utils.toChecksumAddress(address);
@@ -151,6 +153,29 @@ const MODE_CONSTANTS: chainConstants = {
   }) as PublicClient,
 };
 
+// Constants for Fraxtal
+const FRAXTAL_CONSTANTS: chainConstants = {
+  weth: "0xFC00000000000000000000000000000000000006",
+  usdc: "0xFc00000000000000000000000000000000000001",
+  oracle: {
+    getAddress: (blockNumber: number) => {
+      return "0xE50621a0527A43534D565B67D64be7C79807F269";
+    },
+    startBlock: 12640176,
+    updateDelta: 60 * 60, // 1 hour
+    priceConnectors: FRAXTAL_PRICE_CONNECTORS,
+  },
+  rewardToken: (blockNumber: number) =>
+    "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
+  eth_client: createPublicClient({
+    chain: fraxtal,
+    transport: http(process.env.ENVIO_FRAXTAL_RPC_URL || "https://rpc.frax.com", {
+      retryCount: 10,
+      retryDelay: 1000,
+    }),
+  }) as PublicClient,
+};
+
 /**
  * Create a unique ID for a token on a specific chain. Really should only be used for Token Entities.
  * @param address
@@ -180,6 +205,7 @@ export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   8453: BASE_CONSTANTS,
   34443: MODE_CONSTANTS,
   1135: LISK_CONSTANTS,
+  252: FRAXTAL_CONSTANTS
 };
 
 export const CacheCategory = {
