@@ -19,6 +19,11 @@ const CHAIN_ARGS = {
     TOKENS_FILE: "src/constants/Mode-Whitelisted.csv",
     OUTPUT_FILE: "src/constants/modeWhitelistedTokens.json",
   },
+  fraxtal: {
+    RPC_URL: Deno.env.get("ENVIO_FRAX_RPC_URL") || "https://rpc.frax.com",
+    TOKENS_FILE: "src/constants/Fraxtal-Whitelisted.csv",
+    OUTPUT_FILE: "src/constants/fraxtalWhitelistedTokens.json",
+  },
 };
 
 /**

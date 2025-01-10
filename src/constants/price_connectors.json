@@ -29,5 +29,8 @@
     "lisk": [
         {"address" :"0xac485391EB2d7D88253a7F1eF18C37f4242D1A24", "createdBlock": 568336 },
         {"address" :"0x05D032ac25d322df992303dCa074EE7392C117b9", "createdBlock": 1639961 }
+    ],
+    "fraxtal": [
+        {"address" :"0xfc00000000000000000000000000000000000005", "createdBlock": 0 }
     ]
 }

@@ -81,6 +81,7 @@ export async function refreshTokenPrice(
       address: toChecksumAddress(token.address),
       pricePerUSDNew: currentPrice,
       chainId: chainId,
+      isWhitelisted: token.isWhitelisted,
       lastUpdatedTimestamp: new Date(blockTimestampMs),
   };
 
