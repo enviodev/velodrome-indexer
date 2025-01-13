@@ -36,6 +36,7 @@ Voter.Voted.handler(async ({ event, context }) => {
 Voter.GaugeCreated.contractRegister(
   ({ event, context }) => {
     context.addVotingReward(event.params.bribeVotingReward);
+    context.addVotingReward(event.params.feeVotingReward);
     context.addGauge(event.params.gauge);
   },
   { preRegisterDynamicContracts: true }
