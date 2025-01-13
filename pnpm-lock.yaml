@@ -15,8 +15,8 @@ importers:
         specifier: 4.3.10
         version: 4.3.10
       envio:
-        specifier: 2.11.9
-        version: 2.11.9(typescript@5.7.3)
+        specifier: 2.11.8
+        version: 2.11.8(typescript@5.7.3)
       mocha:
         specifier: ^10.8.2
         version: 10.8.2
@@ -925,40 +925,40 @@ packages:
       once: 1.4.0
     dev: false
 
-  /envio-darwin-arm64@2.11.9:
-    resolution: {integrity: sha512-FSPcZshuYP9uHrTHQRPxUkxenP9gDooKCxCuauUbdFSf5nbuk/RU6LQWNSYCXm9DPdNzNwjcrGclOQEhRG61ug==}
+  /envio-darwin-arm64@2.11.8:
+    resolution: {integrity: sha512-sN+fG+fMGtQ9ynnyqGkOTJiRWzzK7iBjflka9SK/1yi46A9HNS1yb6D3x3pJZy5nDGkn2oUDA17wdZo8Os1lqg==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-darwin-x64@2.11.9:
-    resolution: {integrity: sha512-NOi0d4ZQy/EzdCoTRjdOBTyitbD4qTcs9A9pgi04LRu3fcVWswwrKioFjvpTRkW24Ha+IjWPvmQF6H5SNaY2pA==}
+  /envio-darwin-x64@2.11.8:
+    resolution: {integrity: sha512-1PoOgjZ+iN6DEc6fR+OSrwX9Hlw/G/zFS7sX6W8FPGf1QIRQlH90te4lJ/yMtHwX7eOjh7s5CbkwglMjXImylQ==}
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-linux-arm64@2.11.9:
-    resolution: {integrity: sha512-Ly1882eNq55QqBDYXYeP8FeriNFQxJEMR2qBt9XcjZlUr/GXiJgnt+kpo6tgzsQbeVi59uYj/YJxGW/sAnZWDQ==}
+  /envio-linux-arm64@2.11.8:
+    resolution: {integrity: sha512-+oa3WGPuAWzeve7w+Ah9hhG5syoEyeQBXcaeJlF+6m5vCSurPmhieqxClR7SU30mgF21b6n9tVETnw5tMwQABA==}
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio-linux-x64@2.11.9:
-    resolution: {integrity: sha512-hNGLQxQULfvFRbwiJ/SQe1QkjdIbgJZ3EmMdyOf1HFyeP3viDQBitRTRJfPXJnt+fQq9gj6Dwru1A9SV6kar6Q==}
+  /envio-linux-x64@2.11.8:
+    resolution: {integrity: sha512-gccwzV7U4oEhD90IEe8cyKF77EhlUg6Ktmuuy2r7iK+fnRNeaD1golGHzA78vliH2I/EWTD+2ffd0jmRt/480g==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     dev: false
     optional: true
 
-  /envio@2.11.9(typescript@5.7.3):
-    resolution: {integrity: sha512-TZucUqsZGh3KcBeh1M4qZ0yRVjFJ7esx7egAFMo9qmHEowzdJTdvf/uX5pskf1ld1a7B8UgwvGW498WqhbfUiQ==}
+  /envio@2.11.8(typescript@5.7.3):
+    resolution: {integrity: sha512-+IqGfa1ziimuFQ9tlke8Z5OioBQ99WFqi13gjhhOT1MZKhKDtkTN1J+TlnvaeVGUV1QiZvrwAupqjKQm2IGfcQ==}
     hasBin: true
     dependencies:
       '@envio-dev/hypersync-client': 0.6.3
@@ -966,10 +966,10 @@ packages:
       rescript-schema: 8.1.0(rescript@11.1.3)
       viem: 2.21.0(typescript@5.7.3)
     optionalDependencies:
-      envio-darwin-arm64: 2.11.9
-      envio-darwin-x64: 2.11.9
-      envio-linux-arm64: 2.11.9
-      envio-linux-x64: 2.11.9
+      envio-darwin-arm64: 2.11.8
+      envio-darwin-x64: 2.11.8
+      envio-linux-arm64: 2.11.8
+      envio-linux-x64: 2.11.8
     transitivePeerDependencies:
       - bufferutil
       - typescript
