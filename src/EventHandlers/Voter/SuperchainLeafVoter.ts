@@ -40,6 +40,7 @@ SuperchainLeafVoter.Voted.handler(async ({ event, context }) => {
 SuperchainLeafVoter.GaugeCreated.contractRegister(
   ({ event, context }) => {
     context.addVotingReward(event.params.incentiveVotingReward);
+    context.addVotingReward(event.params.feeVotingReward);
     context.addGauge(event.params.gauge);
   },
   { preRegisterDynamicContracts: true }
