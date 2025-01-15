@@ -18,6 +18,8 @@ Pool.Mint.handler(async ({ event, context }) => {
     amount1: event.params.amount1,
     sourceAddress: event.srcAddress,
     timestamp: new Date(event.block.timestamp * 1000),
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
     chainId: event.chainId,
   };
 
