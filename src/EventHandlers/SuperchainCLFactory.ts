@@ -11,6 +11,8 @@ SuperchainCLFactory.RootPoolCreated.handler(async ({ event, context }) => {
     chainId: event.chainId,
     poolChainId: Number(poolChainId),
     tickSpacing: event.params.tickSpacing,
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
   };
 
   context.SuperchainCLFactory_RootPoolCreated.set(entity);

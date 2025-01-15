@@ -49,6 +49,8 @@ VotingReward.NotifyReward.handlerWithLoader({
       pool: loaderReturn?.currentLiquidityPool?.id ?? "",
       amount: event.params.amount,
       timestamp: new Date(event.block.timestamp * 1000),
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       sourceAddress: event.srcAddress,
       chainId: event.chainId,
     };
@@ -118,7 +120,9 @@ VotingReward.Deposit.handler(async ({ event, context }) => {
     from: event.params.from,
     tokenId: event.params.tokenId,
     amount: event.params.amount,
-    timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+    timestamp: new Date(event.block.timestamp * 1000),
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
     sourceAddress: event.srcAddress,
     chainId: event.chainId,
   };
@@ -132,7 +136,9 @@ VotingReward.Withdraw.handler(async ({ event, context }) => {
     from: event.params.from,
     tokenId: event.params.tokenId,
     amount: event.params.amount,
-    timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+    timestamp: new Date(event.block.timestamp * 1000),
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
     sourceAddress: event.srcAddress,
     chainId: event.chainId,
   };
