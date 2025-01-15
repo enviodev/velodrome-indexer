@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import { Web3 } from "web3";
-import { optimism, base, lisk, mode, fraxtal } from 'viem/chains';
+import { optimism, base, lisk, mode, fraxtal, ink } from 'viem/chains';
 import { createPublicClient, http, PublicClient } from 'viem';
 
 import PriceConnectors from "./constants/price_connectors.json";
@@ -34,6 +34,9 @@ export const LISK_PRICE_CONNECTORS: PriceConnector[] =
 
 export const FRAXTAL_PRICE_CONNECTORS: PriceConnector[] =
   PriceConnectors.fraxtal as PriceConnector[];
+
+export const INK_PRICE_CONNECTORS: PriceConnector[] =
+  PriceConnectors.ink as PriceConnector[];
 
 export const toChecksumAddress = (address: string) =>
   Web3.utils.toChecksumAddress(address);
@@ -170,6 +173,29 @@ const FRAXTAL_CONSTANTS: chainConstants = {
   eth_client: createPublicClient({
     chain: fraxtal,
     transport: http(process.env.ENVIO_FRAXTAL_RPC_URL || "https://rpc.frax.com", {
+      retryCount: 10,
+      retryDelay: 1000,
+    }),
+  }) as PublicClient,
+};
+
+// Constants for Ink
+const INK_CONSTANTS: chainConstants = {
+  weth: "0x4200000000000000000000000000000000000006",
+  usdc: "0xF1815bd50389c46847f0Bda824eC8da914045D14",
+  oracle: {
+    getAddress: (blockNumber: number) => {
+      return "0xE50621a0527A43534D565B67D64be7C79807F269";
+    },
+    startBlock: 3422094,
+    updateDelta: 60 * 60, // 1 hour
+    priceConnectors: INK_PRICE_CONNECTORS,
+  },
+  rewardToken: (blockNumber: number) =>
+    "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
+  eth_client: createPublicClient({
+    chain: ink,
+    transport: http(process.env.ENVIO_INK_RPC_URL || "https://rpc-gel.inkonchain.com", {
       retryCount: 10,
       retryDelay: 1000,
     }),
