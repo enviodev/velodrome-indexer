@@ -33,6 +33,8 @@ describe("VeNFTAggregator", () => {
             timestamp: new Date(),
             chainId: 10,
             tokenId: 1n,
+            blockNumber: 100,
+            logIndex: 1,
             depositType: 1n,
         };
         describe("when the veNFT is not found", () => {
@@ -73,6 +75,8 @@ describe("VeNFTAggregator", () => {
             value: 100n,
             ts: 100n,
             timestamp: new Date(),
+            blockNumber: 100,
+            logIndex: 1,
             chainId: 10,
             tokenId: 1n,
         };
@@ -115,6 +119,8 @@ describe("VeNFTAggregator", () => {
             tokenId: 1n,
             timestamp: new Date(),
             chainId: 10,
+            blockNumber: 100,
+            logIndex: 1,
         };
         describe("when the veNFT is not found", () => {
             let result: any;

@@ -101,7 +101,9 @@ PoolFactory.SetCustomFee.handler(async ({ event, context }) => {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     pool: event.params.pool,
     fee: event.params.fee,
-    timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+    timestamp: new Date(event.block.timestamp * 1000),
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
     chainId: event.chainId,
   };
 
