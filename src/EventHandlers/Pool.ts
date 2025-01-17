@@ -18,6 +18,8 @@ Pool.Mint.handler(async ({ event, context }) => {
     amount1: event.params.amount1,
     sourceAddress: event.srcAddress,
     timestamp: new Date(event.block.timestamp * 1000),
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
     chainId: event.chainId,
   };
 
@@ -33,6 +35,8 @@ Pool.Burn.handler(async ({ event, context }) => {
     amount1: event.params.amount1,
     sourceAddress: event.srcAddress,
     timestamp: new Date(event.block.timestamp * 1000),
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
     chainId: event.chainId,
   };
 
@@ -161,6 +165,8 @@ Pool.Swap.handlerWithLoader({
       amount1Out: event.params.amount1Out,
       sourceAddress: event.srcAddress, // Add sourceAddress
       timestamp: blockDatetime, // Convert to Date
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       chainId: event.chainId,
     };
 
@@ -311,6 +317,8 @@ Pool.Sync.handlerWithLoader({
       reserve1: event.params.reserve1,
       sourceAddress: event.srcAddress,
       timestamp: blockDatetime,
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       chainId: event.chainId,
     };
 

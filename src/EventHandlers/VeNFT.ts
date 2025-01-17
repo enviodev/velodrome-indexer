@@ -29,6 +29,8 @@ VeNFT.Withdraw.handlerWithLoader({
       value: event.params.value,
       ts: event.params.ts,
       timestamp: new Date(event.block.timestamp * 1000),
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       chainId: event.chainId,
     };
 
@@ -60,6 +62,8 @@ VeNFT.Transfer.handlerWithLoader({
       to: event.params.to,
       tokenId: event.params.tokenId,
       timestamp: new Date(event.block.timestamp * 1000),
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       chainId: event.chainId,
     };
 
@@ -95,6 +99,8 @@ VeNFT.Deposit.handlerWithLoader({
       provider: event.params.provider,
       ts: event.params.ts,
       timestamp: new Date(event.block.timestamp * 1000),
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       chainId: event.chainId,
     };
 
