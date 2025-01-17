@@ -455,17 +455,8 @@ type ALMCore_Rebalance {
 
 type ALMDeployFactory_StrategyCreated {
   id: ID!
-  deployer: String!
   pool: String!
-  gauge: String!
-  bribe: String!
-  fee: String!
-  gaugeFactory: String!
-  votingRewardsFactory: String!
-  poolFactory: String!
-  clFactory: String!
-  superchainPoolFactory: String!
-  superchainCLFactory: String!
+  lpWrapper: String!
   timestamp: Timestamp!
   chainId: Int!
 }
