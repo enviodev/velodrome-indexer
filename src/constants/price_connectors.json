@@ -33,6 +33,6 @@
     "fraxtal": [
         {"address" :"0xfc00000000000000000000000000000000000005", "createdBlock": 0 }
     ],
-    "soneium": [
-    ]
+    "soneium": [],
+    "ink": []
 }
