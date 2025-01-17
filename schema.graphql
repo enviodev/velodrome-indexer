@@ -486,3 +486,12 @@ type ALMLPWrapper_Withdraw {
   timestamp: Timestamp!
   chainId: Int!
 }
+
+type ALMLPWrapper_Transfer {
+  id: ID!
+  from: String!
+  to: String!
+  value: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+}
