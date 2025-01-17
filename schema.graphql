@@ -500,3 +500,106 @@ type VeNFT_Transfer {
   logIndex: Int!
   chainId: Int!
 }
+
+type ALMCore_Rebalance {
+  id: ID!
+  pool: String!
+  tickLower: BigInt! @config(precision: 76)
+  tickUpper: BigInt! @config(precision: 76)
+  sqrtPriceX96: BigInt! @config(precision: 76)
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
+  ammPositionIdBefore: BigInt! @config(precision: 76)
+  ammPositionIdAfter: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
+}
+
+type ALMCore_Rebalance_AmmPosition {
+  id: ID!
+  pool: String!
+  token0: String!
+  token1: String!
+  property: BigInt! @config(precision: 24)
+  tickLower: BigInt! @config(precision: 24)
+  tickUpper: BigInt! @config(precision: 24)
+  liquidity: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
+}
+
+type ALMDeployFactory_StrategyCreated {
+  id: ID!
+  pool: String!
+  lpWrapper: String!
+  strategyType: BigInt! @config(precision: 8)
+  tickNeighborhood: BigInt! @config(precision: 24)
+  tickSpacing: BigInt! @config(precision: 24)
+  width: BigInt! @config(precision: 24)
+  maxLiquidityRatioDeviationX96: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
+}
+
+type ALMDeployFactory_StrategyCreated_AmmPosition {
+  id: ID!
+  pool: String!
+  lpWrapper: String!
+  token0: String!
+  token1: String!
+  property: BigInt! @config(precision: 24)
+  tickLower: BigInt! @config(precision: 24)
+  tickUpper: BigInt! @config(precision: 24)
+  liquidity: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
+}
+
+type ALMLPWrapper_Deposit {
+  id: ID!
+  sender: String!
+  recipient: String!
+  pool: String!
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
+  lpAmount: BigInt! @config(precision: 76)
+  totalSupply: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
+}
+
+type ALMLPWrapper_Withdraw {
+  id: ID!
+  sender: String!
+  recipient: String!
+  pool: String!
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
+  lpAmount: BigInt! @config(precision: 76)
+  totalSupply: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
+}
+
+type ALMLPWrapper_Transfer {
+  id: ID!
+  from: String!
+  to: String!
+  value: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
+}
