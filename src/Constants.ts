@@ -232,7 +232,8 @@ export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   8453: BASE_CONSTANTS,
   34443: MODE_CONSTANTS,
   1135: LISK_CONSTANTS,
-  252: FRAXTAL_CONSTANTS
+  252: FRAXTAL_CONSTANTS,
+  1868: SONEIUM_CONSTANTS
 };
 
 export const CacheCategory = {
