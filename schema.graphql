@@ -436,3 +436,62 @@ type VeNFT_Transfer {
   timestamp: Timestamp!
   chainId: Int!
 }
+
+type ALMCore_Rebalance {
+  id: ID!
+  pool: String!
+  tickLower: BigInt! @config(precision: 76)
+  tickUpper: BigInt! @config(precision: 76)
+  sqrtPriceX96: BigInt! @config(precision: 76)
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
+  ammPositionIdBefore: BigInt! @config(precision: 76)
+  ammPositionIdAfter: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
+}
+
+type ALMDeployFactory_StrategyCreated {
+  id: ID!
+  deployer: String!
+  pool: String!
+  gauge: String!
+  bribe: String!
+  fee: String!
+  gaugeFactory: String!
+  votingRewardsFactory: String!
+  poolFactory: String!
+  clFactory: String!
+  superchainPoolFactory: String!
+  superchainCLFactory: String!
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type ALMLPWrapper_Deposit {
+  id: ID!
+  sender: String!
+  recipient: String!
+  pool: String!
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
+  lpAmount: BigInt! @config(precision: 76)
+  totalSupply: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+}
+
+type ALMLPWrapper_Withdraw {
+  id: ID!
+  sender: String!
+  recipient: String!
+  pool: String!
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
+  lpAmount: BigInt! @config(precision: 76)
+  totalSupply: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+}
