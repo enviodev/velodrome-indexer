@@ -79,6 +79,23 @@ contracts:
     handler: src/EventHandlers/Gauge.ts
     events:
       - event: NotifyReward(address indexed from, uint256 amount)
+  - name: ALMDeployFactory
+    abi_file_path: abis/ALM/DeployFactory.json
+    handler: src/EventHandlers/ALM/DeployFactory.ts
+    events:
+      - event: StrategyCreated
+  - name: ALMCore
+    abi_file_path: abis/ALM/Core.json
+    handler: src/EventHandlers/ALM/Core.ts
+    events:
+      - event: Rebalance
+  - name: ALMLPWrapper
+    abi_file_path: abis/ALM/LPWrapper.json
+    handler: src/EventHandlers/ALM/LPWrapper.ts
+    events:
+      - event: Deposit
+      - event: Withdraw
+      - event: Transfer
 networks:
   - id: 10 # Optimism
     start_block: 0
@@ -111,6 +128,14 @@ networks:
         address:
       - name: CLPool
         address:
+      - name: ALMDeployFactory
+        address:
+          - 0xE46EC96906fc6dEC53De25F013639969Fe10180d
+      - name: ALMCore
+        address:
+          - 0x0000000cE42D4981513060aB7E50B9e5e2D19AF1
+      - name: ALMLPWrapper
+        address:
   - id: 8453 # Base
     start_block: 0
     contracts:
@@ -134,6 +159,14 @@ networks:
       - name: VotingReward
         address:
       - name: CLPool
+        address:
+      - name: ALMDeployFactory
+        address:
+          - 0xE46EC96906fc6dEC53De25F013639969Fe10180d
+      - name: ALMCore
+        address:
+          - 0x0000000cE42D4981513060aB7E50B9e5e2D19AF1
+      - name: ALMLPWrapper
         address:
 - id: 1863 # Soneium 
     start_block: 0
@@ -176,7 +209,6 @@ networks:
       - name: VotingReward
         address:
       - name: CLPool
-        address:
   - id: 1135 # Lisk
     start_block: 0
     contracts:
