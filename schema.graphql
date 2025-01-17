@@ -517,10 +517,46 @@ type ALMCore_Rebalance {
   logIndex: Int!
 }
 
+type ALMCore_Rebalance_AmmPosition {
+  id: ID!
+  pool: String!
+  token0: String!
+  token1: String!
+  property: BigInt! @config(precision: 24)
+  tickLower: BigInt! @config(precision: 24)
+  tickUpper: BigInt! @config(precision: 24)
+  liquidity: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
+}
+
 type ALMDeployFactory_StrategyCreated {
   id: ID!
   pool: String!
   lpWrapper: String!
+  strategyType: BigInt! @config(precision: 8)
+  tickNeighborhood: BigInt! @config(precision: 24)
+  tickSpacing: BigInt! @config(precision: 24)
+  width: BigInt! @config(precision: 24)
+  maxLiquidityRatioDeviationX96: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
+}
+
+type ALMDeployFactory_StrategyCreated_AmmPosition {
+  id: ID!
+  pool: String!
+  lpWrapper: String!
+  token0: String!
+  token1: String!
+  property: BigInt! @config(precision: 24)
+  tickLower: BigInt! @config(precision: 24)
+  tickUpper: BigInt! @config(precision: 24)
+  liquidity: BigInt! @config(precision: 76)
   timestamp: Timestamp!
   chainId: Int!
   blockNumber: Int!
