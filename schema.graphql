@@ -523,6 +523,8 @@ type ALMDeployFactory_StrategyCreated {
   lpWrapper: String!
   timestamp: Timestamp!
   chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
 }
 
 type ALMLPWrapper_Deposit {
@@ -536,6 +538,8 @@ type ALMLPWrapper_Deposit {
   totalSupply: BigInt! @config(precision: 76)
   timestamp: Timestamp!
   chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
 }
 
 type ALMLPWrapper_Withdraw {
@@ -549,6 +553,8 @@ type ALMLPWrapper_Withdraw {
   totalSupply: BigInt! @config(precision: 76)
   timestamp: Timestamp!
   chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
 }
 
 type ALMLPWrapper_Transfer {
@@ -558,4 +564,6 @@ type ALMLPWrapper_Transfer {
   value: BigInt! @config(precision: 76)
   timestamp: Timestamp!
   chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
 }

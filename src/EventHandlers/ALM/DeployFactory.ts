@@ -30,6 +30,8 @@ ALMDeployFactory.StrategyCreated.handler(async ({ event, context }) => {
     lpWrapper,
     timestamp: new Date(event.block.timestamp * 1000),
     chainId: event.chainId,
+    blockNumber: event.block.number,
+    logIndex: event.logIndex
   };
 
   context.ALMDeployFactory_StrategyCreated.set(entity);

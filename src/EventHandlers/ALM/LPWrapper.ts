@@ -26,7 +26,9 @@ ALMLPWrapper.Deposit.handler(async ({ event, context }) => {
     lpAmount,
     totalSupply,
     timestamp: new Date(event.block.timestamp * 1000),
-    chainId: event.chainId
+    chainId: event.chainId,
+    blockNumber: event.block.number,
+    logIndex: event.logIndex
   };
 
   context.ALMLPWrapper_Deposit.set(entity);
@@ -53,7 +55,9 @@ ALMLPWrapper.Withdraw.handler(async ({ event, context }) => {
     lpAmount,
     totalSupply,
     timestamp: new Date(event.block.timestamp * 1000),
-    chainId: event.chainId
+    chainId: event.chainId,
+    blockNumber: event.block.number,
+    logIndex: event.logIndex
   };
 
   context.ALMLPWrapper_Withdraw.set(entity);
@@ -72,7 +76,9 @@ ALMLPWrapper.Transfer.handler(async ({ event, context }) => {
     to,
     value,
     timestamp: new Date(event.block.timestamp * 1000),
-    chainId: event.chainId
+    chainId: event.chainId,
+    blockNumber: event.block.number,
+    logIndex: event.logIndex
   };
 
   context.ALMLPWrapper_Transfer.set(entity);
