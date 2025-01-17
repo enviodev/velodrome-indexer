@@ -27,6 +27,8 @@ NFPM.Transfer.handler(async ({ event, context }) => {
     to: event.params.to,
     tokenId: event.params.tokenId,
     timestamp: blockDatetime,
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
     chainId: event.chainId,
   };
 

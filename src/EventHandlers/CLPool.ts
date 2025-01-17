@@ -197,6 +197,8 @@ CLPool.Burn.handlerWithLoader({
       amount1: event.params.amount1,
       sourceAddress: event.srcAddress,
       timestamp: new Date(event.block.timestamp * 1000),
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       chainId: event.chainId,
     };
 
@@ -234,6 +236,8 @@ CLPool.Collect.handlerWithLoader({
       amount1: event.params.amount1,
       sourceAddress: event.srcAddress,
       timestamp: new Date(event.block.timestamp * 1000),
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       chainId: event.chainId,
     };
 
@@ -294,6 +298,8 @@ CLPool.CollectFees.handlerWithLoader({
       amount1: event.params.amount1,
       sourceAddress: event.srcAddress,
       timestamp: new Date(event.block.timestamp * 1000),
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       chainId: event.chainId,
     };
 
@@ -349,6 +355,8 @@ CLPool.Flash.handler(async ({ event, context }) => {
     paid1: event.params.paid1,
     sourceAddress: event.srcAddress,
     timestamp: new Date(event.block.timestamp * 1000),
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
     chainId: event.chainId,
   };
 
@@ -363,6 +371,8 @@ CLPool.IncreaseObservationCardinalityNext.handler(
       observationCardinalityNextNew: event.params.observationCardinalityNextNew,
       sourceAddress: event.srcAddress,
       timestamp: new Date(event.block.timestamp * 1000),
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       chainId: event.chainId,
     };
 
@@ -377,6 +387,8 @@ CLPool.Initialize.handler(async ({ event, context }) => {
     tick: event.params.tick,
     sourceAddress: event.srcAddress,
     timestamp: new Date(event.block.timestamp * 1000),
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
     chainId: event.chainId,
   };
 
@@ -413,6 +425,8 @@ CLPool.Mint.handlerWithLoader({
       amount1: event.params.amount1,
       sourceAddress: event.srcAddress,
       timestamp: new Date(event.block.timestamp * 1000),
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       chainId: event.chainId,
     };
 
@@ -454,6 +468,8 @@ CLPool.SetFeeProtocol.handler(async ({ event, context }) => {
     feeProtocol1New: event.params.feeProtocol1New,
     sourceAddress: event.srcAddress,
     timestamp: new Date(event.block.timestamp * 1000),
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
     chainId: event.chainId,
   };
 
@@ -490,6 +506,8 @@ CLPool.Swap.handlerWithLoader({
       tick: event.params.tick,
       sourceAddress: event.srcAddress,
       timestamp: blockDatetime,
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       chainId: event.chainId,
     };
 

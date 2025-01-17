@@ -31,6 +31,8 @@ SuperchainLeafVoter.Voted.handler(async ({ event, context }) => {
     weight: event.params.weight,
     totalWeight: event.params.totalWeight,
     timestamp: new Date(event.block.timestamp * 1000),
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
     chainId: event.chainId,
   };
 
@@ -58,6 +60,8 @@ SuperchainLeafVoter.GaugeCreated.handler(async ({ event, context }) => {
     gauge: event.params.gauge,
     creator: "",
     timestamp: new Date(event.block.timestamp * 1000), // Convert to Date
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
     chainId: event.chainId,
   };
 
@@ -180,6 +184,8 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
         pool: currentLiquidityPool?.id || "",
         tokensDeposited: BigInt(tokensDeposited.toString()),
         timestamp: new Date(event.block.timestamp * 1000),
+        blockNumber: event.block.number,
+        logIndex: event.logIndex,
         chainId: event.chainId,
       };
 
@@ -219,6 +225,8 @@ SuperchainLeafVoter.WhitelistToken.handlerWithLoader({
       token: event.params.token,
       isWhitelisted: event.params._bool,
       timestamp: new Date(event.block.timestamp * 1000),
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       chainId: event.chainId,
     };
 

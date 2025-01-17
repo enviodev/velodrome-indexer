@@ -29,6 +29,8 @@ CLFactory.PoolCreated.handlerWithLoader({
       tickSpacing: event.params.tickSpacing,
       pool: event.params.pool,
       timestamp: new Date(event.block.timestamp * 1000),
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       chainId: event.chainId,
     };
 

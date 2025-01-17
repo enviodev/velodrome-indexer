@@ -32,6 +32,8 @@ SuperchainPoolFactory.RootPoolCreated.handlerWithLoader({
       token1: event.params.token1,
       pool: event.params.pool,
       timestamp: new Date(event.block.timestamp * 1000),
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
       chainId: event.chainId,
       stable: event.params.stable,
       length: event.params.length,
