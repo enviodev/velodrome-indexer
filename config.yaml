@@ -169,6 +169,8 @@ networks:
       - name: ALMLPWrapper
         address:
   - id: 1863 # Soneium 
+    hypersync_config:
+      url: https://soneium.hypersync.xyz
     start_block: 0
     contracts:
       - name: NFPM
@@ -190,6 +192,8 @@ networks:
       - name: CLPool
         address:
   - id: 57073 # Ink
+    hypersync_config:
+      url: https://ink.hypersync.xyz
     start_block: 0
     contracts:
       - name: NFPM
