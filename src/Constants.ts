@@ -41,6 +41,9 @@ export const SONEIUM_PRICE_CONNECTORS: PriceConnector[] =
 export const INK_PRICE_CONNECTORS: PriceConnector[] =
   PriceConnectors.ink as PriceConnector[];
 
+export const METAL_PRICE_CONNECTORS: PriceConnector[] =
+  PriceConnectors.metal as PriceConnector[];
+
 export const toChecksumAddress = (address: string) =>
   Web3.utils.toChecksumAddress(address);
 
@@ -229,6 +232,29 @@ const INK_CONSTANTS: chainConstants = {
   }) as PublicClient,
 };
 
+// Constants for Metal
+const METAL_CONSTANTS: chainConstants = {
+  weth: "0x4200000000000000000000000000000000000006",
+  usdc: "0x51E85d70944256710cb141847F1a04f568C1Db0e",
+  oracle: {
+    getAddress: (blockNumber: number) => {
+      return 0; // TODO: Get oracle address
+    },
+    startBlock: 0,
+    updateDelta: 60 * 60, // 1 hour
+    priceConnectors: METAL_PRICE_CONNECTORS,
+  },
+  rewardToken: (blockNumber: number) =>
+    "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
+  eth_client: createPublicClient({
+    chain: ink,
+    transport: http(process.env.ENVIO_INK_RPC_URL || "https://rpc-gel.inkonchain.com", {
+      retryCount: 10,
+      retryDelay: 1000,
+    }),
+  }) as PublicClient,
+};
+
 /**
  * Create a unique ID for a token on a specific chain. Really should only be used for Token Entities.
  * @param address
@@ -259,6 +285,7 @@ export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   34443: MODE_CONSTANTS,
   1135: LISK_CONSTANTS,
   252: FRAXTAL_CONSTANTS,
+  1750: METAL_CONSTANTS,
   1868: SONEIUM_CONSTANTS,
   57073: INK_CONSTANTS
 };
