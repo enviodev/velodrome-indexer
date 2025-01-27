@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import { Web3 } from "web3";
-import { optimism, base, lisk, mode, fraxtal, ink, soneium } from 'viem/chains';
+import { optimism, base, lisk, mode, fraxtal, ink, soneium, metalL2 } from 'viem/chains';
 import { createPublicClient, http, PublicClient } from 'viem';
 
 import PriceConnectors from "./constants/price_connectors.json";
@@ -247,8 +247,8 @@ const METAL_CONSTANTS: chainConstants = {
   rewardToken: (blockNumber: number) =>
     "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
   eth_client: createPublicClient({
-    chain: ink,
-    transport: http(process.env.ENVIO_INK_RPC_URL || "https://rpc-gel.inkonchain.com", {
+    chain: metalL2,
+    transport: http(process.env.ENVIO_METAL_RPC_URL || "https://rpc.metall2.com", {
       retryCount: 10,
       retryDelay: 1000,
     }),
