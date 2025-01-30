@@ -96,10 +96,19 @@ contracts:
       - event: Deposit
       - event: Withdraw
       - event: Transfer
+  - name: ERC20
+    abi_file_path: abis/ERC20.json
+    handler: src/EventHandlers/ERC20.ts
+    events:
+      - event: Transfer(address indexed from, address indexed to, uint256 value)
 networks:
   - id: 10 # Optimism
     start_block: 0
     contracts:
+      - name: ERC20
+        address:
+          - 0x3c8B650257cFb5f272f799F5e2b4e65093a11a05 # VELO
+          - 0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db # VELO v2
       - name: VeNFT
         address:
           - 0xFAf8FD17D9840595845582fCB047DF13f006787d
@@ -139,6 +148,9 @@ networks:
   - id: 8453 # Base
     start_block: 0
     contracts:
+      - name: ERC20 
+        address:
+          - 0x940181a94A35A4569E4529A3CDfB74e38FD98631 # AERO
       - name: VeNFT
         address:
           - 0xeBf418Fe2512e7E6bd9b87a8F0f294aCDC67e6B4
@@ -173,6 +185,9 @@ networks:
       url: https://soneium.hypersync.xyz
     start_block: 0
     contracts:
+      - name: ERC20 
+        address:
+          - 0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81 # xVELO
       - name: NFPM
         address:
           - 0x991d5546c4b442b4c5fdc4c8b8b8d131deb24702
@@ -196,6 +211,9 @@ networks:
       url: https://ink.hypersync.xyz
     start_block: 0
     contracts:
+      - name: ERC20 
+        address:
+          - 0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81 # xVELO
       - name: NFPM
         address:
           - 0x991d5546c4b442b4c5fdc4c8b8b8d131deb24702
@@ -217,6 +235,9 @@ networks:
   - id: 34443 # Mode
     start_block: 0
     contracts:
+      - name: ERC20 
+        address:
+          - 0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81 # xVELO
       - name: NFPM
         address:
           - 0x991d5546c4b442b4c5fdc4c8b8b8d131deb24702
@@ -238,6 +259,9 @@ networks:
   - id: 1135 # Lisk
     start_block: 0
     contracts:
+      - name: ERC20 
+        address:
+          - 0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81 # xVELO
       - name: NFPM
         address:
           - 0x991d5546C4B442B4c5fdc4c8B8b8d131DEB24702
@@ -261,6 +285,9 @@ networks:
       url: https://fraxtal.hypersync.xyz
     start_block: 0
     contracts:
+      - name: ERC20 
+        address:
+          - 0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81 # xVELO
       - name: NFPM
         address:
           - 0x991d5546C4B442B4c5fdc4c8B8b8d131DEB24702
