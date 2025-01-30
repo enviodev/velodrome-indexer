@@ -1,6 +1,8 @@
 import {
     NFPM,
     NFPM_Transfer,
+    NFPM_IncreaseLiquidity,
+    NFPM_DecreaseLiquidity,
 } from "generated";
 
 /**
@@ -33,4 +35,40 @@ NFPM.Transfer.handler(async ({ event, context }) => {
   };
 
   context.NFPM_Transfer.set(entity);
+});
+
+NFPM.IncreaseLiquidity.handler(async ({ event, context }) => {
+  const blockDatetime = new Date(event.block.timestamp * 1000);
+  const entity: NFPM_IncreaseLiquidity = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    transactionHash: event.transaction.hash,
+    tokenId: event.params.tokenId,
+    liquidity: event.params.liquidity,
+    amount0: event.params.amount0,
+    amount1: event.params.amount1,
+    timestamp: blockDatetime,
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
+    chainId: event.chainId,
+  };
+
+  context.NFPM_IncreaseLiquidity.set(entity);
+});
+
+NFPM.DecreaseLiquidity.handler(async ({ event, context }) => {
+  const blockDatetime = new Date(event.block.timestamp * 1000);
+  const entity: NFPM_DecreaseLiquidity = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    transactionHash: event.transaction.hash,
+    tokenId: event.params.tokenId,
+    liquidity: event.params.liquidity,
+    amount0: event.params.amount0,
+    amount1: event.params.amount1,
+    timestamp: blockDatetime,
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
+    chainId: event.chainId,
+  };
+
+  context.NFPM_DecreaseLiquidity.set(entity);
 });
