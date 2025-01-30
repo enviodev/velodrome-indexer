@@ -1,6 +1,7 @@
 import {
   Voter,
   Voter_GaugeCreated,
+  Voter_GaugeKilled,
   Voter_Voted,
   Voter_WhitelistToken,
   Voter_DistributeReward,
@@ -21,7 +22,7 @@ const { getPoolAddressByGaugeAddress, addRewardAddressDetails } =
 Voter.Voted.handler(async ({ event, context }) => {
   const entity: Voter_Voted = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    sender: event.params.sender,
+    sender: event.params.voter,
     pool: event.params.pool,
     tokenId: event.params.tokenId,
     weight: event.params.weight,
@@ -262,4 +263,19 @@ Voter.WhitelistToken.handlerWithLoader({
       }
     }
   },
+});
+
+Voter.GaugeKilled.handler(async ({ event, context }) => {
+  const entity: Voter_GaugeKilled = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    sender: event.srcAddress,
+    gauge: event.params.gauge,
+    timestamp: new Date(event.block.timestamp * 1000),
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
+    chainId: event.chainId,
+  };
+
+  context.Voter_GaugeKilled.set(entity);
+
 });

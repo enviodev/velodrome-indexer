@@ -1,7 +1,7 @@
 import { CHAIN_CONSTANTS } from "../../Constants";
 
 import ERC20GaugeABI from "../../../abis/ERC20.json";
-import VoterABI from "../../../abis/VoterABI.json";
+import VoterABI from "../../../abis/VoterV2.json";
 
 /**
  * Fetches the historical balance of reward tokens deposited in a gauge contract at a specific block.
