@@ -128,6 +128,28 @@ type Gauge_NotifyReward {
   chainId: Int!
 }
 
+type Gauge_Deposit {
+  id: ID!
+  from: String!
+  amount: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+}
+
+type Gauge_Withdraw {
+  id: ID!
+  from: String!
+  amount: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+}
+
 # Event for when a voting reward is notified of a reward
 type VotingReward_NotifyReward {
   id: ID!
@@ -273,6 +295,16 @@ type Voter_GaugeCreated {
   feeVotingReward: String!
   gauge: String!
   creator: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+}
+
+type Voter_GaugeKilled {
+  id: ID!
+  sender: String!
+  gauge: String!
   timestamp: Timestamp!
   blockNumber: Int!
   logIndex: Int!
