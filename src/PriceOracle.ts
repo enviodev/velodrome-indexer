@@ -69,6 +69,7 @@ export async function refreshTokenPrice(
     return token;
   }
 
+  // deploy
   return token;
 
   const tokenPriceData = await getTokenPriceData(
