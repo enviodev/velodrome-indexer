@@ -15,20 +15,25 @@ export interface TokenPriceData {
   decimals: bigint;
 }
 
-export async function createTokenEntity(tokenAddress: string, chainId: number, blockNumber: number, context: any) {
+export async function createTokenEntity(
+  tokenAddress: string,
+  chainId: number,
+  blockNumber: number,
+  context: any
+) {
   const blockDatetime = new Date(blockNumber * 1000);
   const tokenDetails = await getErc20TokenDetails(tokenAddress, chainId);
 
   const tokenEntity: Token = {
-      id: TokenIdByChain(tokenAddress, chainId),
-      address: toChecksumAddress(tokenAddress),
-      symbol: tokenDetails.symbol,
-      name: tokenDetails.symbol, // Using symbol as name, update if you have a separate name field
-      chainId: chainId,
-      decimals: BigInt(tokenDetails.decimals),
-      pricePerUSDNew: BigInt(0),
-      lastUpdatedTimestamp: blockDatetime,
-      isWhitelisted: false,
+    id: TokenIdByChain(tokenAddress, chainId),
+    address: toChecksumAddress(tokenAddress),
+    symbol: tokenDetails.symbol,
+    name: tokenDetails.symbol, // Using symbol as name, update if you have a separate name field
+    chainId: chainId,
+    decimals: BigInt(tokenDetails.decimals),
+    pricePerUSDNew: BigInt(0),
+    lastUpdatedTimestamp: blockDatetime,
+    isWhitelisted: false,
   };
 
   context.Token.set(tokenEntity);
@@ -39,11 +44,11 @@ const ONE_HOUR_MS = 60 * 60 * 1000; // 1 hour in milliseconds
 
 /**
  * Refreshes a token's price data if the update interval has passed.
- * 
+ *
  * This function checks if enough time has passed since the last update (1 hour),
  * and if so, fetches new price data for the token. The token entity is updated
  * in the database with the new price and timestamp.
- * 
+ *
  * @param {Token} token - The token entity to refresh
  * @param {number} blockNumber - The block number to fetch price data from
  * @param {number} blockTimestamp - The timestamp of the block in seconds
@@ -58,31 +63,36 @@ export async function refreshTokenPrice(
   chainId: number,
   context: any
 ): Promise<Token> {
-
   const blockTimestampMs = blockTimestamp * 1000;
 
   if (blockTimestampMs - token.lastUpdatedTimestamp.getTime() < ONE_HOUR_MS) {
     return token;
   }
 
-  const tokenPriceData = await getTokenPriceData(token.address, blockNumber, chainId);
+  return token;
+
+  const tokenPriceData = await getTokenPriceData(
+    token.address,
+    blockNumber,
+    chainId
+  );
   const currentPrice = tokenPriceData.pricePerUSDNew;
   const updatedToken: Token = {
     ...token,
     pricePerUSDNew: currentPrice,
     decimals: tokenPriceData.decimals,
-    lastUpdatedTimestamp: new Date(blockTimestampMs)
+    lastUpdatedTimestamp: new Date(blockTimestampMs),
   };
   context.Token.set(updatedToken);
 
   // Create new TokenPrice entity
   const tokenPrice: TokenPriceSnapshot = {
-      id: TokenIdByBlock(token.address, chainId, blockNumber),
-      address: toChecksumAddress(token.address),
-      pricePerUSDNew: currentPrice,
-      chainId: chainId,
-      isWhitelisted: token.isWhitelisted,
-      lastUpdatedTimestamp: new Date(blockTimestampMs),
+    id: TokenIdByBlock(token.address, chainId, blockNumber),
+    address: toChecksumAddress(token.address),
+    pricePerUSDNew: currentPrice,
+    chainId: chainId,
+    isWhitelisted: token.isWhitelisted,
+    lastUpdatedTimestamp: new Date(blockTimestampMs),
   };
 
   context.TokenPriceSnapshot.set(tokenPrice);
@@ -91,12 +101,12 @@ export async function refreshTokenPrice(
 
 /**
  * Fetches current price data for a specific token.
- * 
+ *
  * Retrieves the token's price and decimals by:
  * 1. Getting token details from the contract
  * 2. Fetching price data from the price oracle
  * 3. Converting the price to the appropriate format
- * 
+ *
  * @param {string} tokenAddress - The token's contract address
  * @param {number} blockNumber - The block number to fetch price data from
  * @param {number} chainId - The chain ID where the token exists
@@ -108,14 +118,12 @@ export async function getTokenPriceData(
   blockNumber: number,
   chainId: number
 ): Promise<TokenPriceData> {
-  const tokenDetails = await getErc20TokenDetails(
-    tokenAddress,
-    chainId
-  );
+  const tokenDetails = await getErc20TokenDetails(tokenAddress, chainId);
 
   const WETH_ADDRESS = CHAIN_CONSTANTS[chainId].weth;
   const USDC_ADDRESS = CHAIN_CONSTANTS[chainId].usdc;
-  const SYSTEM_TOKEN_ADDRESS = CHAIN_CONSTANTS[chainId].rewardToken(blockNumber);
+  const SYSTEM_TOKEN_ADDRESS =
+    CHAIN_CONSTANTS[chainId].rewardToken(blockNumber);
 
   const connectors = CHAIN_CONSTANTS[chainId].oracle.priceConnectors
     .filter((connector) => connector.createdBlock <= blockNumber)
@@ -128,17 +136,22 @@ export async function getTokenPriceData(
   let pricePerUSDNew: bigint = 0n;
   let decimals: bigint = 0n;
 
-  const ORACLE_DEPLOYED = CHAIN_CONSTANTS[chainId].oracle.startBlock <= blockNumber;
+  const ORACLE_DEPLOYED =
+    CHAIN_CONSTANTS[chainId].oracle.startBlock <= blockNumber;
 
   if (ORACLE_DEPLOYED) {
     try {
-      const prices = await read_prices([
-        tokenAddress,
-        ...connectors,
-        SYSTEM_TOKEN_ADDRESS, 
-        WETH_ADDRESS, 
-        USDC_ADDRESS], 
-      chainId, blockNumber);
+      const prices = await read_prices(
+        [
+          tokenAddress,
+          ...connectors,
+          SYSTEM_TOKEN_ADDRESS,
+          WETH_ADDRESS,
+          USDC_ADDRESS,
+        ],
+        chainId,
+        blockNumber
+      );
       pricePerUSDNew = BigInt(prices[0]);
       decimals = BigInt(tokenDetails.decimals);
     } catch (error) {
@@ -172,15 +185,16 @@ export async function read_prices(
   chainId: number,
   blockNumber: number
 ): Promise<string[]> {
-
   const ethClient = CHAIN_CONSTANTS[chainId].eth_client;
   const numAddrs = 1; // Return the first address only.
 
   try {
     const { result } = await ethClient.simulateContract({
-      address: CHAIN_CONSTANTS[chainId].oracle.getAddress(blockNumber) as `0x${string}`,
+      address: CHAIN_CONSTANTS[chainId].oracle.getAddress(
+        blockNumber
+      ) as `0x${string}`,
       abi: PriceOracleABI,
-      functionName: 'getManyRatesWithConnectors',
+      functionName: "getManyRatesWithConnectors",
       args: [numAddrs, addrs],
       blockNumber: BigInt(blockNumber),
     });
