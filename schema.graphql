@@ -231,6 +231,32 @@ type NFPM_Transfer {
   chainId: Int!
 }
 
+type NFPM_IncreaseLiquidity {
+  id: ID!
+  transactionHash: String!
+  tokenId: BigInt! @config(precision: 76)
+  liquidity: BigInt! @config(precision: 76)
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+}
+
+type NFPM_DecreaseLiquidity {
+  id: ID!
+  transactionHash: String!
+  tokenId: BigInt! @config(precision: 76)
+  liquidity: BigInt! @config(precision: 76)
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+}
+
 type Voter {
   id: ID!
 }
