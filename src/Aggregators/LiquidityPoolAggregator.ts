@@ -9,8 +9,8 @@ import DynamicFeePoolABI from "./../../abis/DynamicFeeSwapModule.json";
 import CLPoolABI from "./../../abis/CLPool.json";
 
 const UPDATE_INTERVAL = 60 * 60 * 1000; // 1 hour
-const DYNAMIC_FEE_MODULE_ADDRESS = "0xd9eE4FBeE92970509ec795062cA759F8B52d6720";
-const DYNAMIC_FEE_START_BLOCK = 131341414;
+const DYNAMIC_FEE_MODULE_ADDRESS = "0xd9eE4FBeE92970509ec795062cA759F8B52d6720"; // CA for dynamic fee module
+const DYNAMIC_FEE_START_BLOCK = 131341414; // Starting from this block to track dynamic fee pools
 
 type DynamicFeeConfig = {
   baseFee: bigint;
@@ -23,6 +23,13 @@ type GaugeFees = {
   token1Fees: bigint;
 }
 
+/**
+ * Get the dynamic fee config parameters for the dynamic fee pool.
+ * @param poolAddress 
+ * @param chainId 
+ * @param blockNumber 
+ * @returns {DynamicFeeConfig}
+ */
 async function getDynamicFeeConfig(poolAddress: string, chainId: number, blockNumber: number): Promise<DynamicFeeConfig> {
     const ethClient = CHAIN_CONSTANTS[chainId].eth_client;
     const { result } = await ethClient.simulateContract({
@@ -40,6 +47,13 @@ async function getDynamicFeeConfig(poolAddress: string, chainId: number, blockNu
     return dynamicFeeConfig;
 }
 
+/**
+ * Get the current fee for the dynamic fee pool.
+ * @param poolAddress 
+ * @param chainId 
+ * @param blockNumber 
+ * @returns {bigint}
+ */
 async function getCurrentFee(poolAddress: string, chainId: number, blockNumber: number) {
     const ethClient = CHAIN_CONSTANTS[chainId].eth_client;
     const { result } = await ethClient.simulateContract({
@@ -74,6 +88,12 @@ export async function getCurrentAccumulatedFeeCL(poolAddress: string, chainId: n
   return gaugeFees;
 }
 
+/**
+ * Update the dynamic fee pools data from the swap module.
+ * @param liquidityPoolAggregator 
+ * @param context 
+ * @param blockNumber 
+ */
 export async function updateDynamicFeePools(
   liquidityPoolAggregator: LiquidityPoolAggregator,
   context: handlerContext,
