@@ -107,7 +107,8 @@ VotingReward.NotifyReward.handlerWithLoader({
           lpDiff,
           currentLiquidityPool,
           new Date(event.block.timestamp * 1000),
-          context
+          context,
+          event.block.number
         );
       }
     }
