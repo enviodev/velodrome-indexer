@@ -9,7 +9,11 @@ import {
 
 import { Token } from "generated/src/Types.gen";
 import { normalizeTokenAmountTo1e18 } from "../../Helpers";
-import { CHAIN_CONSTANTS, toChecksumAddress, TokenIdByChain } from "../../Constants";
+import {
+  CHAIN_CONSTANTS,
+  toChecksumAddress,
+  TokenIdByChain,
+} from "../../Constants";
 import { poolLookupStoreManager } from "../../Store";
 import { multiplyBase1e18 } from "../../Maths";
 import { updateLiquidityPoolAggregator } from "../../Aggregators/LiquidityPoolAggregator";
@@ -83,7 +87,9 @@ Voter.DistributeReward.handlerWithLoader({
       event.params.gauge
     );
 
-    const rewardTokenAddress = CHAIN_CONSTANTS[event.chainId].rewardToken(event.block.number);
+    const rewardTokenAddress = CHAIN_CONSTANTS[event.chainId].rewardToken(
+      event.block.number
+    );
 
     const promisePool = poolAddress
       ? context.LiquidityPoolAggregator.get(poolAddress)
@@ -91,29 +97,34 @@ Voter.DistributeReward.handlerWithLoader({
 
     if (!poolAddress) {
       context.log.warn(
-        `No pool address found for the gauge address ${event.params.gauge.toString()} on chain ${event.chainId}`
+        `No pool address found for the gauge address ${event.params.gauge.toString()} on chain ${event.chainId
+        }`
       );
     }
 
     const [currentLiquidityPool, rewardToken] = await Promise.all([
       promisePool,
-      context.Token.get(
-        TokenIdByChain(
-          rewardTokenAddress,
-          event.chainId
-        )
-      ),
+      context.Token.get(TokenIdByChain(rewardTokenAddress, event.chainId)),
     ]);
 
     return { currentLiquidityPool, rewardToken };
   },
   handler: async ({ event, context, loaderReturn }) => {
-
     if (loaderReturn && loaderReturn.rewardToken) {
       const { currentLiquidityPool, rewardToken } = loaderReturn;
 
-      const isAlive = await getIsAlive(event.srcAddress, event.params.gauge, event.block.number, event.chainId);
-      const tokensDeposited = await getTokensDeposited(rewardToken.address, event.params.gauge, event.block.number, event.chainId);
+      const isAlive = await getIsAlive(
+        event.srcAddress,
+        event.params.gauge,
+        event.block.number,
+        event.chainId
+      );
+      const tokensDeposited = await getTokensDeposited(
+        rewardToken.address,
+        event.params.gauge,
+        event.block.number,
+        event.chainId
+      );
 
       // Dev note: Assumption here is that the GaugeCreated event has already been indexed and the Gauge entity has been created
       // Dev note: Assumption here is that the reward token (VELO for Optimism and AERO for Base) entity has already been created at this point
@@ -131,7 +142,8 @@ Voter.DistributeReward.handlerWithLoader({
         // If the reward token does not have a price in USD, log
         if (rewardToken.pricePerUSDNew == 0n) {
           context.log.warn(
-            `Reward token with ID ${rewardToken.id.toString()} does not have a USD price yet on chain ${event.chainId}`
+            `Reward token with ID ${rewardToken.id.toString()} does not have a USD price yet on chain ${event.chainId
+            }`
           );
         }
 
@@ -169,7 +181,8 @@ Voter.DistributeReward.handlerWithLoader({
       } else {
         // If there is no pool entity with the particular gauge address, log the error
         context.log.warn(
-          `No pool entity or reward token found for the gauge address ${event.params.gauge.toString()} on chain ${event.chainId}`
+          `No pool entity or reward token found for the gauge address ${event.params.gauge.toString()} on chain ${event.chainId
+          }`
         );
       }
 
@@ -188,7 +201,6 @@ Voter.DistributeReward.handlerWithLoader({
 
       context.Voter_DistributeReward.set(entity);
     }
-
   },
 });
 
@@ -214,7 +226,27 @@ Voter.WhitelistToken.handlerWithLoader({
     const token = await context.Token.get(
       TokenIdByChain(event.params.token, event.chainId)
     );
-    return { token };
+
+    if (token) {
+      return { token };
+    } else {
+      const tokenDetails = await getErc20TokenDetails(
+        event.params.token,
+        event.chainId
+      );
+      const newToken: Token = {
+        id: TokenIdByChain(event.params.token, event.chainId),
+        name: tokenDetails.name,
+        symbol: tokenDetails.symbol,
+        pricePerUSDNew: 0n,
+        address: event.params.token,
+        chainId: event.chainId,
+        decimals: BigInt(tokenDetails.decimals),
+        isWhitelisted: event.params._bool,
+        lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
+      };
+      return { token: newToken };
+    }
   },
   handler: async ({ event, context, loaderReturn }) => {
     const entity: Voter_WhitelistToken = {
@@ -231,37 +263,13 @@ Voter.WhitelistToken.handlerWithLoader({
     context.Voter_WhitelistToken.set(entity);
 
     // Update the Token entity in the DB, either by updating the existing one or creating a new one
-    if (loaderReturn && loaderReturn.token) {
-      const { token } = loaderReturn;
-      const updatedToken: Token = {
-        ...token,
-        isWhitelisted: event.params._bool,
-      };
+    const { token } = loaderReturn;
+    const updatedToken: Token = {
+      ...token,
+      isWhitelisted: event.params._bool,
+    };
 
-      context.Token.set(updatedToken as Token);
-      return;
-    } else {
-      try {
-        const tokenDetails = await getErc20TokenDetails(
-          event.params.token,
-          event.chainId
-        );
-        const updatedToken: Token = {
-          id: TokenIdByChain(event.params.token, event.chainId),
-          name: tokenDetails.name,
-          symbol: tokenDetails.symbol,
-          pricePerUSDNew: 0n,
-          address: event.params.token,
-          chainId: event.chainId,
-          decimals: BigInt(tokenDetails.decimals),
-          isWhitelisted: event.params._bool,
-          lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
-        };
-        context.Token.set(updatedToken);
-      } catch (error) {
-        context.log.error(`Error in whitelist token event fetching token details for ${event.params.token} on chain ${event.chainId}: ${error}`);
-      }
-    }
+    context.Token.set(updatedToken as Token);
   },
 });
 
@@ -277,5 +285,4 @@ Voter.GaugeKilled.handler(async ({ event, context }) => {
   };
 
   context.Voter_GaugeKilled.set(entity);
-
 });

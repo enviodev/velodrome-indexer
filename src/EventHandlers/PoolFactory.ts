@@ -5,6 +5,7 @@ import { generatePoolName } from "./../Helpers";
 import { TokenIdByChain } from "../Constants";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 import { createTokenEntity } from "../PriceOracle";
+import { Erc20TokenDetails, getErc20TokenDetails } from "../Erc20";
 
 PoolFactory.PoolCreated.contractRegister(
   ({ event, context }) => {
@@ -15,34 +16,51 @@ PoolFactory.PoolCreated.contractRegister(
 
 PoolFactory.PoolCreated.handlerWithLoader({
   loader: async ({ event, context }) => {
-    const [poolToken0, poolToken1] = await Promise.all([
-      context.Token.get(TokenIdByChain(event.params.token0, event.chainId)),
-      context.Token.get(TokenIdByChain(event.params.token1, event.chainId)),
-    ]);
+    const poolTokens = await Promise.all(
+      [event.params.token0, event.params.token1].map(async (address) => ({
+        token: await context.Token.get(TokenIdByChain(address, event.chainId)),
+        address,
+      }))
+    );
 
-    return { poolToken0, poolToken1 };
+    const [tokenData0, tokenData1] = await Promise.all(
+      poolTokens.map(async ({ token, address }) => {
+        let tokenDetails: Erc20TokenDetails;
+        if (token) {
+          const { name, symbol, decimals } = token;
+          tokenDetails = { name, symbol, decimals };
+        } else {
+          tokenDetails = await getErc20TokenDetails(address, event.chainId);
+        }
+
+        return {
+          token,
+          address,
+          tokenDetails,
+          isWhitelisted: token?.isWhitelisted ?? false,
+        };
+      })
+    );
+
+    return { tokenData0, tokenData1 };
   },
   handler: async ({ event, context, loaderReturn }) => {
-    const { poolToken0, poolToken1 } = loaderReturn;
-
-    let poolTokenSymbols: string[] = [];
-    let poolTokenAddressMappings: TokenEntityMapping[] = [
-      { address: event.params.token0, tokenInstance: poolToken0 },
-      { address: event.params.token1, tokenInstance: poolToken1 },
+    const { tokenData0, tokenData1 } = loaderReturn;
+    loaderReturn;
+    const poolTokenSymbols = [
+      tokenData0.tokenDetails.symbol,
+      tokenData1.tokenDetails.symbol,
     ];
 
-    for (let poolTokenAddressMapping of poolTokenAddressMappings) {
-      if (poolTokenAddressMapping.tokenInstance == undefined) {
-        try {
-          poolTokenAddressMapping.tokenInstance = await createTokenEntity(
-            poolTokenAddressMapping.address, event.chainId, event.block.number, context);
-          poolTokenSymbols.push(poolTokenAddressMapping.tokenInstance.symbol);
-        } catch (error) {
-          context.log.error(`Error in pool factory fetching token details` +
-            ` for ${poolTokenAddressMapping.address} on chain ${event.chainId}: ${error}`);
-        }
-      } else {
-        poolTokenSymbols.push(poolTokenAddressMapping.tokenInstance.symbol);
+    for (let tokenData of [tokenData0, tokenData1]) {
+      if (tokenData.token === undefined) {
+        createTokenEntity(
+          tokenData.address,
+          event.chainId,
+          event.block.number,
+          tokenData.tokenDetails,
+          context
+        );
       }
     }
 
@@ -81,8 +99,8 @@ PoolFactory.PoolCreated.handlerWithLoader({
       totalVotesDeposited: 0n,
       totalVotesDepositedUSD: 0n,
       gaugeIsAlive: false,
-      token0IsWhitelisted: poolToken0?.isWhitelisted ?? false,
-      token1IsWhitelisted: poolToken1?.isWhitelisted ?? false,
+      token0IsWhitelisted: tokenData0.isWhitelisted,
+      token1IsWhitelisted: tokenData1.isWhitelisted,
       lastUpdatedTimestamp: new Date(event.block.timestamp * 1000),
       lastSnapshotTimestamp: new Date(event.block.timestamp * 1000),
     };
