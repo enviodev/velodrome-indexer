@@ -117,6 +117,42 @@ type CLFactory_PoolCreated {
 }
 
 # Event for when a gauge is notified of a reward
+type CLGauge_NotifyReward {
+  id: ID!
+  from: String!
+  amount: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+}
+
+type CLGauge_Deposit {
+  id: ID!
+  tokenId: BigInt! @config(precision: 76)
+  user: String!
+  liquidityToStake: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+}
+
+type CLGauge_Withdraw {
+  id: ID!
+  tokenId: BigInt! @config(precision: 76)
+  user: String!
+  liquidityToStake: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+}
+
+# Event for when a gauge is notified of a reward
 type Gauge_NotifyReward {
   id: ID!
   from: String!

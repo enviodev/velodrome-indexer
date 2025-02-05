@@ -41,6 +41,7 @@ Voter.GaugeCreated.contractRegister(
     context.addVotingReward(event.params.bribeVotingReward);
     context.addVotingReward(event.params.feeVotingReward);
     context.addGauge(event.params.gauge);
+    context.addCLGauge(event.params.gauge);
   },
   { preRegisterDynamicContracts: true }
 );
