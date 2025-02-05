@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import { Web3 } from "web3";
-import { optimism, base, lisk, mode, fraxtal, ink, soneium } from 'viem/chains';
-import { createPublicClient, http, PublicClient } from 'viem';
+import { optimism, base, lisk, mode, fraxtal, ink, soneium } from "viem/chains";
+import { createPublicClient, http, PublicClient } from "viem";
 
 import PriceConnectors from "./constants/price_connectors.json";
 
@@ -80,11 +80,14 @@ const OPTIMISM_CONSTANTS: chainConstants = {
   },
   eth_client: createPublicClient({
     chain: optimism,
-    transport: http(process.env.ENVIO_OPTIMISM_RPC_URL || "https://rpc.ankr.com/optimism", {
-      retryCount: 10,
-      retryDelay: 1000,
-      batch: false
-    }),
+    transport: http(
+      process.env.ENVIO_OPTIMISM_RPC_URL || "https://rpc.ankr.com/optimism",
+      {
+        retryCount: 10,
+        retryDelay: 1000,
+        batch: false,
+      }
+    ),
   }) as PublicClient,
 };
 
@@ -106,11 +109,14 @@ const BASE_CONSTANTS: chainConstants = {
     "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
   eth_client: createPublicClient({
     chain: base,
-    transport: http(process.env.ENVIO_BASE_RPC_URL || "https://base.publicnode.com", {
-      retryCount: 10,
-      retryDelay: 1000,
-    }),
-  }) as PublicClient
+    transport: http(
+      process.env.ENVIO_BASE_RPC_URL || "https://base.publicnode.com",
+      {
+        retryCount: 10,
+        retryDelay: 1000,
+      }
+    ),
+  }) as PublicClient,
 };
 
 // Constants for Lisk
@@ -133,7 +139,7 @@ const LISK_CONSTANTS: chainConstants = {
       retryCount: 10,
       retryDelay: 1000,
     }),
-  }) as PublicClient
+  }) as PublicClient,
 };
 
 // Constants for Mode
@@ -152,10 +158,13 @@ const MODE_CONSTANTS: chainConstants = {
     "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
   eth_client: createPublicClient({
     chain: mode,
-    transport: http(process.env.ENVIO_MODE_RPC_URL || "https://mainnet.mode.network", {
-      retryCount: 10,
-      retryDelay: 1000,
-    }),
+    transport: http(
+      process.env.ENVIO_MODE_RPC_URL || "https://mainnet.mode.network",
+      {
+        retryCount: 10,
+        retryDelay: 1000,
+      }
+    ),
   }) as PublicClient,
 };
 
@@ -175,13 +184,15 @@ const SONEIUM_CONSTANTS: chainConstants = {
     "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
   eth_client: createPublicClient({
     chain: soneium,
-    transport: http(process.env.ENVIO_SONEIUM_RPC_URL || "https://rpc.soneium.com", {
-      retryCount: 10,
-      retryDelay: 1000,
-    }),
+    transport: http(
+      process.env.ENVIO_SONEIUM_RPC_URL || "https://rpc.soneium.com",
+      {
+        retryCount: 10,
+        retryDelay: 1000,
+      }
+    ),
   }) as PublicClient,
 };
-
 
 // Constants for Fraxtal
 const FRAXTAL_CONSTANTS: chainConstants = {
@@ -199,10 +210,13 @@ const FRAXTAL_CONSTANTS: chainConstants = {
     "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
   eth_client: createPublicClient({
     chain: fraxtal,
-    transport: http(process.env.ENVIO_FRAXTAL_RPC_URL || "https://rpc.frax.com", {
-      retryCount: 10,
-      retryDelay: 1000,
-    }),
+    transport: http(
+      process.env.ENVIO_FRAXTAL_RPC_URL || "https://rpc.frax.com",
+      {
+        retryCount: 10,
+        retryDelay: 1000,
+      }
+    ),
   }) as PublicClient,
 };
 
@@ -222,10 +236,13 @@ const INK_CONSTANTS: chainConstants = {
     "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
   eth_client: createPublicClient({
     chain: ink,
-    transport: http(process.env.ENVIO_INK_RPC_URL || "https://rpc-gel.inkonchain.com", {
-      retryCount: 10,
-      retryDelay: 1000,
-    }),
+    transport: http(
+      process.env.ENVIO_INK_RPC_URL || "https://rpc-gel.inkonchain.com",
+      {
+        retryCount: 10,
+        retryDelay: 1000,
+      }
+    ),
   }) as PublicClient,
 };
 
@@ -260,7 +277,7 @@ export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   1135: LISK_CONSTANTS,
   252: FRAXTAL_CONSTANTS,
   1868: SONEIUM_CONSTANTS,
-  57073: INK_CONSTANTS
+  57073: INK_CONSTANTS,
 };
 
 export const CacheCategory = {

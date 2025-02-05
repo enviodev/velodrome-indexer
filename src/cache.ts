@@ -23,7 +23,7 @@ export type ShapePoolToTokens = Shape &
 
 export type ShapePricesList = string[];
 
-export type ShapeTokenPrices = Shape & Record<string, { prices: ShapePricesList }>;
+export type ShapeTokenPrices = Shape & Record<string, ShapePricesList>;
 
 export type ShapeToken = Shape &
   Record<Address, { decimals: number; name: string; symbol: string }>;
@@ -47,7 +47,7 @@ export class Cache {
       ? ShapeWhiteListedPoolIds
       : C extends "poolToTokens"
       ? ShapePoolToTokens
-      : C extends "tokenPrice"
+      : C extends "tokenPrices"
       ? ShapeTokenPrices
       : ShapeRoot;
     const entry = new Entry<S>(`${category}-${chainId.toString()}`);

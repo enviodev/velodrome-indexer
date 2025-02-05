@@ -6,10 +6,11 @@ import {
   TokenIdByBlock,
 } from "./Constants";
 import { Token, TokenPriceSnapshot } from "./src/Types.gen";
-import { Cache, ShapePricesList } from "./cache";
+import { Cache, Entry, ShapePricesList, ShapeTokenPrices } from "./cache";
 import { createHash } from "crypto";
 import { Erc20TokenDetails, erc20TokenDetailsCache } from "./Erc20";
-import PriceOracleABI from "../abis/VeloPriceOracleABI.json";
+import { ChainCacheMap } from "./GlobalStore";
+const PriceOracleABI = require("../abis/VeloPriceOracleABI.json");
 export interface TokenPriceData {
   pricePerUSDNew: bigint;
   decimals: bigint;
@@ -116,11 +117,6 @@ export async function getTokenPriceData(
   blockNumber: number,
   chainId: number
 ): Promise<TokenPriceData> {
-  const tokenDetails = await erc20TokenDetailsCache.get(chainId, {
-    contractAddress: tokenAddress,
-    chainId: chainId,
-  });
-
   const WETH_ADDRESS = CHAIN_CONSTANTS[chainId].weth;
   const USDC_ADDRESS = CHAIN_CONSTANTS[chainId].usdc;
   const SYSTEM_TOKEN_ADDRESS =
@@ -142,8 +138,12 @@ export async function getTokenPriceData(
 
   if (ORACLE_DEPLOYED) {
     try {
-      const prices = await read_prices(
-        [
+      const tokenDetailsProm = erc20TokenDetailsCache.get(chainId, {
+        contractAddress: tokenAddress,
+        chainId: chainId,
+      });
+      const pricesProm = readPriceCache.get(chainId, {
+        addresses: [
           tokenAddress,
           ...connectors,
           SYSTEM_TOKEN_ADDRESS,
@@ -151,8 +151,14 @@ export async function getTokenPriceData(
           USDC_ADDRESS,
         ],
         chainId,
-        blockNumber
-      );
+        blockNumber,
+      });
+
+      const [tokenDetails, prices] = await Promise.all([
+        tokenDetailsProm,
+        pricesProm,
+      ]);
+      //Double check: do we need to pass in all the addresses if only the first price is used?
       pricePerUSDNew = BigInt(prices[0]);
       decimals = BigInt(tokenDetails.decimals);
     } catch (error) {
@@ -162,6 +168,11 @@ export async function getTokenPriceData(
   return { pricePerUSDNew, decimals };
 }
 
+type ReadPricesArgs = {
+  addresses: string[];
+  chainId: number;
+  blockNumber: number;
+};
 /**
  * Reads the prices of specified tokens from a price oracle contract.
  *
@@ -181,11 +192,11 @@ export async function getTokenPriceData(
  * @throws {Error} Throws an error if the price fetching process fails or if there
  *                 is an issue with the contract call.
  */
-export async function read_prices(
-  addrs: string[],
-  chainId: number,
-  blockNumber: number
-): Promise<string[]> {
+async function read_prices({
+  addresses,
+  chainId,
+  blockNumber,
+}: ReadPricesArgs): Promise<string[]> {
   const ethClient = CHAIN_CONSTANTS[chainId].eth_client;
   const numAddrs = 1; // Return the first address only.
 
@@ -196,11 +207,24 @@ export async function read_prices(
       ) as `0x${string}`,
       abi: PriceOracleABI,
       functionName: "getManyRatesWithConnectors",
-      args: [numAddrs, addrs],
+      args: [numAddrs, addresses],
       blockNumber: BigInt(blockNumber),
     });
     return result;
   } catch (error) {
-    return addrs.map(() => "0");
+    return addresses.map(() => "0");
   }
 }
+
+const readPriceCache: ChainCacheMap<
+  Entry<ShapeTokenPrices>,
+  ShapePricesList,
+  ReadPricesArgs
+> = new ChainCacheMap({
+  make: (chainId) => Cache.init(CacheCategory.TokenPrices, chainId),
+  get: (cache, key) => cache.read(key),
+  set: (cache, key, value) => cache.add({ [key]: value }),
+  fetchValue: read_prices,
+  argsToCacheKey: ({ addresses, chainId, blockNumber }) =>
+    `${chainId}_${blockNumber}_${addresses.join("_")}`,
+});

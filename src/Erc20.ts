@@ -7,8 +7,6 @@ import { ChainCacheMap } from "./GlobalStore";
 // ERC20 Contract ABI
 const contractABI = require("../abis/ERC20.json");
 
-type ChainId = number;
-
 export type Erc20TokenDetails = {
   readonly name: string;
   readonly decimals: number;

@@ -25,20 +25,45 @@ VotingReward.NotifyReward.handlerWithLoader({
 
     const promisePool = poolAddress
       ? context.LiquidityPoolAggregator.get(poolAddress)
-      : null;
+      : undefined;
 
     if (!poolAddress) {
       context.log.warn(
-        `No pool address found for the bribe voting address ${event.srcAddress.toString()} on chain ${event.chainId}`
+        `No pool address found for the bribe voting address ${event.srcAddress.toString()} on chain ${
+          event.chainId
+        }`
       );
     }
 
     const [currentLiquidityPool, storedToken] = await Promise.all([
       promisePool,
-      context.Token.get(TokenIdByChain(event.params.reward, event.chainId))
+      context.Token.get(TokenIdByChain(event.params.reward, event.chainId)),
     ]);
 
-    return { currentLiquidityPool, storedToken };
+    let rewardToken: TokenPriceData;
+
+    if (storedToken) {
+      rewardToken = {
+        pricePerUSDNew: storedToken.pricePerUSDNew,
+        decimals: storedToken.decimals,
+      };
+    } else {
+      try {
+        rewardToken = await getTokenPriceData(
+          event.params.reward,
+          event.block.number,
+          event.chainId
+        );
+      } catch (error) {
+        context.log.error(
+          `Error in voting reward notify reward event fetching token details` +
+            ` for ${event.params.reward} on chain ${event.chainId}: ${error}`
+        );
+        throw error;
+      }
+    }
+
+    return { currentLiquidityPool, rewardToken };
   },
   handler: async ({ event, context, loaderReturn }) => {
     const entity: VotingReward_NotifyReward = {
@@ -58,25 +83,9 @@ VotingReward.NotifyReward.handlerWithLoader({
     context.VotingReward_NotifyReward.set(entity);
 
     if (loaderReturn) {
-      const { currentLiquidityPool, storedToken } = loaderReturn;
+      const { currentLiquidityPool, rewardToken } = loaderReturn;
 
-      let rewardToken: TokenPriceData | null = null;
-
-      if (!storedToken) {
-        try {
-          rewardToken = await getTokenPriceData(event.params.reward, event.block.number, event.chainId);
-        } catch (error) {
-          context.log.error(`Error in voting reward notify reward event fetching token details` +
-            ` for ${event.params.reward} on chain ${event.chainId}: ${error}`);
-        }
-      } else {
-        rewardToken = {
-          pricePerUSDNew: storedToken.pricePerUSDNew,
-          decimals: storedToken.decimals
-        }
-      }
-
-      if (currentLiquidityPool && rewardToken) {
+      if (currentLiquidityPool) {
         let normalizedBribesAmount = normalizeTokenAmountTo1e18(
           event.params.amount,
           Number(rewardToken.decimals)
@@ -85,7 +94,9 @@ VotingReward.NotifyReward.handlerWithLoader({
         // If the reward token does not have a price in USD, log
         if (rewardToken.pricePerUSDNew == 0n) {
           context.log.warn(
-            `Reward token with ID ${event.params.reward.toString()} does not have a USD price yet on chain ${event.chainId}`
+            `Reward token with ID ${event.params.reward.toString()} does not have a USD price yet on chain ${
+              event.chainId
+            }`
           );
         }
 
