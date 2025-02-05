@@ -17,7 +17,7 @@ import {
 import { poolLookupStoreManager } from "../../Store";
 import { multiplyBase1e18 } from "../../Maths";
 import { updateLiquidityPoolAggregator } from "../../Aggregators/LiquidityPoolAggregator";
-import { getErc20TokenDetails } from "../../Erc20";
+import { erc20TokenDetailsCache } from "../../Erc20";
 import { getIsAlive, getTokensDeposited } from "./common";
 
 const { getPoolAddressByGaugeAddress, addRewardAddressDetails } =
@@ -230,10 +230,10 @@ Voter.WhitelistToken.handlerWithLoader({
     if (token) {
       return { token };
     } else {
-      const tokenDetails = await getErc20TokenDetails(
-        event.params.token,
-        event.chainId
-      );
+      const tokenDetails = await erc20TokenDetailsCache.get(event.chainId, {
+        contractAddress: event.params.token,
+        chainId: event.chainId,
+      });
       const newToken: Token = {
         id: TokenIdByChain(event.params.token, event.chainId),
         name: tokenDetails.name,

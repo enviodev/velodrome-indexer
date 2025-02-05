@@ -9,7 +9,7 @@ import { TokenEntityMapping } from "../CustomTypes";
 import { TokenIdByChain } from "../Constants";
 import { generatePoolName } from "../Helpers";
 import { createTokenEntity } from "../PriceOracle";
-import { Erc20TokenDetails, getErc20TokenDetails } from "../Erc20";
+import { Erc20TokenDetails, erc20TokenDetailsCache } from "../Erc20";
 
 CLFactory.PoolCreated.contractRegister(
   ({ event, context }) => {
@@ -32,9 +32,12 @@ CLFactory.PoolCreated.handlerWithLoader({
         let tokenDetails: Erc20TokenDetails;
         if (token) {
           const { name, symbol, decimals } = token;
-          tokenDetails = { name, symbol, decimals };
+          tokenDetails = { name, symbol, decimals: Number(decimals) };
         } else {
-          tokenDetails = await getErc20TokenDetails(address, event.chainId);
+          tokenDetails = await erc20TokenDetailsCache.get(event.chainId, {
+            contractAddress: address,
+            chainId: event.chainId,
+          });
         }
 
         return {
