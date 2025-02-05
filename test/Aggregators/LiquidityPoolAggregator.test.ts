@@ -4,7 +4,9 @@ import {
   LiquidityPoolAggregator,
 } from "../../generated/src/Types.gen";
 import {
+  getCurrentAccumulatedFeeCL,
   setLiquidityPoolAggregatorSnapshot,
+  updateDynamicFeePools,
   updateLiquidityPoolAggregator,
 } from "../../src/Aggregators/LiquidityPoolAggregator";
 
@@ -12,17 +14,47 @@ describe("LiquidityPoolAggregator Functions", () => {
   let contextStub: any;
   let liquidityPoolAggregator: any;
   let timestamp: Date;
+  const blockNumber = 131536921;
 
   beforeEach(() => {
     contextStub = {
       LiquidityPoolAggregatorSnapshot: { set: sinon.stub() },
       LiquidityPoolAggregator: { set: sinon.stub() },
+      Dynamic_Fee_Swap_Module: { set: sinon.stub() },
     };
     liquidityPoolAggregator = {
       id: "0x123",
-      chainId: 1,
+      chainId: 10,
     };
     timestamp = new Date();
+  });
+
+  describe("updateDynamicFeePools", () => {
+    beforeEach(async () => {
+      contextStub.Dynamic_Fee_Swap_Module.set.reset();
+      liquidityPoolAggregator.id = "0x478946BcD4a5a22b316470F5486fAfb928C0bA25";
+      await updateDynamicFeePools(liquidityPoolAggregator as LiquidityPoolAggregator, contextStub, blockNumber);
+    });
+    it("should update the dynamic fee pools", async () => {
+      const expected_id = `${liquidityPoolAggregator.chainId}-${liquidityPoolAggregator.id}-${blockNumber}` 
+      expect(contextStub.Dynamic_Fee_Swap_Module.set.args[0][0].baseFee).to.equal(400);
+      expect(contextStub.Dynamic_Fee_Swap_Module.set.args[0][0].feeCap).to.equal(2000);
+      expect(contextStub.Dynamic_Fee_Swap_Module.set.args[0][0].scalingFactor).to.equal(10000000n);
+      expect(contextStub.Dynamic_Fee_Swap_Module.set.args[0][0].currentFee).to.equal(1900);
+      expect(contextStub.Dynamic_Fee_Swap_Module.set.args[0][0].id).to.equal(expected_id);
+    });
+  });
+
+  describe("getCurrentAccumulatedFeeCL", () => {
+    let gaugeFees: any;
+    beforeEach(async () => {
+      liquidityPoolAggregator.id = "0x478946BcD4a5a22b316470F5486fAfb928C0bA25";
+      gaugeFees = await getCurrentAccumulatedFeeCL(liquidityPoolAggregator.id, liquidityPoolAggregator.chainId, blockNumber);
+    });
+    it("should fetch accumulated gauge fees for the CL pool", async () => {
+      expect(gaugeFees.token0Fees).to.equal(55255516292n);
+      expect(gaugeFees.token1Fees).to.equal(18613785323003103999n);
+    });
   });
 
   describe("Snapshot Creation", () => {
@@ -67,7 +99,8 @@ describe("LiquidityPoolAggregator Functions", () => {
         diff,
         liquidityPoolAggregator as LiquidityPoolAggregator,
         timestamp,
-        contextStub
+        contextStub,
+        blockNumber
       );
     })
 
