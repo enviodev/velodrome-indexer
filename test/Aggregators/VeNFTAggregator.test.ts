@@ -30,6 +30,7 @@ describe("VeNFTAggregator", () => {
             value: 100n,
             locktime: 100n,
             ts: 100n,
+            transactionHash: "0x1111111111111111111111111111111111111111",
             timestamp: new Date(),
             chainId: 10,
             tokenId: 1n,
@@ -74,6 +75,7 @@ describe("VeNFTAggregator", () => {
             provider: "0x1111111111111111111111111111111111111111",
             value: 100n,
             ts: 100n,
+            transactionHash: "0x1111111111111111111111111111111111111111",
             timestamp: new Date(),
             blockNumber: 100,
             logIndex: 1,
@@ -121,6 +123,7 @@ describe("VeNFTAggregator", () => {
             chainId: 10,
             blockNumber: 100,
             logIndex: 1,
+            transactionHash: "0x1111111111111111111111111111111111111111",
         };
         describe("when the veNFT is not found", () => {
             let result: any;

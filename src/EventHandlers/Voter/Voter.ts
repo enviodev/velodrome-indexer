@@ -31,6 +31,7 @@ Voter.Voted.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.Voter_Voted.set(entity);
@@ -40,7 +41,7 @@ Voter.GaugeCreated.contractRegister(
   ({ event, context }) => {
     context.addVotingReward(event.params.bribeVotingReward);
     context.addVotingReward(event.params.feeVotingReward);
-    context.addGauge(event.params.gauge);
+    context.addCLGauge(event.params.gauge);
   },
   { preRegisterDynamicContracts: true }
 );
@@ -60,6 +61,7 @@ Voter.GaugeCreated.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.Voter_GaugeCreated.set(entity);
@@ -164,7 +166,8 @@ Voter.DistributeReward.handlerWithLoader({
           lpDiff,
           currentLiquidityPool,
           new Date(event.block.timestamp * 1000),
-          context
+          context,
+          event.block.number
         );
       } else {
         // If there is no pool entity with the particular gauge address, log the error
@@ -184,6 +187,7 @@ Voter.DistributeReward.handlerWithLoader({
         blockNumber: event.block.number,
         logIndex: event.logIndex,
         chainId: event.chainId,
+        transactionHash: event.transaction.hash
       };
 
       context.Voter_DistributeReward.set(entity);
@@ -226,6 +230,7 @@ Voter.WhitelistToken.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.Voter_WhitelistToken.set(entity);
@@ -274,8 +279,8 @@ Voter.GaugeKilled.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.Voter_GaugeKilled.set(entity);
-
 });

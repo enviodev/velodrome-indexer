@@ -10,12 +10,13 @@ import {
   CLPool_SetFeeProtocol,
   CLPool_Swap,
   LiquidityPoolAggregator,
+  Dynamic_Fee_Swap_Module,
   Token,
 } from "generated";
 import { refreshTokenPrice } from "../PriceOracle";
 import { normalizeTokenAmountTo1e18 } from "../Helpers";
 import { multiplyBase1e18, abs } from "../Maths";
-import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
+import { updateLiquidityPoolAggregator, updateDynamicFeePools } from "../Aggregators/LiquidityPoolAggregator";
 
 /**
  * Updates the fee-related metrics for a Concentrated Liquidity Pool.
@@ -200,6 +201,7 @@ CLPool.Burn.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.CLPool_Burn.set(entity);
@@ -239,6 +241,7 @@ CLPool.Collect.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.CLPool_Collect.set(entity);
@@ -264,7 +267,8 @@ CLPool.Collect.handlerWithLoader({
         liquidityPoolDiff,
         liquidityPoolAggregator,
         liquidityPoolDiff.lastUpdatedTimestamp,
-        context
+        context,
+        event.block.number
       );
     }
 
@@ -301,6 +305,7 @@ CLPool.CollectFees.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.CLPool_CollectFees.set(entity);
@@ -338,7 +343,8 @@ CLPool.CollectFees.handlerWithLoader({
         liquidityPoolDiff,
         liquidityPoolAggregator,
         new Date(event.block.timestamp * 1000),
-        context
+        context,
+        event.block.number
       );
     }
   },
@@ -358,6 +364,7 @@ CLPool.Flash.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.CLPool_Flash.set(entity);
@@ -374,6 +381,7 @@ CLPool.IncreaseObservationCardinalityNext.handler(
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.CLPool_IncreaseObservationCardinalityNext.set(entity);
@@ -390,6 +398,7 @@ CLPool.Initialize.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.CLPool_Initialize.set(entity);
@@ -453,7 +462,8 @@ CLPool.Mint.handlerWithLoader({
         liquidityPoolDiff,
         liquidityPoolAggregator,
         liquidityPoolDiff.lastUpdatedTimestamp,
-        context
+        context,
+        event.block.number
       );
     }
   },
@@ -471,6 +481,7 @@ CLPool.SetFeeProtocol.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.CLPool_SetFeeProtocol.set(entity);
@@ -509,6 +520,7 @@ CLPool.Swap.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.CLPool_Swap.set(entity);
@@ -604,7 +616,8 @@ CLPool.Swap.handlerWithLoader({
         liquidityPoolAggregatorDiff,
         liquidityPoolAggregator,
         blockDatetime,
-        context
+        context,
+        event.block.number
       );
     }
 

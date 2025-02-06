@@ -37,6 +37,7 @@ SuperchainPoolFactory.RootPoolCreated.handlerWithLoader({
       chainId: event.chainId,
       stable: event.params.stable,
       length: event.params.length,
+      transactionHash: event.transaction.hash
     };
 
     if (loaderReturn) {

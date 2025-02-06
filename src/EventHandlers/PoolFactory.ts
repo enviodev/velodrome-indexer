@@ -68,6 +68,8 @@ PoolFactory.PoolCreated.handlerWithLoader({
       totalVolume1: 0n,
       totalVolumeUSD: 0n,
       totalVolumeUSDWhitelisted: 0n,
+      gaugeFees0CurrentEpoch: 0n,
+      gaugeFees1CurrentEpoch: 0n,
       totalFees0: 0n,
       totalFees1: 0n,
       totalFeesUSD: 0n,
@@ -91,7 +93,8 @@ PoolFactory.PoolCreated.handlerWithLoader({
       pool,
       pool,
       pool.lastUpdatedTimestamp,
-      context
+      context,
+      event.block.number
     );
   },
 });
@@ -105,6 +108,7 @@ PoolFactory.SetCustomFee.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.PoolFactory_SetCustomFee.set(entity);
