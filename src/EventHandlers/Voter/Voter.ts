@@ -167,7 +167,8 @@ Voter.DistributeReward.handlerWithLoader({
           lpDiff,
           currentLiquidityPool,
           new Date(event.block.timestamp * 1000),
-          context
+          context,
+          event.block.number
         );
       } else {
         // If there is no pool entity with the particular gauge address, log the error

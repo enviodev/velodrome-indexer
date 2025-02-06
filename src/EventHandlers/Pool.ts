@@ -121,7 +121,8 @@ Pool.Fees.handlerWithLoader({
       liquidityPoolDiff,
       liquidityPoolAggregator,
       liquidityPoolDiff.lastUpdatedTimestamp,
-      context
+      context,
+      event.block.number
     );
   },
 });
@@ -253,7 +254,8 @@ Pool.Swap.handlerWithLoader({
         liquidityPoolDiff,
         liquidityPoolAggregator,
         liquidityPoolDiff.lastUpdatedTimestamp,
-        context
+        context,
+        event.block.number
       );
 
 
@@ -375,7 +377,8 @@ Pool.Sync.handlerWithLoader({
       liquidityPoolDiff,
       liquidityPoolAggregator,
       liquidityPoolDiff.lastUpdatedTimestamp,
-      context
+      context,
+      event.block.number
     );
   },
 });

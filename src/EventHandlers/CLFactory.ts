@@ -83,6 +83,8 @@ CLFactory.PoolCreated.handlerWithLoader({
       totalVolumeUSDWhitelisted: 0n,
       totalFees0: 0n,
       totalFees1: 0n,
+      gaugeFees0CurrentEpoch: 0n,
+      gaugeFees1CurrentEpoch: 0n,
       totalFeesUSD: 0n,
       totalFeesUSDWhitelisted: 0n,
       numberOfSwaps: 0n,
@@ -104,7 +106,8 @@ CLFactory.PoolCreated.handlerWithLoader({
       aggregator,
       aggregator,
       new Date(event.block.timestamp * 1000),
-      context
+      context,
+      event.block.number
     );
   },
 });
