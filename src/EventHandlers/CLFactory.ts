@@ -32,6 +32,7 @@ CLFactory.PoolCreated.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.CLFactory_PoolCreated.set(entity);

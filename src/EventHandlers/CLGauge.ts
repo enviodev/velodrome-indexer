@@ -15,6 +15,7 @@ CLGauge.NotifyReward.handler(async ({ event, context }) => {
     logIndex: event.logIndex,
     sourceAddress: event.srcAddress,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.Gauge_NotifyReward.set(entity);
@@ -32,6 +33,7 @@ CLGauge.Deposit.handler(async ({ event, context }) => {
     logIndex: event.logIndex,
     sourceAddress: event.srcAddress,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.CLGauge_Deposit.set(entity);
@@ -48,6 +50,7 @@ CLGauge.Withdraw.handler(async ({ event, context }) => {
     logIndex: event.logIndex,
     sourceAddress: event.srcAddress,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.CLGauge_Withdraw.set(entity);

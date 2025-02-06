@@ -31,6 +31,7 @@ Voter.Voted.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.Voter_Voted.set(entity);
@@ -61,6 +62,7 @@ Voter.GaugeCreated.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.Voter_GaugeCreated.set(entity);
@@ -185,6 +187,7 @@ Voter.DistributeReward.handlerWithLoader({
         blockNumber: event.block.number,
         logIndex: event.logIndex,
         chainId: event.chainId,
+        transactionHash: event.transaction.hash
       };
 
       context.Voter_DistributeReward.set(entity);
@@ -227,6 +230,7 @@ Voter.WhitelistToken.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.Voter_WhitelistToken.set(entity);
@@ -275,8 +279,8 @@ Voter.GaugeKilled.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.Voter_GaugeKilled.set(entity);
-
 });

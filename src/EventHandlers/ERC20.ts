@@ -10,6 +10,7 @@ ERC20.Transfer.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.ERC20_Transfer.set(entity);

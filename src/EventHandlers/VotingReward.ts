@@ -53,6 +53,7 @@ VotingReward.NotifyReward.handlerWithLoader({
       logIndex: event.logIndex,
       sourceAddress: event.srcAddress,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.VotingReward_NotifyReward.set(entity);
@@ -125,6 +126,7 @@ VotingReward.Deposit.handler(async ({ event, context }) => {
     logIndex: event.logIndex,
     sourceAddress: event.srcAddress,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.VotingReward_Deposit.set(entity);
@@ -141,6 +143,7 @@ VotingReward.Withdraw.handler(async ({ event, context }) => {
     logIndex: event.logIndex,
     sourceAddress: event.srcAddress,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.VotingReward_Withdraw.set(entity);

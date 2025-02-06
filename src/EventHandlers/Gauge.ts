@@ -15,6 +15,7 @@ Gauge.NotifyReward.handler(async ({ event, context }) => {
     logIndex: event.logIndex,
     sourceAddress: event.srcAddress,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   console.log(entity);
@@ -32,6 +33,7 @@ Gauge.Deposit.handler(async ({ event, context }) => {
     logIndex: event.logIndex,
     sourceAddress: event.srcAddress,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.Gauge_Deposit.set(entity);
@@ -47,6 +49,7 @@ Gauge.Withdraw.handler(async ({ event, context }) => {
     logIndex: event.logIndex,
     sourceAddress: event.srcAddress,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.Gauge_Withdraw.set(entity);
