@@ -80,6 +80,13 @@ contracts:
       - event: Deposit(address indexed from, uint256 indexed tokenId, uint256 amount)
       - event: NotifyReward(address indexed from, address indexed reward, uint256 indexed epoch, uint256 amount)
       - event: Withdraw(address indexed from, uint256 indexed tokenId, uint256 amount)
+  - name: CLGauge
+    abi_file_path: abis/CLGauge.json
+    handler: src/EventHandlers/CLGauge.ts
+    events:
+      - event: NotifyReward
+      - event: Deposit
+      - event: Withdraw
   - name: Gauge
     abi_file_path: abis/Gauge.json
     handler: src/EventHandlers/Gauge.ts

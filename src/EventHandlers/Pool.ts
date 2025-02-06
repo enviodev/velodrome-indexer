@@ -38,6 +38,7 @@ Pool.Burn.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.Pool_Burn.set(entity);
@@ -169,6 +170,7 @@ Pool.Swap.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.Pool_Swap.set(entity);
@@ -322,6 +324,7 @@ Pool.Sync.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.Pool_Sync.set(entity);

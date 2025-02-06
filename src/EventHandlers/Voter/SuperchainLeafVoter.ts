@@ -30,6 +30,7 @@ SuperchainLeafVoter.Voted.handler(async ({ event, context }) => {
     tokenId: event.params.tokenId,
     weight: event.params.weight,
     totalWeight: event.params.totalWeight,
+    transactionHash: event.transaction.hash,
     timestamp: new Date(event.block.timestamp * 1000),
     blockNumber: event.block.number,
     logIndex: event.logIndex,
@@ -63,6 +64,7 @@ SuperchainLeafVoter.GaugeCreated.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.Voter_GaugeCreated.set(entity);
@@ -188,6 +190,7 @@ SuperchainLeafVoter.DistributeReward.handlerWithLoader({
         blockNumber: event.block.number,
         logIndex: event.logIndex,
         chainId: event.chainId,
+        transactionHash: event.transaction.hash,
       };
 
       context.Voter_DistributeReward.set(entity);
@@ -229,6 +232,7 @@ SuperchainLeafVoter.WhitelistToken.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash,
     };
 
     context.Voter_WhitelistToken.set(entity);

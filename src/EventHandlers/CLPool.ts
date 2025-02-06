@@ -201,6 +201,7 @@ CLPool.Burn.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.CLPool_Burn.set(entity);
@@ -240,6 +241,7 @@ CLPool.Collect.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.CLPool_Collect.set(entity);
@@ -303,6 +305,7 @@ CLPool.CollectFees.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.CLPool_CollectFees.set(entity);
@@ -361,6 +364,7 @@ CLPool.Flash.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.CLPool_Flash.set(entity);
@@ -377,6 +381,7 @@ CLPool.IncreaseObservationCardinalityNext.handler(
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.CLPool_IncreaseObservationCardinalityNext.set(entity);
@@ -393,6 +398,7 @@ CLPool.Initialize.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.CLPool_Initialize.set(entity);
@@ -475,6 +481,7 @@ CLPool.SetFeeProtocol.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.CLPool_SetFeeProtocol.set(entity);
@@ -513,6 +520,7 @@ CLPool.Swap.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.CLPool_Swap.set(entity);

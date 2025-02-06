@@ -32,6 +32,7 @@ VeNFT.Withdraw.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.VeNFT_Withdraw.set(entity_withdraw);
@@ -65,6 +66,7 @@ VeNFT.Transfer.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.VeNFT_Transfer.set(entity_transfer);
@@ -102,6 +104,7 @@ VeNFT.Deposit.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.VeNFT_Deposit.set(entity_deposit);
