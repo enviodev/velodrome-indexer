@@ -238,7 +238,7 @@ const METAL_CONSTANTS: chainConstants = {
   usdc: "0x51E85d70944256710cb141847F1a04f568C1Db0e",
   oracle: {
     getAddress: (blockNumber: number) => {
-      return 0; // TODO: Get oracle address
+      return "0xE50621a0527A43534D565B67D64be7C79807F269";
     },
     startBlock: 0,
     updateDelta: 60 * 60, // 1 hour
