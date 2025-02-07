@@ -235,10 +235,10 @@ const INK_CONSTANTS: chainConstants = {
 // Constants for Metal
 const METAL_CONSTANTS: chainConstants = {
   weth: "0x4200000000000000000000000000000000000006",
-  usdc: "0x51E85d70944256710cb141847F1a04f568C1Db0e",
+  usdc: "0xb91CFCcA485C6E40E3bC622f9BFA02a8ACdEeBab",
   oracle: {
     getAddress: (blockNumber: number) => {
-      return "0xE50621a0527A43534D565B67D64be7C79807F269";
+      return "0x3e71CCdf495d9628D3655A600Bcad3afF2ddea98";
     },
     startBlock: 0,
     updateDelta: 60 * 60, // 1 hour
