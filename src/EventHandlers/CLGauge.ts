@@ -1,12 +1,12 @@
 import {
-  Gauge,
-  Gauge_NotifyReward,
-  Gauge_Deposit,
-  Gauge_Withdraw,
+  CLGauge,
+  CLGauge_NotifyReward,
+  CLGauge_Deposit,
+  CLGauge_Withdraw
 } from "generated";
 
-Gauge.NotifyReward.handler(async ({ event, context }) => {
-  const entity: Gauge_NotifyReward = {
+CLGauge.NotifyReward.handler(async ({ event, context }) => {
+  const entity: CLGauge_NotifyReward = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     from: event.params.from,
     amount: event.params.amount,
@@ -18,16 +18,16 @@ Gauge.NotifyReward.handler(async ({ event, context }) => {
     transactionHash: event.transaction.hash
   };
 
-  console.log(entity);
   context.Gauge_NotifyReward.set(entity);
 });
 
-Gauge.Deposit.handler(async ({ event, context }) => {
+CLGauge.Deposit.handler(async ({ event, context }) => {
 
-  const entity: Gauge_Deposit = {
+  const entity: CLGauge_Deposit = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    from: event.params.from,
-    amount: event.params.amount,
+    tokenId: event.params.tokenId,
+    user: event.params.user,
+    liquidityToStake: event.params.liquidityToStake,
     timestamp: new Date(event.block.timestamp * 1000),
     blockNumber: event.block.number,
     logIndex: event.logIndex,
@@ -36,14 +36,15 @@ Gauge.Deposit.handler(async ({ event, context }) => {
     transactionHash: event.transaction.hash
   };
 
-  context.Gauge_Deposit.set(entity);
+  context.CLGauge_Deposit.set(entity);
 });
 
-Gauge.Withdraw.handler(async ({ event, context }) => {
-  const entity: Gauge_Withdraw = {
+CLGauge.Withdraw.handler(async ({ event, context }) => {
+  const entity: CLGauge_Withdraw = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    from: event.params.from,
-    amount: event.params.amount,
+    tokenId: event.params.tokenId,
+    user: event.params.user,
+    liquidityToStake: event.params.liquidityToStake,
     timestamp: new Date(event.block.timestamp * 1000),
     blockNumber: event.block.number,
     logIndex: event.logIndex,
@@ -52,5 +53,5 @@ Gauge.Withdraw.handler(async ({ event, context }) => {
     transactionHash: event.transaction.hash
   };
 
-  context.Gauge_Withdraw.set(entity);
+  context.CLGauge_Withdraw.set(entity);
 });

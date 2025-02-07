@@ -38,6 +38,7 @@ Pool.Burn.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     logIndex: event.logIndex,
     chainId: event.chainId,
+    transactionHash: event.transaction.hash
   };
 
   context.Pool_Burn.set(entity);
@@ -120,7 +121,8 @@ Pool.Fees.handlerWithLoader({
       liquidityPoolDiff,
       liquidityPoolAggregator,
       liquidityPoolDiff.lastUpdatedTimestamp,
-      context
+      context,
+      event.block.number
     );
   },
 });
@@ -168,6 +170,7 @@ Pool.Swap.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.Pool_Swap.set(entity);
@@ -251,7 +254,8 @@ Pool.Swap.handlerWithLoader({
         liquidityPoolDiff,
         liquidityPoolAggregator,
         liquidityPoolDiff.lastUpdatedTimestamp,
-        context
+        context,
+        event.block.number
       );
 
 
@@ -320,6 +324,7 @@ Pool.Sync.handlerWithLoader({
       blockNumber: event.block.number,
       logIndex: event.logIndex,
       chainId: event.chainId,
+      transactionHash: event.transaction.hash
     };
 
     context.Pool_Sync.set(entity);
@@ -372,7 +377,8 @@ Pool.Sync.handlerWithLoader({
       liquidityPoolDiff,
       liquidityPoolAggregator,
       liquidityPoolDiff.lastUpdatedTimestamp,
-      context
+      context,
+      event.block.number
     );
   },
 });

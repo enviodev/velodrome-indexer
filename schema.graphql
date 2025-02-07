@@ -15,6 +15,8 @@ type LiquidityPoolAggregator {
   totalVolume1: BigInt! @config(precision: 76) # total swap volume of token1 in token units
   totalVolumeUSD: BigInt! @config(precision: 76) # total swap volume of the pool in USD
   totalVolumeUSDWhitelisted: BigInt! @config(precision: 76) # total swap volume of the pool in USD
+  gaugeFees0CurrentEpoch: BigInt! @config(precision: 76) # fees collected for current epoch in token0 units
+  gaugeFees1CurrentEpoch: BigInt! @config(precision: 76) # fees collected for current epoch in token1 units
   totalFees0: BigInt! @config(precision: 76) # total fees collected in token0 units
   totalFees1: BigInt! @config(precision: 76) # total fees collected in token1 units
   totalFeesUSD: BigInt! @config(precision: 76) # total fees collected in USD
@@ -53,6 +55,8 @@ type LiquidityPoolAggregatorSnapshot {
   totalVolume1: BigInt! @config(precision: 76) # total swap volume of token1 in token units
   totalVolumeUSD: BigInt! @config(precision: 76) # total swap volume of the pool in USD
   totalVolumeUSDWhitelisted: BigInt! @config(precision: 76) # total swap volume of the pool in USD
+  gaugeFees0CurrentEpoch: BigInt! @config(precision: 76) # fees collected for current epoch in token0 units
+  gaugeFees1CurrentEpoch: BigInt! @config(precision: 76) # fees collected for current epoch in token1 units
   totalFees0: BigInt! @config(precision: 76) # total fees collected in token0 units
   totalFees1: BigInt! @config(precision: 76) # total fees collected in token1 units
   totalFeesUSD: BigInt! @config(precision: 76) # total fees collected in USD
@@ -112,6 +116,46 @@ type CLFactory_PoolCreated {
   pool: String! @index
   timestamp: Timestamp!
   blockNumber: Int!
+  transactionHash: String!
+  logIndex: Int!
+  chainId: Int!
+}
+
+# Event for when a gauge is notified of a reward
+type CLGauge_NotifyReward {
+  id: ID!
+  from: String!
+  amount: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  transactionHash: String!
+  logIndex: Int!
+  chainId: Int!
+}
+
+type CLGauge_Deposit {
+  id: ID!
+  tokenId: BigInt! @config(precision: 76)
+  user: String!
+  liquidityToStake: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  transactionHash: String!
+  logIndex: Int!
+  chainId: Int!
+}
+
+type CLGauge_Withdraw {
+  id: ID!
+  tokenId: BigInt! @config(precision: 76)
+  user: String!
+  liquidityToStake: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  transactionHash: String!
   logIndex: Int!
   chainId: Int!
 }
@@ -124,6 +168,31 @@ type Gauge_NotifyReward {
   sourceAddress: String!
   timestamp: Timestamp!
   blockNumber: Int!
+  transactionHash: String!
+  logIndex: Int!
+  chainId: Int!
+}
+
+type Gauge_Deposit {
+  id: ID!
+  from: String!
+  amount: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+  transactionHash: String!
+}
+
+type Gauge_Withdraw {
+  id: ID!
+  from: String!
+  amount: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  transactionHash: String!
   logIndex: Int!
   chainId: Int!
 }
@@ -139,6 +208,7 @@ type VotingReward_NotifyReward {
   sourceAddress: String!
   timestamp: Timestamp!
   blockNumber: Int!
+  transactionHash: String!
   logIndex: Int!
   chainId: Int!
 }
@@ -155,6 +225,7 @@ type Pool_Swap {
   sourceAddress: String!
   timestamp: Timestamp!
   blockNumber: Int!
+  transactionHash: String!
   logIndex: Int!
   chainId: Int!
 }
@@ -169,6 +240,7 @@ type Pool_Burn {
   amount1: BigInt! @config(precision: 76)
   timestamp: Timestamp!
   blockNumber: Int!
+  transactionHash: String!
   logIndex: Int!
   chainId: Int!
 }
@@ -193,17 +265,44 @@ type Pool_Sync {
   sourceAddress: String!
   timestamp: Timestamp!
   blockNumber: Int!
+  transactionHash: String!
   logIndex: Int!
   chainId: Int!
 }
 
 type NFPM_Transfer {
   id: ID!
-  transactionHash: String!
   from: String!
   to: String!
   tokenId: BigInt! @config(precision: 76)
   timestamp: Timestamp!
+  transactionHash: String!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+}
+
+type NFPM_IncreaseLiquidity {
+  id: ID!
+  tokenId: BigInt! @config(precision: 76)
+  liquidity: BigInt! @config(precision: 76)
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  transactionHash: String!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+}
+
+type NFPM_DecreaseLiquidity {
+  id: ID!
+  tokenId: BigInt! @config(precision: 76)
+  liquidity: BigInt! @config(precision: 76)
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -220,6 +319,7 @@ type VotingReward_Deposit {
   amount: BigInt! @config(precision: 76)
   sourceAddress: String!
   timestamp: Timestamp!
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -232,6 +332,7 @@ type VotingReward_Withdraw {
   amount: BigInt! @config(precision: 76)
   sourceAddress: String!
   timestamp: Timestamp!
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -245,6 +346,7 @@ type Voter_Voted {
   weight: BigInt! @config(precision: 76)
   totalWeight: BigInt! @config(precision: 76)
   timestamp: Timestamp!
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -258,6 +360,7 @@ type Voter_DistributeReward {
   amount: BigInt! @config(precision: 76)
   tokensDeposited: BigInt! @config(precision: 76)
   timestamp: Timestamp!
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -274,6 +377,18 @@ type Voter_GaugeCreated {
   gauge: String!
   creator: String!
   timestamp: Timestamp!
+  transactionHash: String!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+}
+
+type Voter_GaugeKilled {
+  id: ID!
+  sender: String!
+  gauge: String!
+  timestamp: Timestamp!
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -284,6 +399,7 @@ type PoolFactory_SetCustomFee {
   pool: String!
   fee: BigInt! @config(precision: 76)
   timestamp: Timestamp!
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -299,6 +415,7 @@ type CLPool_Burn {
   amount1: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -314,6 +431,7 @@ type CLPool_Collect {
   amount1: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -326,6 +444,7 @@ type CLPool_CollectFees {
   amount1: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -341,6 +460,7 @@ type CLPool_Flash {
   paid1: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -352,6 +472,7 @@ type CLPool_IncreaseObservationCardinalityNext {
   observationCardinalityNextNew: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -363,6 +484,7 @@ type CLPool_Initialize {
   tick: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -393,6 +515,7 @@ type CLPool_SetFeeProtocol {
   feeProtocol1New: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -409,6 +532,7 @@ type CLPool_Swap {
   tick: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -421,6 +545,7 @@ type Voter_WhitelistToken {
   token: String!
   isWhitelisted: Boolean!
   timestamp: Timestamp!
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -433,6 +558,7 @@ type SuperchainCLFactory_RootPoolCreated {
   tickSpacing: BigInt! @config(precision: 76)
   pool: String! @index
   timestamp: Timestamp!
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   poolChainId: Int!
@@ -446,6 +572,7 @@ type SuperchainPoolFactory_RootPoolCreated {
   stable: Boolean!
   pool: String! @index
   timestamp: Timestamp!
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   poolChainId: Int!
@@ -473,6 +600,7 @@ type VeNFT_Deposit {
   locktime: BigInt! @config(precision: 76)
   ts: BigInt! @config(precision: 76)
   timestamp: Timestamp!
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -485,6 +613,7 @@ type VeNFT_Withdraw {
   value: BigInt! @config(precision: 76)
   ts: BigInt! @config(precision: 76)
   timestamp: Timestamp!
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -496,6 +625,7 @@ type VeNFT_Transfer {
   to: String!
   tokenId: BigInt! @config(precision: 76)
   timestamp: Timestamp!
+  transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
   chainId: Int!
@@ -512,6 +642,7 @@ type ALMCore_Rebalance {
   ammPositionIdBefore: BigInt! @config(precision: 76)
   ammPositionIdAfter: BigInt! @config(precision: 76)
   timestamp: Timestamp!
+  transactionHash: String!
   chainId: Int!
   blockNumber: Int!
   logIndex: Int!
@@ -527,6 +658,7 @@ type ALMCore_Rebalance_AmmPosition {
   tickUpper: BigInt! @config(precision: 24)
   liquidity: BigInt! @config(precision: 76)
   timestamp: Timestamp!
+  transactionHash: String!
   chainId: Int!
   blockNumber: Int!
   logIndex: Int!
@@ -542,6 +674,7 @@ type ALMDeployFactory_StrategyCreated {
   width: BigInt! @config(precision: 24)
   maxLiquidityRatioDeviationX96: BigInt! @config(precision: 76)
   timestamp: Timestamp!
+  transactionHash: String!
   chainId: Int!
   blockNumber: Int!
   logIndex: Int!
@@ -558,6 +691,7 @@ type ALMDeployFactory_StrategyCreated_AmmPosition {
   tickUpper: BigInt! @config(precision: 24)
   liquidity: BigInt! @config(precision: 76)
   timestamp: Timestamp!
+  transactionHash: String!
   chainId: Int!
   blockNumber: Int!
   logIndex: Int!
@@ -573,6 +707,7 @@ type ALMLPWrapper_Deposit {
   lpAmount: BigInt! @config(precision: 76)
   totalSupply: BigInt! @config(precision: 76)
   timestamp: Timestamp!
+  transactionHash: String!
   chainId: Int!
   blockNumber: Int!
   logIndex: Int!
@@ -588,6 +723,7 @@ type ALMLPWrapper_Withdraw {
   lpAmount: BigInt! @config(precision: 76)
   totalSupply: BigInt! @config(precision: 76)
   timestamp: Timestamp!
+  transactionHash: String!
   chainId: Int!
   blockNumber: Int!
   logIndex: Int!
@@ -599,7 +735,32 @@ type ALMLPWrapper_Transfer {
   to: String!
   value: BigInt! @config(precision: 76)
   timestamp: Timestamp!
+  transactionHash: String!
   chainId: Int!
   blockNumber: Int!
   logIndex: Int!
+}
+
+type ERC20_Transfer {
+  id: ID!
+  from: String!
+  to: String!
+  value: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
+  transactionHash: String!
+}
+
+type Dynamic_Fee_Swap_Module {
+  id: ID!
+  pool: String!
+  baseFee: BigInt! @config(precision: 76)
+  feeCap: BigInt! @config(precision: 76)
+  scalingFactor: BigInt! @config(precision: 76)
+  currentFee: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  chainId: Int!
+  blockNumber: Int!
 }

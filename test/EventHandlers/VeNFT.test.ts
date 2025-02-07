@@ -62,6 +62,7 @@ describe("VeNFT Events", () => {
         expected.blockNumber = mockEvent.block.number;
         expected.logIndex = mockEvent.logIndex;
         expected.timestamp = new Date(mockEvent.block.timestamp * 1000);
+        expected.transactionHash = mockEvent.transaction.hash;
     });
     afterEach(() => {
         stubVeNFTAggregator.restore();
@@ -120,6 +121,7 @@ describe("VeNFT Events", () => {
         expected.timestamp = new Date(mockEvent.block.timestamp * 1000);
         expected.blockNumber = mockEvent.block.number;
         expected.logIndex = mockEvent.logIndex;
+        expected.transactionHash = mockEvent.transaction.hash;
     });
     afterEach(() => {
         stubVeNFTAggregator.restore();
@@ -184,6 +186,7 @@ describe("VeNFT Events", () => {
         expected.timestamp = new Date(mockEvent.block.timestamp * 1000);
         expected.blockNumber = mockEvent.block.number;
         expected.logIndex = mockEvent.logIndex;
+        expected.transactionHash = mockEvent.transaction.hash;
     });
     afterEach(() => {
         stubVeNFTAggregator.restore();
