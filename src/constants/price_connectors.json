@@ -35,5 +35,7 @@
     ],
     "soneium": [],
     "ink": [],
-    "metal": []
+    "metal": [
+        {"address" :"0xBCFc435d8F276585f6431Fc1b9EE9A850B5C00A9", "createdBlock": 79540 }
+    ]
 }
