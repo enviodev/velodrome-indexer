@@ -194,7 +194,7 @@ networks:
           - 0x0000000cE42D4981513060aB7E50B9e5e2D19AF1
       - name: ALMLPWrapper
         address:
-  - id: 1863 # Soneium 
+  - id: 1868 # Soneium 
     hypersync_config:
       url: https://soneium.hypersync.xyz
     start_block: 0
