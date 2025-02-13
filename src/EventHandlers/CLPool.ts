@@ -16,7 +16,7 @@ import {
 import { refreshTokenPrice } from "../PriceOracle";
 import { normalizeTokenAmountTo1e18 } from "../Helpers";
 import { multiplyBase1e18, abs } from "../Maths";
-import { updateLiquidityPoolAggregator, updateDynamicFeePools } from "../Aggregators/LiquidityPoolAggregator";
+import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
 import { loaderContext, handlerContext, CLPool_Swap_event } from "generated/src/Types.gen";
 
 /**
@@ -99,16 +99,6 @@ function updateCLPoolFees(
  * @param token1Instance - Token instance for token1, containing decimals and price data
  * 
  * @returns {Object} Updated liquidity metrics
- * @returns {bigint} .reserve0 - New token0 reserve amount
- * @returns {bigint} .reserve1 - New token1 reserve amount
- * @returns {bigint} .addTotalLiquidity0USD - USD value if adding token0 liquidity
- * @returns {bigint} .subTotalLiquidity0USD - USD value if removing token0 liquidity
- * @returns {bigint} .addTotalLiquidity1USD - USD value if adding token1 liquidity
- * @returns {bigint} .subTotalLiquidity1USD - USD value if removing token1 liquidity
- * @returns {bigint} .addTotalLiquidityUSD - Total USD value for liquidity addition
- * @returns {bigint} .subTotalLiquidityUSD - Total USD value for liquidity removal
- * @returns {bigint} .normalizedReserve0 - Reserve0 normalized to 18 decimals
- * @returns {bigint} .normalizedReserve1 - Reserve1 normalized to 18 decimals
  */
 function updateCLPoolLiquidity(
   liquidityPoolAggregator: LiquidityPoolAggregator,
@@ -212,11 +202,7 @@ type CLPoolLoaderTokenError = {
 type CLPoolLoaderLiquidityPoolError = {
   _type: "LiquidityPoolAggregatorNotFoundError";
   message: string;
-  available: {
-    liquidityPoolAggregator?: LiquidityPoolAggregator;
-    token0Instance?: Token;
-    token1Instance?: Token;
-  }
+  available: Partial<CLPoolLoaderData>
 }
 
 type CLPoolLoaderError<T extends CLPoolLoaderErrorType> = T extends "TokenNotFoundError" ?
@@ -702,6 +688,7 @@ CLPool.Swap.handlerWithLoader({
           context,
           event.block.number
         );
+
         return;
       case "TokenNotFoundError":
         let tokenNotFoundSwapEntityData: SwapEntityData = {
@@ -732,8 +719,8 @@ CLPool.Swap.handlerWithLoader({
           context,
           event.block.number
         );
-        return;
 
+        return;
       case "LiquidityPoolAggregatorNotFoundError":
         context.log.error(loaderReturn.message);
         return;
