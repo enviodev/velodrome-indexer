@@ -764,3 +764,27 @@ type Dynamic_Fee_Swap_Module {
   chainId: Int!
   blockNumber: Int!
 }
+
+type FactoryRegistry_Approve {
+  id: ID!
+  poolFactory: String!
+  votingRewardsFactory: String!
+  gaugeFactory: String!
+  timestamp: Timestamp!
+  transactionHash: String!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+}
+
+type FactoryRegistry_Unapprove {
+  id: ID!
+  poolFactory: String!
+  votingRewardsFactory: String!
+  gaugeFactory: String!
+  timestamp: Timestamp!
+  transactionHash: String!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+}

@@ -16,6 +16,12 @@ contracts:
     handler: src/EventHandlers/SuperchainCLFactory.ts
     events:
       - event: RootPoolCreated(address indexed token0, address indexed token1, int24 indexed tickSpacing, uint256 chainid, address pool)
+  - name: FactoryRegistry
+    handler: src/EventHandlers/FactoryRegistry.ts
+    abi_file_path: abis/FactoryRegistry.json
+    events:
+      - event: Approve(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory)
+      - event: Unapprove(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory)
   - name: PoolFactory
     handler: src/EventHandlers/PoolFactory.ts
     events:
@@ -130,15 +136,12 @@ networks:
       - name: NFPM
         address:
           - 0x416b433906b1b72fa758e166e239c43d68dc6f29
-      - name: PoolFactory
+      - name: FactoryRegistry
         address:
-          - 0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a
+          - 0xF4c67CdEAaB8360370F41514d06e32CcD8aA1d7B
       - name: SuperchainPoolFactory
         address:
           - 0x31832f2a97Fd20664D76Cc421207669b55CE4BC0
-      - name: CLFactory
-        address:
-          - 0xCc0bDDB707055e04e497aB22a59c2aF4391cd12F
       - name: SuperchainCLFactory
         address:
           - 0x04625B046C69577EfC40e6c0Bb83CDBAfab5a55F
@@ -171,12 +174,9 @@ networks:
       - name: NFPM
         address:
           - 0x827922686190790b37229fd06084350e74485b72
-      - name: PoolFactory
+      - name: FactoryRegistry
         address:
-          - 0x420DD381b31aEf6683db6B902084cB0FFECe40Da
-      - name: CLFactory
-        address:
-          - 0x5e7BB104d84c7CB9B682AaC2F3d509f5F406809A
+          - 0x5C3F18F06CC09CA1910767A34a20F771039E37C0
       - name: Pool
         address:
       - name: Voter
