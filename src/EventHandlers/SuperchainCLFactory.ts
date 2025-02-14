@@ -7,6 +7,7 @@ SuperchainCLFactory.RootPoolCreated.handler(async ({ event, context }) => {
     token0: event.params.token0,
     token1: event.params.token1,
     pool: event.params.pool,
+    poolFactory: event.srcAddress,
     timestamp: new Date(event.block.timestamp * 1000),
     chainId: event.chainId,
     poolChainId: Number(poolChainId),

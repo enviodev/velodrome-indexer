@@ -1,6 +1,6 @@
 import { PoolFactory, PoolFactory_SetCustomFee } from "generated";
 import { TokenEntityMapping } from "./../CustomTypes";
-import { LiquidityPoolAggregator } from "./../src/Types.gen";
+import { LiquidityPoolAggregator, PoolFactory_PoolCreated } from "./../src/Types.gen";
 import { generatePoolName } from "./../Helpers";
 import { TokenIdByChain } from "../Constants";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
@@ -23,6 +23,22 @@ PoolFactory.PoolCreated.handlerWithLoader({
     return { poolToken0, poolToken1 };
   },
   handler: async ({ event, context, loaderReturn }) => {
+    const entity: PoolFactory_PoolCreated = {
+      id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+      poolFactory: event.srcAddress,
+      token0: TokenIdByChain(event.params.token0, event.chainId),
+      token1: TokenIdByChain(event.params.token1, event.chainId),
+      stable: event.params.stable,
+      pool: event.params.pool,
+      timestamp: new Date(event.block.timestamp * 1000),
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
+      chainId: event.chainId,
+      transactionHash: event.transaction.hash
+    };
+
+    context.PoolFactory_PoolCreated.set(entity);
+
     const { poolToken0, poolToken1 } = loaderReturn;
 
     let poolTokenSymbols: string[] = [];
