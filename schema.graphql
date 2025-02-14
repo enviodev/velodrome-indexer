@@ -114,6 +114,7 @@ type CLFactory_PoolCreated {
   token1: String!
   tickSpacing: BigInt! @config(precision: 76)
   pool: String! @index
+  poolFactory: String!
   timestamp: Timestamp!
   blockNumber: Int!
   transactionHash: String!
@@ -405,6 +406,20 @@ type PoolFactory_SetCustomFee {
   chainId: Int!
 }
 
+type PoolFactory_PoolCreated {
+  id: ID!
+  poolFactory: String!
+  token0: String!
+  token1: String!
+  stable: Boolean!
+  pool: String! @index
+  timestamp: Timestamp!
+  blockNumber: Int!
+  transactionHash: String!
+  logIndex: Int!
+  chainId: Int!
+}
+
 type CLPool_Burn {
   id: ID!
   owner: String!
@@ -557,6 +572,7 @@ type SuperchainCLFactory_RootPoolCreated {
   token1: String!
   tickSpacing: BigInt! @config(precision: 76)
   pool: String! @index
+  poolFactory: String!
   timestamp: Timestamp!
   transactionHash: String!
   blockNumber: Int!
@@ -571,6 +587,7 @@ type SuperchainPoolFactory_RootPoolCreated {
   token1: String!
   stable: Boolean!
   pool: String! @index
+  poolFactory: String!
   timestamp: Timestamp!
   transactionHash: String!
   blockNumber: Int!
@@ -763,4 +780,28 @@ type Dynamic_Fee_Swap_Module {
   timestamp: Timestamp!
   chainId: Int!
   blockNumber: Int!
+}
+
+type FactoryRegistry_Approve {
+  id: ID!
+  poolFactory: String!
+  votingRewardsFactory: String!
+  gaugeFactory: String!
+  timestamp: Timestamp!
+  transactionHash: String!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
+}
+
+type FactoryRegistry_Unapprove {
+  id: ID!
+  poolFactory: String!
+  votingRewardsFactory: String!
+  gaugeFactory: String!
+  timestamp: Timestamp!
+  transactionHash: String!
+  blockNumber: Int!
+  logIndex: Int!
+  chainId: Int!
 }

@@ -24,6 +24,7 @@ CLFactory.PoolCreated.handlerWithLoader({
   handler: async ({ event, context, loaderReturn }) => {
     const entity: CLFactory_PoolCreated = {
       id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+      poolFactory: event.srcAddress,
       token0: TokenIdByChain(event.params.token0, event.chainId),
       token1: TokenIdByChain(event.params.token1, event.chainId),
       tickSpacing: event.params.tickSpacing,

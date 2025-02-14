@@ -45,6 +45,7 @@ SuperchainLeafVoter.GaugeCreated.contractRegister(
     context.addVotingReward(event.params.incentiveVotingReward);
     context.addVotingReward(event.params.feeVotingReward);
     context.addGauge(event.params.gauge);
+    context.addCLGauge(event.params.gauge);
   },
   { preRegisterDynamicContracts: true }
 );

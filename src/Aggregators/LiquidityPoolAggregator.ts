@@ -195,6 +195,7 @@ export async function updateLiquidityPoolAggregator(
           gaugeFees1CurrentEpoch: gaugeFees.token1Fees,
         };
         setLiquidityPoolAggregatorSnapshot(gaugeFeeUpdated, timestamp, context);
+        updateDynamicFeePools(gaugeFeeUpdated, context, blockNumber);
         return;
       } catch (error) {
         // No error if the pool is not a CL pool

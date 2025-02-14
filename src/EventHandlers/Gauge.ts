@@ -18,7 +18,6 @@ Gauge.NotifyReward.handler(async ({ event, context }) => {
     transactionHash: event.transaction.hash
   };
 
-  console.log(entity);
   context.Gauge_NotifyReward.set(entity);
 });
 
