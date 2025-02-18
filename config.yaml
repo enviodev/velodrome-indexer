@@ -122,10 +122,21 @@ contracts:
     handler: src/EventHandlers/ERC20.ts
     events:
       - event: Transfer(address indexed from, address indexed to, uint256 value)
+  - name: DynamicFeeSwapModule
+    abi_file_path: abis/DynamicFeeSwapModule.json
+    handler: src/EventHandlers/DynamicFeeSwapModule.ts
+    events:
+      - event: CustomFeeSet
+      - event: SecondsAgoSet
+      - event: ScalingFactorSet
+      - event: FeeCapSet
 networks:
   - id: 10 # Optimism
     start_block: 0
     contracts:
+      - name: DynamicFeeSwapModule
+        address:
+          - 0xd9eE4FBeE92970509ec795062cA759F8B52d6720
       - name: ERC20
         address:
           - 0x3c8B650257cFb5f272f799F5e2b4e65093a11a05 # VELO

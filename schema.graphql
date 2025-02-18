@@ -805,3 +805,46 @@ type FactoryRegistry_Unapprove {
   logIndex: Int!
   chainId: Int!
 }
+
+type DynamicFeeSwapModule_CustomFeeSet {
+  id: ID!
+  chainId: Int!
+  pool: String!
+  fee: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  transactionHash: String!
+  blockNumber: Int!
+  logIndex: Int!
+}
+
+type DynamicFeeSwapModule_SecondsAgoSet {
+  id: ID!
+  chainId: Int!
+  secondsAgo: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  transactionHash: String!
+  blockNumber: Int!
+  logIndex: Int!
+}
+
+type DynamicFeeSwapModule_ScalingFactorSet {
+  id: ID!
+  chainId: Int!
+  pool: String!
+  scalingFactor: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  transactionHash: String!
+  blockNumber: Int!
+  logIndex: Int!
+}
+
+type DynamicFeeSwapModule_FeeCapSet {
+  id: ID!
+  chainId: Int!
+  pool: String!
+  feeCap: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  transactionHash: String!
+  blockNumber: Int!
+  logIndex: Int!
+}
