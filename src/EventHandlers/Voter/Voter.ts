@@ -37,12 +37,29 @@ Voter.Voted.handler(async ({ event, context }) => {
   context.Voter_Voted.set(entity);
 });
 
+// Note:
+// These pools are hardcoded since we can't check the pool type from the Voter contract
+const CLPOOLS_LIST: string[] = [
+  '0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a', '0xCc0bDDB707055e04e497aB22a59c2aF4391cd12F',
+  '0x04625B046C69577EfC40e6c0Bb83CDBAfab5a55F'].map(x => x.toLowerCase());
+
+const VAMM_POOLS_LIST: string[] = [
+  '0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a', '0x420DD381b31aEf6683db6B902084cB0FFECe40Da',
+  '0x31832f2a97Fd20664D76Cc421207669b55CE4BC0'].map(x => x.toLowerCase());
+
 Voter.GaugeCreated.contractRegister(
   ({ event, context }) => {
+
+    if (CLPOOLS_LIST.includes(event.params.poolFactory.toLowerCase())) {
+      console.log("Adding CL Gauge", event.params.gauge);
+      context.addCLGauge(event.params.gauge);
+    } else if (VAMM_POOLS_LIST.includes(event.params.poolFactory.toLowerCase())) {
+      console.log("Adding VAMM Gauge", event.params.gauge);
+      context.addGauge(event.params.gauge);
+    }
+
     context.addVotingReward(event.params.bribeVotingReward);
     context.addVotingReward(event.params.feeVotingReward);
-    context.addCLGauge(event.params.gauge);
-    context.addGauge(event.params.gauge);
   },
   { preRegisterDynamicContracts: true }
 );
