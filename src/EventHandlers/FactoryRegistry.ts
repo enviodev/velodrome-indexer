@@ -1,15 +1,5 @@
 import { FactoryRegistry, FactoryRegistry_Approve, FactoryRegistry_Unapprove } from "generated";
 
-FactoryRegistry.Approve.contractRegister(
-  ({ event, context }) => {
-    context.addPoolFactory(event.params.poolFactory);
-    context.addCLFactory(event.params.poolFactory);
-    if (event.chainId === 10) {
-      context.addSuperchainPoolFactory(event.params.poolFactory);
-    }
-  }
-);
-
 FactoryRegistry.Approve.handler(async ({ event, context }) => {
   const entity: FactoryRegistry_Approve = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,

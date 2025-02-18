@@ -51,10 +51,8 @@ Voter.GaugeCreated.contractRegister(
   ({ event, context }) => {
 
     if (CLPOOLS_LIST.includes(event.params.poolFactory.toLowerCase())) {
-      console.log("Adding CL Gauge", event.params.gauge);
       context.addCLGauge(event.params.gauge);
     } else if (VAMM_POOLS_LIST.includes(event.params.poolFactory.toLowerCase())) {
-      console.log("Adding VAMM Gauge", event.params.gauge);
       context.addGauge(event.params.gauge);
     }
 
