@@ -27,6 +27,7 @@ The indexer is written in TypeScript.
   - Remove `.example` from `.env` and add variables to customize secrets in the handlers and configuration.
   - `.env` variables will be included using the [dotenv](https://www.dotenv.org/docs/) library.
   - Assert in deployment that the variables are included if they are necessary for the project.
+    
 
 ### Development
 
