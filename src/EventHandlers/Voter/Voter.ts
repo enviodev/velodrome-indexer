@@ -40,12 +40,14 @@ Voter.Voted.handler(async ({ event, context }) => {
 // Note:
 // These pools are hardcoded since we can't check the pool type from the Voter contract
 const CLPOOLS_LIST: string[] = [
-  '0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a', '0xCc0bDDB707055e04e497aB22a59c2aF4391cd12F',
-  '0x04625B046C69577EfC40e6c0Bb83CDBAfab5a55F'].map(x => x.toLowerCase());
+  '0x5e7BB104d84c7CB9B682AaC2F3d509f5F406809A', // base
+  '0xCc0bDDB707055e04e497aB22a59c2aF4391cd12F', // optimism
+].map(x => x.toLowerCase());
 
 const VAMM_POOLS_LIST: string[] = [
-  '0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a', '0x420DD381b31aEf6683db6B902084cB0FFECe40Da',
-  '0x31832f2a97Fd20664D76Cc421207669b55CE4BC0'].map(x => x.toLowerCase());
+  '0x420DD381b31aEf6683db6B902084cB0FFECe40Da', // base
+  '0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a', // optimism
+].map(x => x.toLowerCase());
 
 Voter.GaugeCreated.contractRegister(
   ({ event, context }) => {
