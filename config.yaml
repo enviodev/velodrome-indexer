@@ -179,6 +179,10 @@ networks:
           - 0x0000000cE42D4981513060aB7E50B9e5e2D19AF1
       - name: ALMLPWrapper
         address:
+      - name: CLGauge
+        address:
+      - name: Gauge
+        address:
   - id: 8453 # Base
     start_block: 0
     contracts:
@@ -216,6 +220,10 @@ networks:
         address:
           - 0x0000000cE42D4981513060aB7E50B9e5e2D19AF1
       - name: ALMLPWrapper
+        address:
+      - name: CLGauge
+        address:
+      - name: Gauge
         address:
   - id: 1868 # Soneium 
     hypersync_config:
