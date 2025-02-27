@@ -10,14 +10,14 @@ import {
   CLPool_SetFeeProtocol,
   CLPool_Swap,
   LiquidityPoolAggregator,
-  Dynamic_Fee_Swap_Module,
   Token,
 } from "generated";
 import { refreshTokenPrice } from "../PriceOracle";
 import { normalizeTokenAmountTo1e18 } from "../Helpers";
 import { multiplyBase1e18, abs } from "../Maths";
 import { updateLiquidityPoolAggregator } from "../Aggregators/LiquidityPoolAggregator";
-import { loaderContext, handlerContext, CLPool_Swap_event } from "generated/src/Types.gen";
+import { handlerContext, CLPool_Swap_event } from "generated/src/Types.gen";
+import { fetchPoolLoaderData } from "../Pools/common";
 
 /**
  * Updates the fee-related metrics for a Concentrated Liquidity Pool.
@@ -174,86 +174,6 @@ function updateCLPoolLiquidity(
   return tokenUpdateData;
 }
 
-type CLPoolSuccessType = "success";
-type CLPoolLoaderErrorType = "LiquidityPoolAggregatorNotFoundError" | "TokenNotFoundError";
-
-type CLPoolLoaderStatus = CLPoolSuccessType | CLPoolLoaderErrorType;
-
-type CLPoolLoaderData = {
-  liquidityPoolAggregator: LiquidityPoolAggregator;
-  token0Instance: Token;
-  token1Instance: Token;
-}
-
-type CLPoolLoaderSuccess = {
-  _type: "success";
-} & CLPoolLoaderData;
-
-type CLPoolLoaderTokenError = {
-  _type: "TokenNotFoundError";
-  message: string;
-  available: {
-    liquidityPoolAggregator: LiquidityPoolAggregator;
-    token0Instance?: Token;
-    token1Instance?: Token;
-  }
-}
-
-type CLPoolLoaderLiquidityPoolError = {
-  _type: "LiquidityPoolAggregatorNotFoundError";
-  message: string;
-  available: Partial<CLPoolLoaderData>
-}
-
-type CLPoolLoaderError<T extends CLPoolLoaderErrorType> = T extends "TokenNotFoundError" ?
-  CLPoolLoaderTokenError : CLPoolLoaderLiquidityPoolError;
-
-type CLPoolLoader<T extends CLPoolLoaderStatus> = T extends "success" ?
-  CLPoolLoaderSuccess :
-    T extends CLPoolLoaderErrorType ?
-      CLPoolLoaderError<T> : never;
-
-/**
- * Fetches the liquidity pool aggregator and token instances for a given event.
- * 
- * @param event - The event containing the pool address
- * @param context - The context object containing the database
- * 
- * @returns {CLPoolLoader} - The loader return object
- */
-async function fetchCLPoolLoaderData(liquidityPoolAddress: string, context: loaderContext, chainId: number): Promise<CLPoolLoader<CLPoolLoaderStatus> > {
-  const liquidityPoolAggregator = await context.LiquidityPoolAggregator.get(liquidityPoolAddress);
-  if (!liquidityPoolAggregator) {
-    return { 
-      _type: "LiquidityPoolAggregatorNotFoundError", 
-      message: `LiquidityPoolAggregator ${liquidityPoolAddress} not found on chain ${chainId}`,
-      available: {
-        liquidityPoolAggregator: undefined,
-        token0Instance: undefined,
-        token1Instance: undefined
-      }
-    };
-  }
-  const [token0Instance, token1Instance] =
-    await Promise.all([
-      context.Token.get(liquidityPoolAggregator.token0_id),
-      context.Token.get(liquidityPoolAggregator.token1_id),
-    ]);
-
-  if (token0Instance == undefined || token1Instance == undefined) {
-    return { 
-      _type: "TokenNotFoundError", 
-      message: `Token not found for pool ${liquidityPoolAddress} on chain ${chainId}`,
-      available: {
-        liquidityPoolAggregator,
-        token0Instance,
-        token1Instance
-      } };
-  }
-
-  return { _type: "success", liquidityPoolAggregator, token0Instance, token1Instance };
-}
-
 CLPool.Burn.handlerWithLoader({
   loader: async ({ event, context }) => {
     return null;
@@ -281,7 +201,7 @@ CLPool.Burn.handlerWithLoader({
 
 CLPool.Collect.handlerWithLoader({
   loader: async ({ event, context }) => {
-    return fetchCLPoolLoaderData(event.srcAddress, context, event.chainId);
+    return fetchPoolLoaderData(event.srcAddress, context, event.chainId);
   },
   handler: async ({ event, context, loaderReturn }) => {
     const entity: CLPool_Collect = {
@@ -326,13 +246,23 @@ CLPool.Collect.handlerWithLoader({
           context,
           event.block.number
         );
+        return
+      case "TokenNotFoundError":
+        context.log.error(loaderReturn.message);
+        return;
+      case "LiquidityPoolAggregatorNotFoundError":
+        context.log.error(loaderReturn.message);
+        return;
+      default:
+        const _exhaustiveCheck: never = loaderReturn;
+        return _exhaustiveCheck;
     }
   },
 });
 
 CLPool.CollectFees.handlerWithLoader({
   loader: async ({ event, context }) => {
-    return fetchCLPoolLoaderData(event.srcAddress, context, event.chainId);
+    return fetchPoolLoaderData(event.srcAddress, context, event.chainId);
   },
   handler: async ({ event, context, loaderReturn }) => {
     const entity: CLPool_CollectFees = {
@@ -387,6 +317,16 @@ CLPool.CollectFees.handlerWithLoader({
           context,
           event.block.number
         );
+        return
+      case "TokenNotFoundError":
+        context.log.error(loaderReturn.message);
+        return;
+      case "LiquidityPoolAggregatorNotFoundError":
+        context.log.error(loaderReturn.message);
+        return;
+      default:
+        const _exhaustiveCheck: never = loaderReturn;
+        return _exhaustiveCheck;
     }
   },
 });
@@ -447,7 +387,7 @@ CLPool.Initialize.handler(async ({ event, context }) => {
 
 CLPool.Mint.handlerWithLoader({
   loader: async ({ event, context }) => {
-    return fetchCLPoolLoaderData(event.srcAddress, context, event.chainId);
+    return fetchPoolLoaderData(event.srcAddress, context, event.chainId);
   },
   handler: async ({ event, context, loaderReturn }) => {
     const entity: CLPool_Mint = {
@@ -494,6 +434,16 @@ CLPool.Mint.handlerWithLoader({
           context,
           event.block.number
         );
+        return;
+      case "TokenNotFoundError":
+        context.log.error(loaderReturn.message);
+        return;
+      case "LiquidityPoolAggregatorNotFoundError":
+        context.log.error(loaderReturn.message);
+        return;
+      default:
+        const _exhaustiveCheck: never = loaderReturn;
+        return _exhaustiveCheck;
     }
   },
 });
@@ -619,7 +569,7 @@ const updateLiquidityPoolAggregatorDiffSwap = (data: SwapEntityData, reserveResu
 
 CLPool.Swap.handlerWithLoader({
   loader: async ({ event, context }) => {
-    return fetchCLPoolLoaderData(event.srcAddress, context, event.chainId);
+    return fetchPoolLoaderData(event.srcAddress, context, event.chainId);
   },
   handler: async ({ event, context, loaderReturn }) => {
     const blockDatetime = new Date(event.block.timestamp * 1000);
@@ -688,38 +638,9 @@ CLPool.Swap.handlerWithLoader({
           context,
           event.block.number
         );
-
         return;
       case "TokenNotFoundError":
-        let tokenNotFoundSwapEntityData: SwapEntityData = {
-          liquidityPoolAggregator: loaderReturn.available.liquidityPoolAggregator,
-          token0Instance: loaderReturn.available.token0Instance,
-          token1Instance: loaderReturn.available.token1Instance,
-          tokenUpdateData,
-          liquidityPoolAggregatorDiff,
-        }
-
-        tokenNotFoundSwapEntityData = await updateToken0SwapData(tokenNotFoundSwapEntityData, event, context);
-        tokenNotFoundSwapEntityData = await updateToken1SwapData(tokenNotFoundSwapEntityData, event, context);
-
-        let tokenNotFoundReserveResult = updateCLPoolLiquidity(
-          tokenNotFoundSwapEntityData.liquidityPoolAggregator,
-          event,
-          tokenNotFoundSwapEntityData.token0Instance,
-          tokenNotFoundSwapEntityData.token1Instance
-        );
-
-        // Merge with previous liquidity pool aggregator values.
-        tokenNotFoundSwapEntityData = updateLiquidityPoolAggregatorDiffSwap(tokenNotFoundSwapEntityData, tokenNotFoundReserveResult);
-
-        updateLiquidityPoolAggregator(
-          tokenNotFoundSwapEntityData.liquidityPoolAggregatorDiff,
-          tokenNotFoundSwapEntityData.liquidityPoolAggregator,
-          blockDatetime,
-          context,
-          event.block.number
-        );
-
+        context.log.error(loaderReturn.message);
         return;
       case "LiquidityPoolAggregatorNotFoundError":
         context.log.error(loaderReturn.message);
