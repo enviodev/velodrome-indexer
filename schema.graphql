@@ -428,6 +428,7 @@ type CLPool_Burn {
   amount: BigInt! @config(precision: 76)
   amount0: BigInt! @config(precision: 76)
   amount1: BigInt! @config(precision: 76)
+  amountUSD: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
   transactionHash: String!
@@ -515,6 +516,7 @@ type CLPool_Mint {
   amount: BigInt! @config(precision: 76)
   amount0: BigInt! @config(precision: 76)
   amount1: BigInt! @config(precision: 76)
+  amountUSD: BigInt! @config(precision: 76)
   sourceAddress: String! @index
   timestamp: Timestamp! @index
   blockNumber: Int!

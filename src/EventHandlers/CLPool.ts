@@ -176,26 +176,38 @@ function updateCLPoolLiquidity(
 
 CLPool.Burn.handlerWithLoader({
   loader: async ({ event, context }) => {
-    return null;
+    return fetchPoolLoaderData(event.srcAddress, context, event.chainId);
   },
   handler: async ({ event, context, loaderReturn }) => {
-    const entity: CLPool_Burn = {
-      id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-      owner: event.params.owner,
-      tickLower: event.params.tickLower,
-      tickUpper: event.params.tickUpper,
-      amount: event.params.amount,
-      amount0: event.params.amount0,
-      amount1: event.params.amount1,
-      sourceAddress: event.srcAddress,
-      timestamp: new Date(event.block.timestamp * 1000),
-      blockNumber: event.block.number,
-      logIndex: event.logIndex,
-      chainId: event.chainId,
-      transactionHash: event.transaction.hash
-    };
+    switch (loaderReturn._type) {
+      case "success":
+        const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;
+        const tokenUpdateData = updateCLPoolLiquidity(
+          liquidityPoolAggregator,
+          event,
+          token0Instance,
+          token1Instance
+        );
+        const entity: CLPool_Burn = {
+          id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+          owner: event.params.owner,
+          tickLower: event.params.tickLower,
+          tickUpper: event.params.tickUpper,
+          amount: event.params.amount,
+          amount0: event.params.amount0,
+          amount1: event.params.amount1,
+          amountUSD: tokenUpdateData.subTotalLiquidityUSD,
+          sourceAddress: event.srcAddress,
+          timestamp: new Date(event.block.timestamp * 1000),
+          blockNumber: event.block.number,
+          logIndex: event.logIndex,
+          chainId: event.chainId,
+          transactionHash: event.transaction.hash
+        };
 
-    context.CLPool_Burn.set(entity);
+        context.CLPool_Burn.set(entity);
+        break;
+    }
   },
 });
 
@@ -390,24 +402,6 @@ CLPool.Mint.handlerWithLoader({
     return fetchPoolLoaderData(event.srcAddress, context, event.chainId);
   },
   handler: async ({ event, context, loaderReturn }) => {
-    const entity: CLPool_Mint = {
-      id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-      sender: event.params.sender,
-      transactionHash: event.transaction.hash,
-      owner: event.params.owner,
-      tickLower: event.params.tickLower,
-      tickUpper: event.params.tickUpper,
-      amount: event.params.amount,
-      amount0: event.params.amount0,
-      amount1: event.params.amount1,
-      sourceAddress: event.srcAddress,
-      timestamp: new Date(event.block.timestamp * 1000),
-      blockNumber: event.block.number,
-      logIndex: event.logIndex,
-      chainId: event.chainId,
-    };
-
-    context.CLPool_Mint.set(entity);
 
     switch (loaderReturn._type) {
       case "success":
@@ -434,16 +428,25 @@ CLPool.Mint.handlerWithLoader({
           context,
           event.block.number
         );
-        return;
-      case "TokenNotFoundError":
-        context.log.error(loaderReturn.message);
-        return;
-      case "LiquidityPoolAggregatorNotFoundError":
-        context.log.error(loaderReturn.message);
-        return;
-      default:
-        const _exhaustiveCheck: never = loaderReturn;
-        return _exhaustiveCheck;
+        const entity: CLPool_Mint = {
+          id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+          sender: event.params.sender,
+          transactionHash: event.transaction.hash,
+          owner: event.params.owner,
+          tickLower: event.params.tickLower,
+          tickUpper: event.params.tickUpper,
+          amount: event.params.amount,
+          amount0: event.params.amount0,
+          amount1: event.params.amount1,
+          amountUSD: tokenUpdateData.addTotalLiquidityUSD,
+          sourceAddress: event.srcAddress,
+          timestamp: new Date(event.block.timestamp * 1000),
+          blockNumber: event.block.number,
+          logIndex: event.logIndex,
+          chainId: event.chainId,
+        };
+
+        context.CLPool_Mint.set(entity);
     }
   },
 });
