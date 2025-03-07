@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import { Web3 } from "web3";
-import { optimism, base, lisk, mode, fraxtal, ink, soneium, metalL2 } from 'viem/chains';
+import { optimism, base, lisk, mode, fraxtal, ink, soneium, metalL2, unichain } from 'viem/chains';
 import { createPublicClient, http, PublicClient } from 'viem';
 
 import PriceConnectors from "./constants/price_connectors.json";
@@ -43,6 +43,9 @@ export const INK_PRICE_CONNECTORS: PriceConnector[] =
 
 export const METAL_PRICE_CONNECTORS: PriceConnector[] =
   PriceConnectors.metal as PriceConnector[];
+
+export const UNICHAIN_PRICE_CONNECTORS: PriceConnector[] =
+  PriceConnectors.unichain as PriceConnector[];
 
 export const toChecksumAddress = (address: string) =>
   Web3.utils.toChecksumAddress(address);
@@ -185,6 +188,29 @@ const SONEIUM_CONSTANTS: chainConstants = {
   }) as PublicClient,
 };
 
+// Constants for Unichain
+const UNICHAIN_CONSTANTS: chainConstants = {
+  weth: "0x4200000000000000000000000000000000000006",
+  usdc: "0x078D782b760474a361dDA0AF3839290b0EF57AD6",
+  oracle: {
+    getAddress: (blockNumber: number) => {
+      return "0xE50621a0527A43534D565B67D64be7C79807F269";
+    },
+    startBlock: 0,
+    updateDelta: 60 * 60, // 1 hour
+    priceConnectors: UNICHAIN_PRICE_CONNECTORS,
+  },
+  rewardToken: (blockNumber: number) =>
+    "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
+  eth_client: createPublicClient({
+    chain: unichain,
+    transport: http(process.env.ENVIO_UNICHAIN_RPC_URL || "	https://mainnet.unichain.org", {
+      retryCount: 10,
+      retryDelay: 1000,
+    }),
+  }) as PublicClient,
+};
+
 
 // Constants for Fraxtal
 const FRAXTAL_CONSTANTS: chainConstants = {
@@ -287,7 +313,8 @@ export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   252: FRAXTAL_CONSTANTS,
   1750: METAL_CONSTANTS,
   1868: SONEIUM_CONSTANTS,
-  57073: INK_CONSTANTS
+  57073: INK_CONSTANTS,
+  130: UNICHAIN_CONSTANTS
 };
 
 export const CacheCategory = {

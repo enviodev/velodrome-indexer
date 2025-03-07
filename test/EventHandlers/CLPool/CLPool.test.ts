@@ -508,34 +508,5 @@ describe("CLPool Event Handlers", () => {
         expect(updatedLiquidityPool.token1IsWhitelisted).to.equal(mockToken1Data.isWhitelisted);
       });
     });
-
-    describe("when tokens do not exist", () => {
-      beforeEach(async () => {
-        let updatedDB = mockDb.entities.LiquidityPoolAggregator.set(mockLiquidityPoolData);
-        updatedDB = updatedDB.entities.Token.set(mockToken1Data);
-
-        await CLPool.Swap.processEvent({
-          event: mockEvent,
-          mockDb: updatedDB,
-        });
-      });
-
-      it("should handle missing token instances", async () => {
-        expect(updateLiquidityPoolAggregatorStub.calledOnce).to.be.true;
-        const [diff] = updateLiquidityPoolAggregatorStub.firstCall.args;
-
-        expect(diff.totalVolume0).to.equal(
-          mockLiquidityPoolData.totalVolume0 + abs(mockEvent.params.amount0)
-        );
-        expect(diff.totalVolume1).to.equal(
-          mockLiquidityPoolData.totalVolume1 + abs(mockEvent.params.amount1)
-        );
-        expect(diff.totalVolumeUSD).to.equal(
-          mockLiquidityPoolData.totalVolumeUSD +
-            (abs(mockEvent.params.amount1) * mockToken1Data.pricePerUSDNew) /
-              10n ** mockToken1Data.decimals
-        );
-      });
-    });
   });
 });

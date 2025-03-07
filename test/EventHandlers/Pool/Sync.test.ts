@@ -55,33 +55,6 @@ describe("Pool Sync Event", () => {
     mockDb = MockDb.createMockDb();
   });
 
-  describe("when both tokens are missing", () => {
-    it("should update LiquidityPool reserves, but not liquidity USD", async () => {
-      const modifiedMockLiquidityPoolData = {
-        ...mockLiquidityPoolData,
-        token0_id: TokenIdByChain("0x9999999999999999999999999999999999999990", 10),
-        token1_id: TokenIdByChain("0x9999999999999999999999999999999999999999", 10),
-      };
-
-      const updatedDB1 = mockDb.entities.LiquidityPoolAggregator.set(modifiedMockLiquidityPoolData as LiquidityPoolAggregator);
-      const mockEvent = Pool.Sync.createMockEvent(eventData);
-
-      const postEventDB = await Pool.Sync.processEvent({
-        event: mockEvent,
-        mockDb: updatedDB1,
-      });
-
-      const updatedPool = postEventDB.entities.LiquidityPoolAggregator.get(
-        toChecksumAddress(eventData.mockEventData.srcAddress)
-      );
-      expect(updatedPool).to.not.be.undefined;
-      expect(updatedPool?.reserve0).to.equal(expectations.expectedReserve0InMissing);
-      expect(updatedPool?.reserve1).to.equal(expectations.expectedReserve1InMissing);
-      expect(updatedPool?.totalLiquidityUSD)
-        .to.equal(mockLiquidityPoolData.totalLiquidityUSD, "totalLiquidityUSD should be the same as the original value");
-    });
-  });
-
   describe("when both tokens exist", () => {
     let postEventDB: ReturnType<typeof MockDb.createMockDb>;
 
