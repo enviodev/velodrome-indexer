@@ -191,7 +191,7 @@ const SONEIUM_CONSTANTS: chainConstants = {
 // Constants for Unichain
 const UNICHAIN_CONSTANTS: chainConstants = {
   weth: "0x4200000000000000000000000000000000000006",
-  usdc: None,
+  usdc: "0x078D782b760474a361dDA0AF3839290b0EF57AD6",
   oracle: {
     getAddress: (blockNumber: number) => {
       return "0xE50621a0527A43534D565B67D64be7C79807F269";
@@ -204,7 +204,7 @@ const UNICHAIN_CONSTANTS: chainConstants = {
     "0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81",
   eth_client: createPublicClient({
     chain: unichain,
-    transport: http(process.env.ENVIO_UNICHAIN_RPC_URL || "https://unichain-rpc.publicnode.com", {
+    transport: http(process.env.ENVIO_UNICHAIN_RPC_URL || "	https://mainnet.unichain.org", {
       retryCount: 10,
       retryDelay: 1000,
     }),
@@ -313,7 +313,8 @@ export const CHAIN_CONSTANTS: Record<number, chainConstants> = {
   252: FRAXTAL_CONSTANTS,
   1750: METAL_CONSTANTS,
   1868: SONEIUM_CONSTANTS,
-  57073: INK_CONSTANTS
+  57073: INK_CONSTANTS,
+  130: UNICHAIN_CONSTANTS
 };
 
 export const CacheCategory = {

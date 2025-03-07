@@ -38,5 +38,7 @@
     "metal": [
         {"address" :"0xBCFc435d8F276585f6431Fc1b9EE9A850B5C00A9", "createdBlock": 79540 }
     ],
-    "unichain": []
+    "unichain": [
+        {"address" :"0x8f187aA05619a017077f5308904739877ce9eA21", "createdBlock": 1 }
+    ]
 }
