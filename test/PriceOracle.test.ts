@@ -41,6 +41,34 @@ describe("PriceOracle", () => {
     sinon.restore();
   });
 
+  describe("getTokenPriceData", () => {
+    describe("for USD like tokens", () => {
+      describe("on Fraxtal", () => {
+        let mockERC20Details: sinon.SinonStub;
+        const expectedDiff = 100000n;
+        const callData = {
+          tokenAddress: "0xFc00000000000000000000000000000000000001",
+          blockNumber: 17845899,
+          chainId: 252
+        };
+        beforeEach(() => {
+          mockERC20Details = sinon.stub(Erc20, "getErc20TokenDetails")
+            .returns({
+              decimals: 18n,
+              name: "FRAX",
+              symbol: "FRAX"
+            } as any);
+        });
+      
+        it("should return the correct price data", async () => {
+            const priceData = await PriceOracle.getTokenPriceData(callData.tokenAddress, callData.blockNumber, callData.chainId);
+            const diff = priceData.pricePerUSDNew - (10n ** 18n)
+            expect(diff < expectedDiff).to.be.true;
+        });
+      });
+    });
+  });
+
   describe("refreshTokenPrice", () => {
     let mockERC20Details: sinon.SinonStub;
     let testLastUpdated: Date;
