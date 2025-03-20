@@ -60,7 +60,7 @@ describe("PriceOracle", () => {
             } as any);
         });
       
-        it("should return the correct price data", async () => {
+        it("should return the correct hardcoded $1 price data for chain USDC", async () => {
             const priceData = await PriceOracle.getTokenPriceData(callData.tokenAddress, callData.blockNumber, callData.chainId);
             const diff = priceData.pricePerUSDNew - (10n ** 18n)
             expect(diff < expectedDiff).to.be.true;
