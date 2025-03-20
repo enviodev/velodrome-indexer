@@ -93,6 +93,7 @@ contracts:
       - event: NotifyReward
       - event: Deposit
       - event: Withdraw
+      - event: ClaimRewards
   - name: Gauge
     abi_file_path: abis/Gauge.json
     handler: src/EventHandlers/Gauge.ts

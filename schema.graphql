@@ -848,3 +848,15 @@ type DynamicFeeSwapModule_FeeCapSet {
   blockNumber: Int!
   logIndex: Int!
 }
+
+type CLGauge_ClaimRewards {
+  id: ID!
+  from: String!
+  amount: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  transactionHash: String!
+  logIndex: Int!
+  chainId: Int!
+}
