@@ -284,6 +284,19 @@ type Pool_Sync {
   chainId: Int!
 }
 
+type Pool_Fees {
+  id: ID!
+  sender: String!
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  transactionHash: String!
+  logIndex: Int!
+  chainId: Int!
+}
+
 type NFPM_Transfer {
   id: ID!
   from: String!
