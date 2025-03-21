@@ -3,6 +3,7 @@ import {
   VotingReward_Withdraw,
   VotingReward_Deposit,
   VotingReward_NotifyReward,
+  VotingReward_ClaimRewards
 } from "generated";
 
 import { LiquidityPoolAggregator, Token } from "./../src/Types.gen";
@@ -131,6 +132,23 @@ VotingReward.Deposit.handler(async ({ event, context }) => {
   };
 
   context.VotingReward_Deposit.set(entity);
+});
+
+VotingReward.ClaimRewards.handler(async ({ event, context }) => {
+  const entity: VotingReward_ClaimRewards = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    from: event.params.from,
+    reward: event.params.reward,
+    amount: event.params.amount,
+    timestamp: new Date(event.block.timestamp * 1000),
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
+    sourceAddress: event.srcAddress,
+    chainId: event.chainId,
+    transactionHash: event.transaction.hash
+  };
+
+  context.VotingReward_ClaimRewards.set(entity);
 });
 
 VotingReward.Withdraw.handler(async ({ event, context }) => {
