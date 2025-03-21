@@ -81,11 +81,13 @@ contracts:
       - event: GaugeCreated(address indexed poolFactory, address indexed votingRewardsFactory, address indexed gaugeFactory, address pool, address incentiveVotingReward, address feeVotingReward, address gauge)
       - event: WhitelistToken(address indexed whitelister, address indexed token, bool indexed _bool)
   - name: VotingReward
+    abi_file_path: abis/VotingReward.json
     handler: src/EventHandlers/VotingReward.ts
     events:
-      - event: Deposit(address indexed from, uint256 indexed tokenId, uint256 amount)
-      - event: NotifyReward(address indexed from, address indexed reward, uint256 indexed epoch, uint256 amount)
-      - event: Withdraw(address indexed from, uint256 indexed tokenId, uint256 amount)
+      - event: Deposit
+      - event: NotifyReward
+      - event: Withdraw
+      - event: ClaimRewards
   - name: CLGauge
     abi_file_path: abis/CLGauge.json
     handler: src/EventHandlers/CLGauge.ts
