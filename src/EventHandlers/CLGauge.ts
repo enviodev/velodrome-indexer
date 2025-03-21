@@ -2,7 +2,8 @@ import {
   CLGauge,
   CLGauge_NotifyReward,
   CLGauge_Deposit,
-  CLGauge_Withdraw
+  CLGauge_Withdraw,
+  CLGauge_ClaimRewards
 } from "generated";
 
 CLGauge.NotifyReward.handler(async ({ event, context }) => {
@@ -54,4 +55,20 @@ CLGauge.Withdraw.handler(async ({ event, context }) => {
   };
 
   context.CLGauge_Withdraw.set(entity);
+});
+
+CLGauge.ClaimRewards.handler(async ({ event, context }) => {
+  const entity: CLGauge_ClaimRewards = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    from: event.params.from,
+    amount: event.params.amount,
+    timestamp: new Date(event.block.timestamp * 1000),
+    blockNumber: event.block.number,
+    logIndex: event.logIndex,
+    sourceAddress: event.srcAddress,
+    chainId: event.chainId,
+    transactionHash: event.transaction.hash
+  };
+
+  context.CLGauge_ClaimRewards.set(entity);
 });

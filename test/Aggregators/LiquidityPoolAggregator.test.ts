@@ -3,6 +3,7 @@ import sinon from "sinon";
 import {
   LiquidityPoolAggregator,
 } from "../../generated/src/Types.gen";
+import { CHAIN_CONSTANTS } from "../../src/Constants";
 import {
   getCurrentAccumulatedFeeCL,
   setLiquidityPoolAggregatorSnapshot,
@@ -14,6 +15,7 @@ describe("LiquidityPoolAggregator Functions", () => {
   let contextStub: any;
   let liquidityPoolAggregator: any;
   let timestamp: Date;
+  let mockContract: any;
   const blockNumber = 131536921;
 
   beforeEach(() => {
@@ -29,11 +31,25 @@ describe("LiquidityPoolAggregator Functions", () => {
     timestamp = new Date();
   });
 
+  afterEach(() => {
+    sinon.restore();
+  });
+
   describe("updateDynamicFeePools", () => {
     beforeEach(async () => {
-      contextStub.Dynamic_Fee_Swap_Module.set.reset();
+      mockContract = sinon.stub(CHAIN_CONSTANTS[10].eth_client, "simulateContract").onCall(0)
+        .returns({
+          result: [400, 2000, 10000000n]
+        } as any);
+      mockContract.onCall(1).returns({
+        result: 1900
+      } as any);
       liquidityPoolAggregator.id = "0x478946BcD4a5a22b316470F5486fAfb928C0bA25";
       await updateDynamicFeePools(liquidityPoolAggregator as LiquidityPoolAggregator, contextStub, blockNumber);
+    });
+    afterEach(() => {
+      mockContract.reset();
+      contextStub.Dynamic_Fee_Swap_Module.set.reset();
     });
     it("should update the dynamic fee pools", async () => {
       const expected_id = `${liquidityPoolAggregator.chainId}-${liquidityPoolAggregator.id}-${blockNumber}` 
@@ -49,7 +65,14 @@ describe("LiquidityPoolAggregator Functions", () => {
     let gaugeFees: any;
     beforeEach(async () => {
       liquidityPoolAggregator.id = "0x478946BcD4a5a22b316470F5486fAfb928C0bA25";
+      mockContract = sinon.stub(CHAIN_CONSTANTS[10].eth_client, "simulateContract").onCall(0)
+        .returns({
+          result: [55255516292n, 18613785323003103999n]
+        } as any);
       gaugeFees = await getCurrentAccumulatedFeeCL(liquidityPoolAggregator.id, liquidityPoolAggregator.chainId, blockNumber);
+    });
+    afterEach(() => {
+      mockContract.reset();
     });
     it("should fetch accumulated gauge fees for the CL pool", async () => {
       expect(gaugeFees.token0Fees).to.equal(55255516292n);

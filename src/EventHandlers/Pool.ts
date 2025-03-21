@@ -1,4 +1,4 @@
-import { Pool, Pool_Swap, Pool_Sync, Pool_Mint, Pool_Burn } from "generated";
+import { Pool, Pool_Swap, Pool_Sync, Pool_Mint, Pool_Burn, Pool_Fees } from "generated";
 
 import { normalizeTokenAmountTo1e18 } from "./../Helpers";
 import { multiplyBase1e18 } from "./../Maths";
@@ -47,6 +47,22 @@ Pool.Fees.handlerWithLoader({
     return fetchPoolLoaderData(event.srcAddress, context, event.chainId);
   },
   handler: async ({ event, context, loaderReturn }) => {
+
+    const entity: Pool_Fees = {
+      id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+      sender: event.params.sender,
+      amount0: event.params.amount0,
+      amount1: event.params.amount1,
+      sourceAddress: event.srcAddress,
+      timestamp: new Date(event.block.timestamp * 1000),
+      blockNumber: event.block.number,
+      logIndex: event.logIndex,
+      chainId: event.chainId,
+      transactionHash: event.transaction.hash
+    };
+
+    context.Pool_Fees.set(entity);
+
     switch (loaderReturn._type) {
       case "success":
         const { liquidityPoolAggregator, token0Instance, token1Instance } = loaderReturn;

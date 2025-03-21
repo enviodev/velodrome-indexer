@@ -117,6 +117,10 @@ export async function getTokenPriceData(
   const USDC_ADDRESS = CHAIN_CONSTANTS[chainId].usdc;
   const SYSTEM_TOKEN_ADDRESS = CHAIN_CONSTANTS[chainId].rewardToken(blockNumber);
 
+  if(tokenAddress === USDC_ADDRESS) {
+    return { pricePerUSDNew: 18n, decimals: BigInt(tokenDetails.decimals) };
+  }
+
   const connectors = CHAIN_CONSTANTS[chainId].oracle.priceConnectors
     .filter((connector) => connector.createdBlock <= blockNumber)
     .map((connector) => connector.address)

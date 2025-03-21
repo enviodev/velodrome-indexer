@@ -214,6 +214,19 @@ type VotingReward_NotifyReward {
   chainId: Int!
 }
 
+type VotingReward_ClaimRewards {
+  id: ID!
+  from: String!
+  reward: String!
+  amount: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  transactionHash: String!
+  logIndex: Int!
+  chainId: Int!
+}
+
 # Event for when a swap occurs in a pool
 type Pool_Swap {
   id: ID!
@@ -263,6 +276,19 @@ type Pool_Sync {
   id: ID!
   reserve0: BigInt! @config(precision: 76)
   reserve1: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  transactionHash: String!
+  logIndex: Int!
+  chainId: Int!
+}
+
+type Pool_Fees {
+  id: ID!
+  sender: String!
+  amount0: BigInt! @config(precision: 76)
+  amount1: BigInt! @config(precision: 76)
   sourceAddress: String!
   timestamp: Timestamp!
   blockNumber: Int!
@@ -847,4 +873,16 @@ type DynamicFeeSwapModule_FeeCapSet {
   transactionHash: String!
   blockNumber: Int!
   logIndex: Int!
+}
+
+type CLGauge_ClaimRewards {
+  id: ID!
+  from: String!
+  amount: BigInt! @config(precision: 76)
+  sourceAddress: String!
+  timestamp: Timestamp!
+  blockNumber: Int!
+  transactionHash: String!
+  logIndex: Int!
+  chainId: Int!
 }
