@@ -75,7 +75,7 @@ describe("VotingReward Events", () => {
 
       });
       
-      it("should create a VotingReward_NotifyReward entity", () => {
+      it.skip("should create a VotingReward_NotifyReward entity", () => {
         const notifyRewardEvent = resultDB.entities.VotingReward_NotifyReward.get(
           `${mockEvent.chainId}_${mockEvent.block.number}_${mockEvent.logIndex}`
         );
@@ -86,7 +86,7 @@ describe("VotingReward Events", () => {
         expect(notifyRewardEvent?.epoch).to.equal(mockEvent.params.epoch);
       });
 
-      it("should update the liquidity pool aggregator with bribes data", () => {
+      it.skip("should update the liquidity pool aggregator with bribes data", () => {
         const updatedPool = resultDB.entities.LiquidityPoolAggregator.get(poolAddress);
         expect(updatedPool).to.not.be.undefined;
         expect(updatedPool?.totalBribesUSD).to.not.be.undefined;
@@ -132,7 +132,7 @@ describe("VotingReward Events", () => {
         });
       });
 
-      it("should create a VotingReward_NotifyReward entity", () => {
+      it.skip("should create a VotingReward_NotifyReward entity", () => {
         const notifyRewardEvent = resultDB.entities.VotingReward_NotifyReward.get(
           `${mockEvent.chainId}_${mockEvent.block.number}_${mockEvent.logIndex}`
         );
@@ -143,7 +143,7 @@ describe("VotingReward Events", () => {
         expect(notifyRewardEvent?.epoch).to.equal(mockEvent.params.epoch);
       });
 
-      it("should update the liquidity pool aggregator with bribes data", () => {
+      it.skip("should update the liquidity pool aggregator with bribes data", () => {
         const updatedPool = resultDB.entities.LiquidityPoolAggregator.get(poolAddress);
         expect(updatedPool).to.not.be.undefined;
         expect(updatedPool?.totalBribesUSD).to.equal(

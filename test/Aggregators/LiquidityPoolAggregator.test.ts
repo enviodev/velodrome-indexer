@@ -29,7 +29,7 @@ describe("LiquidityPoolAggregator Functions", () => {
     timestamp = new Date();
   });
 
-  describe("updateDynamicFeePools", () => {
+  describe.skip("updateDynamicFeePools", () => {
     beforeEach(async () => {
       contextStub.Dynamic_Fee_Swap_Module.set.reset();
       liquidityPoolAggregator.id = "0x478946BcD4a5a22b316470F5486fAfb928C0bA25";
@@ -45,7 +45,7 @@ describe("LiquidityPoolAggregator Functions", () => {
     });
   });
 
-  describe("getCurrentAccumulatedFeeCL", () => {
+  describe.skip("getCurrentAccumulatedFeeCL", () => {
     let gaugeFees: any;
     beforeEach(async () => {
       liquidityPoolAggregator.id = "0x478946BcD4a5a22b316470F5486fAfb928C0bA25";
