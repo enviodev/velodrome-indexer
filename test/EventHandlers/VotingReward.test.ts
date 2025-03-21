@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { MockDb, VotingReward } from "../../generated/src/TestHelpers.gen";
-import { TokenIdByChain } from "../../src/Constants";
+import { CHAIN_CONSTANTS, TokenIdByChain } from "../../src/Constants";
 import { Token, LiquidityPoolAggregator } from "../../generated/src/Types.gen";
 import * as Store from "../../src/Store";
 import sinon from "sinon";
@@ -25,6 +25,7 @@ describe("VotingReward Events", () => {
     const bribeVotingRewardAddress = "0x9afdc6c6caad5ff953e2cff9777c3af2e5d796fb";
     const rewardTokenAddress = "0x4200000000000000000000000000000000000042";
     const blockNumber = 128404994;
+    let mockContract: sinon.SinonStub;
 
     beforeEach(() => {
       mockDb = MockDb.createMockDb();
@@ -54,28 +55,38 @@ describe("VotingReward Events", () => {
 
     afterEach(() => {
       sinon.restore();
+      mockContract.reset();
     });
 
     describe("when reward token does not exist", () => {
       let resultDB: ReturnType<typeof MockDb.createMockDb>;
 
       beforeEach(async () => {
+
+        mockContract = sinon.stub(CHAIN_CONSTANTS[chainId].eth_client, "simulateContract")
+          .returns({
+            result: [1000n, 1000n]
+          } as any);
         // Setup mock liquidity pool
         const { mockLiquidityPoolData } = setupCommon();
 
         mockLiquidityPoolData.id = poolAddress;
 
-        resultDB = mockDb.entities.LiquidityPoolAggregator.set(mockLiquidityPoolData as LiquidityPoolAggregator);
+        const updatedDB1 = mockDb.entities.LiquidityPoolAggregator.set(mockLiquidityPoolData as LiquidityPoolAggregator);
 
         // Process the event
         resultDB = await VotingReward.NotifyReward.processEvent({
           event: mockEvent,
-          mockDb: resultDB,
+          mockDb: updatedDB1,
         });
 
       });
+
+      afterEach(() => {
+        mockContract.reset();
+      });
       
-      it.skip("should create a VotingReward_NotifyReward entity", () => {
+      it("should create a VotingReward_NotifyReward entity", () => {
         const notifyRewardEvent = resultDB.entities.VotingReward_NotifyReward.get(
           `${mockEvent.chainId}_${mockEvent.block.number}_${mockEvent.logIndex}`
         );
@@ -86,7 +97,7 @@ describe("VotingReward Events", () => {
         expect(notifyRewardEvent?.epoch).to.equal(mockEvent.params.epoch);
       });
 
-      it.skip("should update the liquidity pool aggregator with bribes data", () => {
+      it("should update the liquidity pool aggregator with bribes data", () => {
         const updatedPool = resultDB.entities.LiquidityPoolAggregator.get(poolAddress);
         expect(updatedPool).to.not.be.undefined;
         expect(updatedPool?.totalBribesUSD).to.not.be.undefined;
@@ -102,6 +113,10 @@ describe("VotingReward Events", () => {
       let expectedBribesUSD = 0n;
       
       beforeEach(async () => {
+        mockContract = sinon.stub(CHAIN_CONSTANTS[chainId].eth_client, "simulateContract")
+          .returns({
+            result: [1000n, 1000n]
+          } as any);
 
         const { mockLiquidityPoolData } = setupCommon();
         mockLiquidityPoolData.id = poolAddress;
@@ -132,7 +147,11 @@ describe("VotingReward Events", () => {
         });
       });
 
-      it.skip("should create a VotingReward_NotifyReward entity", () => {
+      afterEach(() => {
+        mockContract.reset();
+      });
+
+      it("should create a VotingReward_NotifyReward entity", () => {
         const notifyRewardEvent = resultDB.entities.VotingReward_NotifyReward.get(
           `${mockEvent.chainId}_${mockEvent.block.number}_${mockEvent.logIndex}`
         );
@@ -143,7 +162,7 @@ describe("VotingReward Events", () => {
         expect(notifyRewardEvent?.epoch).to.equal(mockEvent.params.epoch);
       });
 
-      it.skip("should update the liquidity pool aggregator with bribes data", () => {
+      it("should update the liquidity pool aggregator with bribes data", () => {
         const updatedPool = resultDB.entities.LiquidityPoolAggregator.get(poolAddress);
         expect(updatedPool).to.not.be.undefined;
         expect(updatedPool?.totalBribesUSD).to.equal(
