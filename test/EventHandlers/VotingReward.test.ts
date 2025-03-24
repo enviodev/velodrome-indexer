@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { MockDb, VotingReward } from "../../generated/src/TestHelpers.gen";
-import { TokenIdByChain } from "../../src/Constants";
+import { CHAIN_CONSTANTS, TokenIdByChain } from "../../src/Constants";
 import { Token, LiquidityPoolAggregator } from "../../generated/src/Types.gen";
 import * as Store from "../../src/Store";
 import sinon from "sinon";
@@ -25,6 +25,7 @@ describe("VotingReward Events", () => {
     const bribeVotingRewardAddress = "0x9afdc6c6caad5ff953e2cff9777c3af2e5d796fb";
     const rewardTokenAddress = "0x4200000000000000000000000000000000000042";
     const blockNumber = 128404994;
+    let mockContract: sinon.SinonStub;
 
     beforeEach(() => {
       mockDb = MockDb.createMockDb();
@@ -54,25 +55,35 @@ describe("VotingReward Events", () => {
 
     afterEach(() => {
       sinon.restore();
+      mockContract.reset();
     });
 
     describe("when reward token does not exist", () => {
       let resultDB: ReturnType<typeof MockDb.createMockDb>;
 
       beforeEach(async () => {
+
+        mockContract = sinon.stub(CHAIN_CONSTANTS[chainId].eth_client, "simulateContract")
+          .returns({
+            result: [1000n, 1000n]
+          } as any);
         // Setup mock liquidity pool
         const { mockLiquidityPoolData } = setupCommon();
 
         mockLiquidityPoolData.id = poolAddress;
 
-        resultDB = mockDb.entities.LiquidityPoolAggregator.set(mockLiquidityPoolData as LiquidityPoolAggregator);
+        const updatedDB1 = mockDb.entities.LiquidityPoolAggregator.set(mockLiquidityPoolData as LiquidityPoolAggregator);
 
         // Process the event
         resultDB = await VotingReward.NotifyReward.processEvent({
           event: mockEvent,
-          mockDb: resultDB,
+          mockDb: updatedDB1,
         });
 
+      });
+
+      afterEach(() => {
+        mockContract.reset();
       });
       
       it("should create a VotingReward_NotifyReward entity", () => {
@@ -102,6 +113,10 @@ describe("VotingReward Events", () => {
       let expectedBribesUSD = 0n;
       
       beforeEach(async () => {
+        mockContract = sinon.stub(CHAIN_CONSTANTS[chainId].eth_client, "simulateContract")
+          .returns({
+            result: [1000n, 1000n]
+          } as any);
 
         const { mockLiquidityPoolData } = setupCommon();
         mockLiquidityPoolData.id = poolAddress;
@@ -130,6 +145,10 @@ describe("VotingReward Events", () => {
           event: mockEvent,
           mockDb: resultDB,
         });
+      });
+
+      afterEach(() => {
+        mockContract.reset();
       });
 
       it("should create a VotingReward_NotifyReward entity", () => {
