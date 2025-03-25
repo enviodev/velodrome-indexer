@@ -50,12 +50,19 @@ export const UNICHAIN_PRICE_CONNECTORS: PriceConnector[] =
 export const toChecksumAddress = (address: string) =>
   Web3.utils.toChecksumAddress(address);
 
+export enum PriceOracleType {
+   V3 = 'v3',
+   V2 = 'v2', 
+   V1 = 'v1',
+}
+
 // Object containing all the constants for a chain
 type chainConstants = {
   weth: string;
   usdc: string;
   oracle: {
-    getAddress: (blockNumber: number) => string;
+    getType: (blockNumber: number) => PriceOracleType;
+    getAddress: (priceOracleType: PriceOracleType) => string;
     startBlock: number;
     updateDelta: number;
     priceConnectors: PriceConnector[];
@@ -69,10 +76,24 @@ const OPTIMISM_CONSTANTS: chainConstants = {
   weth: "0x4200000000000000000000000000000000000006",
   usdc: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
   oracle: {
-    getAddress: (blockNumber: number) => {
-      return blockNumber < 124076662
-        ? "0x395942C2049604a314d39F370Dfb8D87AAC89e16"
-        : "0x6a3af44e23395d2470f7c81331add6ede8597306";
+    getType: (blockNumber: number) => {
+      if (blockNumber > 125484892) {
+        return PriceOracleType.V3;
+      } else if (blockNumber > 124076662) {
+        return PriceOracleType.V2;
+      } else {
+        return PriceOracleType.V1;
+      }
+    },
+    getAddress: (priceOracleType: PriceOracleType) => {
+      switch (priceOracleType) {
+        case PriceOracleType.V3:
+          return "0x59114D308C6DE4A84F5F8cD80485a5481047b99f";
+        case PriceOracleType.V2:
+          return "0x6a3af44e23395d2470f7c81331add6ede8597306";
+        case PriceOracleType.V1:
+          return "0x395942C2049604a314d39F370Dfb8D87AAC89e16";
+      }
     },
     startBlock: 107676013,
     updateDelta: 60 * 60, // 1 hour
@@ -99,10 +120,24 @@ const BASE_CONSTANTS: chainConstants = {
   weth: "0x4200000000000000000000000000000000000006",
   usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   oracle: {
-    getAddress: (blockNumber: number) => {
-      return blockNumber < 18480097
-        ? "0xe58920a8c684CD3d6dCaC2a41b12998e4CB17EfE"
-        : "0xcbf5b6abf55fb87271338097fdd03e9d82a9d63f";
+    getType: (blockNumber: number) => {
+      if (blockNumber > 19862773) {
+        return PriceOracleType.V3;
+      } else if (blockNumber > 18480097) {
+        return PriceOracleType.V2;
+      } else {
+        return PriceOracleType.V1;
+      }
+    },
+    getAddress: (priceOracleType: PriceOracleType) => {
+      switch (priceOracleType) {
+        case PriceOracleType.V3:
+          return "0x3B06c787711ecb5624cE65AC8F26cde10831eb0C";
+        case PriceOracleType.V2:
+          return "0xcbf5b6abf55fb87271338097fdd03e9d82a9d63f";
+        case PriceOracleType.V1:
+          return "0xe58920a8c684CD3d6dCaC2a41b12998e4CB17EfE";
+      }
     },
     startBlock: 3219857,
     updateDelta: 60 * 60, // 1 hour
@@ -112,7 +147,7 @@ const BASE_CONSTANTS: chainConstants = {
     "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
   eth_client: createPublicClient({
     chain: base,
-    transport: http(process.env.ENVIO_BASE_RPC_URL || "https://base.publicnode.com", {
+    transport: http(process.env.ENVIO_BASE_RPC_URL || "https://base.llamarpc.com", {
       retryCount: 10,
       retryDelay: 1000,
     }),
@@ -124,8 +159,22 @@ const LISK_CONSTANTS: chainConstants = {
   weth: "0x4200000000000000000000000000000000000006",
   usdc: "0xF242275d3a6527d877f2c927a82D9b057609cc71",
   oracle: {
-    getAddress: (blockNumber: number) => {
-      return "0xE50621a0527A43534D565B67D64be7C79807F269";
+    getType: (blockNumber: number) => {
+      if (blockNumber > 8457278) {
+        return PriceOracleType.V3;
+      } else  {
+        return PriceOracleType.V2;
+      }
+    },
+    getAddress: (priceOracleType: PriceOracleType) => {
+      switch (priceOracleType) {
+        case PriceOracleType.V3:
+          return "0x024503003fFE9AF285f47c1DaAaA497D9f1166D0";
+        case PriceOracleType.V2:
+          return "0xE50621a0527A43534D565B67D64be7C79807F269";
+        case PriceOracleType.V1:
+          return "0xE50621a0527A43534D565B67D64be7C79807F269";
+      }
     },
     startBlock: 8380726,
     updateDelta: 60 * 60, // 1 hour
@@ -147,8 +196,22 @@ const MODE_CONSTANTS: chainConstants = {
   weth: "0x4200000000000000000000000000000000000006",
   usdc: "0xd988097fb8612cc24eeC14542bC03424c656005f",
   oracle: {
-    getAddress: (blockNumber: number) => {
-      return "0xE50621a0527A43534D565B67D64be7C79807F269";
+    getType: (blockNumber: number) => {
+      if (blockNumber > 15738649) {
+        return PriceOracleType.V3;
+      } else {
+        return PriceOracleType.V2;
+      }
+    },
+    getAddress: (priceOracleType: PriceOracleType) => {
+      switch (priceOracleType) {
+        case PriceOracleType.V3:
+          return "0xbAEe949B52cb503e39f1Df54Dcee778da59E11bc";
+        case PriceOracleType.V2:
+          return "0xE50621a0527A43534D565B67D64be7C79807F269";
+        case PriceOracleType.V1:
+          return "0xE50621a0527A43534D565B67D64be7C79807F269";
+      }
     },
     startBlock: 15591759,
     updateDelta: 60 * 60, // 1 hour
@@ -170,10 +233,13 @@ const SONEIUM_CONSTANTS: chainConstants = {
   weth: "0x4200000000000000000000000000000000000006",
   usdc: "0xbA9986D2381edf1DA03B0B9c1f8b00dc4AacC369",
   oracle: {
-    getAddress: (blockNumber: number) => {
-      return "0xE50621a0527A43534D565B67D64be7C79807F269";
+    getType: (blockNumber: number) => {
+      return PriceOracleType.V3;
     },
-    startBlock: 0, // TODO: Get start block
+    getAddress: (priceOracleType: PriceOracleType) => {
+      return "0xe58920a8c684CD3d6dCaC2a41b12998e4CB17EfE";
+    },
+    startBlock: 1863998, // TODO: Get start block
     updateDelta: 60 * 60, // 1 hour
     priceConnectors: SONEIUM_PRICE_CONNECTORS,
   },
@@ -193,10 +259,13 @@ const UNICHAIN_CONSTANTS: chainConstants = {
   weth: "0x4200000000000000000000000000000000000006",
   usdc: "0x078D782b760474a361dDA0AF3839290b0EF57AD6",
   oracle: {
-    getAddress: (blockNumber: number) => {
-      return "0xE50621a0527A43534D565B67D64be7C79807F269";
+    getType: (blockNumber: number) => {
+      return PriceOracleType.V3;
     },
-    startBlock: 0,
+    getAddress: (priceOracleType: PriceOracleType) => {
+      return "0xe58920a8c684CD3d6dCaC2a41b12998e4CB17EfE";
+    },
+    startBlock: 9415475,
     updateDelta: 60 * 60, // 1 hour
     priceConnectors: UNICHAIN_PRICE_CONNECTORS,
   },
@@ -217,11 +286,22 @@ const FRAXTAL_CONSTANTS: chainConstants = {
   weth: "0xFC00000000000000000000000000000000000006",
   usdc: "0xFc00000000000000000000000000000000000001",
   oracle: {
-    getAddress: (blockNumber: number) => {
+    getType: (blockNumber: number) => {
       if (blockNumber > 12710720) {
-        return "0x4817f8D70aE32Ee96e5E6BFA24eb7Fcfa83bbf29";
+        return PriceOracleType.V3;
+      } else {
+        return PriceOracleType.V2;
       }
-      return "0xE50621a0527A43534D565B67D64be7C79807F269";
+    },
+    getAddress: (priceOracleType: PriceOracleType) => {
+      switch (priceOracleType) {
+        case PriceOracleType.V3:
+          return "0x4817f8D70aE32Ee96e5E6BFA24eb7Fcfa83bbf29";
+        case PriceOracleType.V2:
+          return "0xE50621a0527A43534D565B67D64be7C79807F269";
+        case PriceOracleType.V1:
+          return "0xE50621a0527A43534D565B67D64be7C79807F269";
+      }
     },
     startBlock: 12640176,
     updateDelta: 60 * 60, // 1 hour
@@ -243,10 +323,13 @@ const INK_CONSTANTS: chainConstants = {
   weth: "0x4200000000000000000000000000000000000006",
   usdc: "0xF1815bd50389c46847f0Bda824eC8da914045D14",
   oracle: {
-    getAddress: (blockNumber: number) => {
-      return "0xE50621a0527A43534D565B67D64be7C79807F269";
+    getType: (blockNumber: number) => {
+      return PriceOracleType.V3;
     },
-    startBlock: 3422094,
+    getAddress: (priceOracleType: PriceOracleType) => {
+      return "0xe58920a8c684CD3d6dCaC2a41b12998e4CB17EfE";
+    },
+    startBlock: 3361885,
     updateDelta: 60 * 60, // 1 hour
     priceConnectors: INK_PRICE_CONNECTORS,
   },
@@ -266,10 +349,13 @@ const METAL_CONSTANTS: chainConstants = {
   weth: "0x4200000000000000000000000000000000000006",
   usdc: "0xb91CFCcA485C6E40E3bC622f9BFA02a8ACdEeBab",
   oracle: {
-    getAddress: (blockNumber: number) => {
+    getType: (blockNumber: number) => {
+      return PriceOracleType.V3;
+    },
+    getAddress: (priceOracleType: PriceOracleType) => {
       return "0x3e71CCdf495d9628D3655A600Bcad3afF2ddea98";
     },
-    startBlock: 0,
+    startBlock: 11438647,
     updateDelta: 60 * 60, // 1 hour
     priceConnectors: METAL_PRICE_CONNECTORS,
   },

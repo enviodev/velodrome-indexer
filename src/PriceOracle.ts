@@ -11,6 +11,7 @@ import { createHash } from "crypto";
 import { getErc20TokenDetails } from "./Erc20";
 import PriceOracleABI from "../abis/VeloPriceOracleABI.json";
 import SpotPriceAggregatorABI from "../abis/SpotPriceAggregator.json";
+import { PriceOracleType, TEN_TO_THE_18_BI } from "./Constants";
 export interface TokenPriceData {
   pricePerUSDNew: bigint;
   decimals: bigint;
@@ -118,8 +119,13 @@ export async function getTokenPriceData(
   const USDC_ADDRESS = CHAIN_CONSTANTS[chainId].usdc;
   const SYSTEM_TOKEN_ADDRESS = CHAIN_CONSTANTS[chainId].rewardToken(blockNumber);
 
+  const USDTokenDetails = await getErc20TokenDetails(
+    USDC_ADDRESS,
+    chainId
+  );
+
   if(tokenAddress === USDC_ADDRESS) {
-    return { pricePerUSDNew: 18n, decimals: BigInt(tokenDetails.decimals) };
+    return { pricePerUSDNew: TEN_TO_THE_18_BI, decimals: BigInt(tokenDetails.decimals) };
   }
 
   const connectors = CHAIN_CONSTANTS[chainId].oracle.priceConnectors
@@ -137,16 +143,19 @@ export async function getTokenPriceData(
 
   if (ORACLE_DEPLOYED) {
     try {
-      const prices = await read_prices(
+      const priceData = await read_prices(
         tokenAddress,
         USDC_ADDRESS, 
-        [
-        ...connectors,
-        SYSTEM_TOKEN_ADDRESS, 
-        WETH_ADDRESS, 
-        USDC_ADDRESS], 
+        SYSTEM_TOKEN_ADDRESS,
+        WETH_ADDRESS,
+        connectors,
       chainId, blockNumber);
-      pricePerUSDNew = BigInt(prices[0]);
+      if (priceData.priceOracleType === PriceOracleType.V3) {
+        // Convert to 18 decimals.
+        pricePerUSDNew = priceData.pricePerUSDNew * TEN_TO_THE_18_BI / (10n ** BigInt(USDTokenDetails.decimals));
+      } else {
+        pricePerUSDNew = priceData.pricePerUSDNew;
+      }
       decimals = BigInt(tokenDetails.decimals);
     } catch (error) {
       console.error("Error fetching token price", error);
@@ -177,24 +186,51 @@ export async function getTokenPriceData(
 export async function read_prices(
   tokenAddress: string,
   usdcAddress: string,
-  addrs: string[],
+  systemTokenAddress: string,
+  wethAddress: string,
+  connectors: string[],
   chainId: number,
   blockNumber: number
-): Promise<bigint[]> {
+): Promise<{ pricePerUSDNew: bigint, priceOracleType: PriceOracleType }> {
 
   const ethClient = CHAIN_CONSTANTS[chainId].eth_client;
-  const numAddrs = 1; // Return the first address only.
+  const priceOracleType = CHAIN_CONSTANTS[chainId].oracle.getType(blockNumber);
+  const priceOracleAddress = CHAIN_CONSTANTS[chainId].oracle.getAddress(priceOracleType);
 
   try {
-    const { result } = await ethClient.simulateContract({
-      address: CHAIN_CONSTANTS[chainId].oracle.getAddress(blockNumber) as `0x${string}`,
-      abi: SpotPriceAggregatorABI,
-      functionName: 'getManyRatesWithCustomConnectors',
-      args: [[tokenAddress], usdcAddress, false, addrs, 10],
-      blockNumber: BigInt(blockNumber),
-    });
-    return result;
+    if (priceOracleType === PriceOracleType.V3) {
+      const tokenAddressArray = [
+        ...connectors,
+        systemTokenAddress, 
+        wethAddress,
+        usdcAddress
+      ]; 
+      const { result } = await ethClient.simulateContract({
+        address: priceOracleAddress as `0x${string}`,
+        abi: SpotPriceAggregatorABI,
+        functionName: 'getManyRatesWithCustomConnectors',
+        args: [[tokenAddress], usdcAddress, false, tokenAddressArray, 10],
+        blockNumber: BigInt(blockNumber),
+      });
+      return { pricePerUSDNew: BigInt(result[0]), priceOracleType };
+    } else {
+      const tokenAddressArray = [
+        tokenAddress,
+        ...connectors,
+        systemTokenAddress, 
+        wethAddress,
+        usdcAddress
+      ]; 
+      const { result } = await ethClient.simulateContract({
+        address: priceOracleAddress as `0x${string}`,
+        abi: PriceOracleABI,
+        functionName: 'getManyRatesWithConnectors',
+        args: [1, tokenAddressArray], // return 1 price
+        blockNumber: BigInt(blockNumber),
+      });
+      return { pricePerUSDNew: BigInt(result[0]), priceOracleType };
+    }
   } catch (error) {
-    return [0n];
+    return { pricePerUSDNew: 0n, priceOracleType: PriceOracleType.V2 };
   }
 }
