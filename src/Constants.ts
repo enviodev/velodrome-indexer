@@ -218,6 +218,9 @@ const FRAXTAL_CONSTANTS: chainConstants = {
   usdc: "0xFc00000000000000000000000000000000000001",
   oracle: {
     getAddress: (blockNumber: number) => {
+      if (blockNumber > 12710720) {
+        return "0x4817f8D70aE32Ee96e5E6BFA24eb7Fcfa83bbf29";
+      }
       return "0xE50621a0527A43534D565B67D64be7C79807F269";
     },
     startBlock: 12640176,
