@@ -10,6 +10,7 @@ import { Cache, ShapePricesList } from "./cache";
 import { createHash } from "crypto";
 import { getErc20TokenDetails } from "./Erc20";
 import PriceOracleABI from "../abis/VeloPriceOracleABI.json";
+import SpotPriceAggregatorABI from "../abis/SpotPriceAggregator.json";
 export interface TokenPriceData {
   pricePerUSDNew: bigint;
   decimals: bigint;
@@ -136,8 +137,10 @@ export async function getTokenPriceData(
 
   if (ORACLE_DEPLOYED) {
     try {
-      const prices = await read_prices([
+      const prices = await read_prices(
         tokenAddress,
+        USDC_ADDRESS, 
+        [
         ...connectors,
         SYSTEM_TOKEN_ADDRESS, 
         WETH_ADDRESS, 
@@ -172,10 +175,12 @@ export async function getTokenPriceData(
  *                 is an issue with the contract call.
  */
 export async function read_prices(
+  tokenAddress: string,
+  usdcAddress: string,
   addrs: string[],
   chainId: number,
   blockNumber: number
-): Promise<string[]> {
+): Promise<bigint[]> {
 
   const ethClient = CHAIN_CONSTANTS[chainId].eth_client;
   const numAddrs = 1; // Return the first address only.
@@ -183,13 +188,13 @@ export async function read_prices(
   try {
     const { result } = await ethClient.simulateContract({
       address: CHAIN_CONSTANTS[chainId].oracle.getAddress(blockNumber) as `0x${string}`,
-      abi: PriceOracleABI,
-      functionName: 'getManyRatesWithConnectors',
-      args: [numAddrs, addrs],
+      abi: SpotPriceAggregatorABI,
+      functionName: 'getManyRatesWithCustomConnectors',
+      args: [[tokenAddress], usdcAddress, false, addrs, 10],
       blockNumber: BigInt(blockNumber),
     });
     return result;
   } catch (error) {
-    return addrs.map(() => "0");
+    return [0n];
   }
 }

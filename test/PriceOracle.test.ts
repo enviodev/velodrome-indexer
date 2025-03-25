@@ -131,4 +131,22 @@ describe("PriceOracle", () => {
       });
     });
   });
+
+  describe("read_prices", () => {
+     describe('integration test', () => {
+      const addrs = CHAIN_CONSTANTS[252].oracle.priceConnectors.map((connector) => connector.address);
+
+      const test = {
+        tokenAddress: CHAIN_CONSTANTS[252].weth,
+        usdcAddress: CHAIN_CONSTANTS[252].usdc,
+        addrs: addrs,
+        chainId: 252,
+        blockNumber: 18028605
+      };
+      it("should return the correct prices", async () => {
+        const price = await PriceOracle.read_prices(test.tokenAddress, test.usdcAddress, test.addrs, test.chainId, test.blockNumber);
+        expect(price[0]).to.equal(2063950680307235736469n);
+      });
+    });
+  });
 });
