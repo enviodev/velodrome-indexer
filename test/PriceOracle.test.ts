@@ -131,4 +131,80 @@ describe("PriceOracle", () => {
       });
     });
   });
+
+  describe("read_prices", () => {
+     describe('integration test', () => {
+
+      describe("Fraxtal Suite", () => {
+        let mockERC20Details: sinon.SinonStub;
+        const chainId = 252;
+
+        beforeEach(() => {
+          mockERC20Details = sinon.stub(Erc20, "getErc20TokenDetails")
+          .onCall(0).returns({
+              decimals: 18n,
+              name: "WETH",
+              symbol: "WETH"
+            } as any)
+          .onCall(1).returns({
+            decimals: 18n,
+            name: "USDC",
+            symbol: "USDC"
+          } as any);
+        }); 
+
+        afterEach(() => {
+            mockERC20Details.restore();
+        });
+
+        it("Scenario Fraxtal should return the correct prices", async () => {
+          const test = {
+            tokenAddress: CHAIN_CONSTANTS[chainId].weth,
+            chainId: chainId,
+            blockNumber: 18028605
+          };
+          const price = await PriceOracle.getTokenPriceData(test.tokenAddress, test.blockNumber, test.chainId);
+          expect(price.pricePerUSDNew).to.equal(2063950680307235736469n);
+        });
+      });
+      describe("Base Suite", () => {
+        let mockERC20Details: sinon.SinonStub;
+        const chainId = 8453;
+        const test = {
+          tokenAddress: CHAIN_CONSTANTS[chainId].weth,
+        };
+
+        describe("WETH", () => {
+          beforeEach(() => {
+            mockERC20Details = sinon.stub(Erc20, "getErc20TokenDetails")
+            .onCall(0).returns({
+                decimals: 18n,
+                name: "WETH",
+                symbol: "WETH"
+              } as any)
+            .onCall(1).returns({
+              decimals: 6n,
+              name: "USDC",
+              symbol: "USDC"
+            } as any);
+          }); 
+
+          afterEach(() => {
+            mockERC20Details.restore();
+          });
+
+          it("Old should return the correct prices", async () => {
+            const blockNumber = 19862773 - 1;
+            const price = await PriceOracle.getTokenPriceData(test.tokenAddress, blockNumber, chainId);
+            expect(price.pricePerUSDNew).to.equal(2294389397280012597629n);
+          });
+          it("New should return the correct prices by converting to 18 decimals", async () => {
+            const blockNumber =  28070572;
+            const price = await PriceOracle.getTokenPriceData(test.tokenAddress, blockNumber, chainId);
+            expect(price.pricePerUSDNew).to.equal(2067268302000000000000n);
+          });
+        });
+      });
+    });
+  });
 });
