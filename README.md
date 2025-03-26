@@ -27,7 +27,6 @@ The indexer is written in TypeScript.
   - Remove `.example` from `.env` and add variables to customize secrets in the handlers and configuration.
   - `.env` variables will be included using the [dotenv](https://www.dotenv.org/docs/) library.
   - Assert in deployment that the variables are included if they are necessary for the project.
-    
 
 ### Development
 
@@ -73,7 +72,7 @@ To stop the indexer, run
 pnpm envio stop
 ```
 
-### Hydra-mode
+### Hydra-mode (deprecated)
 
 Hydra is a postgres based database that exposes the same postgres api but stores the data in a columnlar layout which is optimised for analytic type queries that aggregate data across large numbers of rows on large datasets.
 
