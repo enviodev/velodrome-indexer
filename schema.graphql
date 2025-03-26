@@ -784,6 +784,18 @@ type ALMLPWrapper_Transfer {
   logIndex: Int!
 }
 
+type ALMLPWrapper_TotalSupplyLimitUpdated {
+  id: ID!
+  newTotalSupplyLimit: BigInt! @config(precision: 76)
+  totalSupplyLimitOld: BigInt! @config(precision: 76)
+  totalSupplyCurrent: BigInt! @config(precision: 76)
+  timestamp: Timestamp!
+  transactionHash: String!
+  chainId: Int!
+  blockNumber: Int!
+  logIndex: Int!
+}
+
 type ERC20_Transfer {
   id: ID!
   from: String!
