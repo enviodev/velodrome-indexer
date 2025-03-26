@@ -2,7 +2,8 @@ import {
     ALMLPWrapper,
     ALMLPWrapper_Deposit,
     ALMLPWrapper_Transfer,
-    ALMLPWrapper_Withdraw
+    ALMLPWrapper_Withdraw,
+    ALMLPWrapper_TotalSupplyLimitUpdated
 } from "generated";
 
 ALMLPWrapper.Deposit.handler(async ({ event, context }) => {
@@ -86,3 +87,25 @@ ALMLPWrapper.Transfer.handler(async ({ event, context }) => {
 
   context.ALMLPWrapper_Transfer.set(entity);
 });
+
+ALMLPWrapper.TotalSupplyLimitUpdated.handler(async ({ event, context }) => {
+  const {
+    newTotalSupplyLimit,
+    totalSupplyLimitOld,
+    totalSupplyCurrent
+  } = event.params;
+
+  const entity: ALMLPWrapper_TotalSupplyLimitUpdated = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    newTotalSupplyLimit,
+    totalSupplyLimitOld,
+    totalSupplyCurrent,
+    transactionHash: event.transaction.hash,
+    timestamp: new Date(event.block.timestamp * 1000),
+    chainId: event.chainId,
+    blockNumber: event.block.number,
+    logIndex: event.logIndex
+  };
+
+  context.ALMLPWrapper_TotalSupplyLimitUpdated.set(entity);
+}); 
